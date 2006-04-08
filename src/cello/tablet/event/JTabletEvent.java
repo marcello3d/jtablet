@@ -3,36 +3,36 @@
  */
 package cello.tablet.event;
 
-import java.awt.AWTEvent;
 import java.awt.event.MouseEvent;
 
-import cello.tablet.JTabletCursor;
-
-/**
+/** JTablet event
  * @author Thor Harald Johansen
  * 
  */
-public class JTabletEvent extends AWTEvent {
-    public final static int JTABLET = AWTEvent.RESERVED_ID_MAX + 1983;
-    
-    protected JTabletCursor cursor;
-
+public class JTabletEvent {
+    protected int pressure;
+    protected int pressureExtent;
     /**
-     * Constructs a JTabletEvent from a MouseEvent and a JTabletCursor
+     * Constructs a JTabletEvent from a mouse event.
      * 
-     * @param source
-     * @param cursor
+     * @param e Mouse event to decode.
      */
-    public JTabletEvent(Object source, JTabletCursor cursor) {
-        super(source, JTABLET);
+    public JTabletEvent(MouseEvent e) {
+        /* Get 'when' data. */
+        long when = e.getWhen();
+        
+        /* Decode pressure. */
+        pressure = (int)(when >> 32);
+        
+        /* Decode pressure extent. */
+        pressureExtent = (int)(when & 0xFFFFFFFF);
     }
-
-    /**
-     * Gets tablet cursor for this event.
-     * 
-     * @return JTabletCursor
-     */
-    public JTabletCursor getCursor() {
-        return cursor;
+    
+    public int getPressure() {
+        return pressure;
+    }
+    
+    public int getPressureExtent() {
+        return pressureExtent;
     }
 }
