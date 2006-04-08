@@ -1,0 +1,20 @@
+# makefile part of linux port 
+# Linux port contributed by Ben Davis (http://bdavis.strangesoft.net/)
+
+.PHONY: all install clean test test2
+
+all:
+	@$(MAKE) --no-print-directory -f Makefile.linux.all
+
+install:
+	cp libjtablet.so `java-config --jdk-home`/jre/lib/i386/
+	cp ../jtablet.jar `java-config --jdk-home`/jre/lib/ext/
+
+clean:
+	rm -f libjtablet.so *.o *.d
+
+test:
+	cd test && appletviewer JTablet-test2.html
+
+test2:
+	cd test && java -cp jtablettest.jar:lui.jar cello.tablettest.JTablettest2

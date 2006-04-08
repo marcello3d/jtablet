@@ -1,0 +1,87 @@
+#/***************************************************************
+# *
+# * JTablet is an open-source native Tablet library for Java by
+# *    Marcello Bastéa-Forte (marcello@cellosoft.com
+# *
+# *   You are free to modify this code as you wish, but any
+# *   useful/significant changes should be contributed back to
+# *   original project.  *This entire message should remain intact*
+# *
+# *  If you are interested in using JTablet in commercial 
+# *  projects, please contact me at marcello@cellosoft.com
+# *
+# ***************************************************************/
+#
+#/***************************************************************
+# *
+# * File information:
+# *
+# *   Makefile.win - does various compilations for the Windows
+# * version of JTablet.
+# *
+# *  Last update: March 8, 2004
+# *  For version: 0.9.4
+# *
+# ***************************************************************/
+
+
+ifdef DEBUGMODE
+	FLAGS = /nologo /MLd /W3 /Gm /GX /Zi /Od /D "DEBUG"
+else
+	FLAGS = /nologo /ML /W3 /GX /O2
+endif
+
+JDK = c:/jdk/
+
+INCLUDE = -I"C:\Program Files\DevStudio\VC\include" -I$(JDK)include -I$(JDK)include\win32
+
+
+all: install
+
+jtablet.dll: wintabaccess.obj cello_tablet_JTablet.obj JTablet.obj JTablet.res
+	cl $(INCLUDE) $(FLAGS) -LD $^ -Fejtablet.dll -link WNTAB32X.LIB kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
+	upx -q -9 jtablet.dll
+
+testapp: test.cpp
+	cl $^ -o jtablettest.exe -link WNTAB32X.LIB kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib
+
+
+install: jtablet.dll
+	xcopy /Y jtablet.dll C:\winnt\system32
+
+clean:
+	@del *.obj
+	@del jtablet.dll
+	@del *.ilk
+	@del *.idb
+	@del *.pdb
+	@del *.lib
+	@del *.res
+	@del *.exp
+
+cello_tablet_JTablet.h: ../src/cello/tablet/JTablet.java
+	javah -classpath ../classes/ -d . cello.tablet.JTablet
+	
+cello_tablet_JTabletCursor.h: ../src/cello/tablet/JTabletCursor.java
+	javah -classpath ../classes/ -d . cello.tablet.JTabletCursor
+
+installer: jtablet.dll jtablet2.nsi
+	"c:\Program Files\NSIS\makensis" jtablet2.nsi
+
+
+test:
+	cd test
+	appletviewer JTablet-test.html
+
+test2:
+	cd test
+	appletviewer JTablet-test2.html
+
+%.res: %.rc
+	rc /l 0x409 /fo"$@" $<
+
+%.obj: %.cpp %.h
+	cl $(INCLUDE) $(FLAGS) -c $< -o $@
+
+	
+
