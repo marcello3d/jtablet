@@ -15,13 +15,13 @@
 package cello.tablet;
 
 /**
- * Class that handles JTablet exceptions.  This class is used internally
- * by JTablet to handle hardware and software errors.
- *
+ * Class that handles JTablet exceptions. This class is used internally by
+ * JTablet to handle hardware and software errors.
+ * 
  * @version 0.2 2/18/2003
  * @author Marcello Bastea-Forte
  */
- 
+
 public class JTabletException extends Exception {
 	/**
 	 * 
