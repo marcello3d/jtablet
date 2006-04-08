@@ -28,10 +28,6 @@ import cello.lui.lUIDefaults;
 
 public final class JTablettest extends Applet
 				implements	Runnable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -2442103506888200529L;
 	private Thread mainThread,loadThread;
 	boolean initialized=false;
 	boolean error=false;
@@ -287,7 +283,6 @@ class JTabletSurface extends lComponent {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 2438111182489242245L;
 	private MemoryImageSource mis;
 	IndexColorModel icm;
 	byte[] pixels;
