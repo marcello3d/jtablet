@@ -14,7 +14,6 @@
 
 package cello.tablet;
 
-import java.security.*;
 
 /**
  * The entrance JTablet class.  Tablet information is stateless, but
@@ -46,7 +45,7 @@ public class JTablet {
 		// Load system library
 		try {
 			try {
-				Class c = Class.forName("java.security.AccessController");
+				Class.forName("java.security.AccessController");
 				JTabletLoadNative.loadNative();
 			} catch (Exception e) {
 				System.loadLibrary("jtablet");
@@ -73,8 +72,8 @@ public class JTablet {
 
 	/**
 	 * Creates a new JTablet object.
-	 * @exception JTabletException if the native library could not be loaded or no tablet is available
 	 * @param fullControl Tries to access the tablet with full control for digitizing purposes.
+	 * @exception JTabletException if the native library could not be loaded or no tablet is available
 	 * @since 0.9.1
 	 */
 	public JTablet(boolean fullControl) throws JTabletException {
@@ -136,7 +135,6 @@ public class JTablet {
 	}
 	/**
 	 * Unloads the native driver for JTablet
-	 * @exception JTabletException if there was an error unloading the tablet
 	 */
 	public void close() {
 		if (access_count<=1)

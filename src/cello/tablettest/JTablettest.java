@@ -248,7 +248,7 @@ public final class JTablettest extends Applet
 		app.init();
 		app.start();
 		frame.addWindowListener(new WindowAdapter() {
-			void windowClosing(WindowEvent ev) {
+			public void windowClosing(WindowEvent ev) {
 				System.exit(0);
 			}
 		});
