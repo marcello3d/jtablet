@@ -23,15 +23,15 @@ package cello.tablet;
  */
 
 public class JTabletException extends Exception {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2162749738051232777L;
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 2162749738051232777L;
 
-	/**
-	 * Constructs a new JTabletException with a given error message.
-	 */
-	public JTabletException(String message) {
-		super(message);
-	}
+    /**
+     * Constructs a new JTabletException with a given error message.
+     */
+    public JTabletException(String message) {
+        super(message);
+    }
 }

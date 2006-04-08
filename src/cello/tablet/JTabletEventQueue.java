@@ -16,27 +16,27 @@ import cello.tablet.event.JTabletEvent;
  * 
  */
 public class JTabletEventQueue extends EventQueue {
-	protected JTablet jtablet;
+    protected JTablet jtablet;
 
-	protected JTabletEvent jtevent;
+    protected JTabletEvent jtevent;
 
-	protected JTabletEventQueue() {
+    protected JTabletEventQueue() {
 
-	}
+    }
 
-	public JTabletEventQueue(JTablet jtablet) {
-		this.jtablet = jtablet;
-	}
+    public JTabletEventQueue(JTablet jtablet) {
+        this.jtablet = jtablet;
+    }
 
-	protected void dispatchEvent(AWTEvent event) {
-		try {
-			if (event instanceof MouseEvent && jtablet.poll()
-					&& jtablet.hasCursor()) {
+    protected void dispatchEvent(AWTEvent event) {
+        try {
+            if (event instanceof MouseEvent && jtablet.poll()
+                    && jtablet.hasCursor()) {
 
-			}
-		} catch (JTabletException e) {
+            }
+        } catch (JTabletException e) {
 
-		}
-		super.dispatchEvent(event);
-	}
+        }
+        super.dispatchEvent(event);
+    }
 }
