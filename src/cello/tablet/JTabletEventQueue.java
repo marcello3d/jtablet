@@ -16,22 +16,35 @@ import cello.tablet.event.JTabletEvent;
  * 
  */
 public class JTabletEventQueue extends EventQueue {
-    protected JTablet jtablet;
-
-    protected JTabletEvent jtevent;
-
-    protected JTabletEventQueue() {
-
+    protected static JTablet jtablet = null;
+    protected static boolean jtabletHealthy = true;
+    
+    protected static JTabletCursor mouseCursor;
+    
+    public JTabletEventQueue() {
+        this(false);
     }
 
-    public JTabletEventQueue(JTablet jtablet) {
-        this.jtablet = jtablet;
+    public JTabletEventQueue(boolean fullControl) {
+        if(jtabletHealthy && jtablet == null) {
+            try {
+                jtablet = new JTablet(fullControl);
+            } catch(JTabletException e) {
+                jtabletHealthy = false;
+            }
+        
+            mouseCursor.cursorName = null;
+            mouseCursor.physicalId = 0;
+            mouseCursor.cursorTypeGeneral = JTabletCursor.TYPE_PUCK;
+            mouseCursor.cursorTypeSpecific = JTabletCursor.TYPE_UNKNOWN;
+            mouseCursor.dataTime = 0;
+        }
     }
 
     protected void dispatchEvent(AWTEvent event) {
         try {
-            if (event instanceof MouseEvent && jtablet.poll()
-                    && jtablet.hasCursor()) {
+            if (event instanceof MouseEvent) {
+                jtablet.poll();
 
             }
         } catch (JTabletException e) {
