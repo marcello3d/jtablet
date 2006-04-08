@@ -1,17 +1,37 @@
 package cello.tablettest;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.net.*;
-import java.util.*;
-import java.applet.*;
-import java.lang.reflect.*;
+import java.applet.Applet;
+import java.awt.AWTEvent;
+import java.awt.BorderLayout;
+import java.awt.Canvas;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.IndexColorModel;
+import java.awt.image.MemoryImageSource;
+import java.lang.reflect.Method;
 
-import cello.lui.*;
+import cello.lui.lComponent;
+import cello.lui.lLabel;
+import cello.lui.lPanel;
+import cello.lui.lRootPanel;
+import cello.lui.lUIDefaults;
 
 public final class JTablettest extends Applet
 				implements	Runnable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2442103506888200529L;
 	private Thread mainThread,loadThread;
 	boolean initialized=false;
 	boolean error=false;
@@ -201,6 +221,10 @@ public final class JTablettest extends Applet
 		}
 	}
 	class Surface extends Canvas {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 3799989397714414810L;
 		Graphics offGraphics;
 		Dimension offDimension;
 		Image offImage;
@@ -237,10 +261,10 @@ public final class JTablettest extends Applet
 	public Dimension getPreferredSize() {
 		return getSize();
 	}
-	private void setMovingCursor() { surface.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)); }
+	//private void setMovingCursor() { surface.setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)); }
 	private void setWaitingCursor() { surface.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR)); }
 	private void setNormalCursor() { surface.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR)); }
-	private void setHandCursor() { surface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); }
+	//private void setHandCursor() { surface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); }
 	public static void main(String args[]) {
 		Frame frame = new Frame(APPNAMEVERSION);
 		JTablettest app = new JTablettest();
@@ -253,13 +277,17 @@ public final class JTablettest extends Applet
 			}
 		});
 		frame.setSize(new Dimension(400,300));
-		frame.show();
+		frame.setVisible(true);
 	}
 }
 
 
 class JTabletSurface extends lComponent {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2438111182489242245L;
 	private MemoryImageSource mis;
 	IndexColorModel icm;
 	byte[] pixels;

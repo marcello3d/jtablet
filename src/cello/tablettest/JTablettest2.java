@@ -1,22 +1,24 @@
 package cello.tablettest;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.*;
-import java.net.*;
-import java.util.*;
-import java.applet.*;
-import java.lang.reflect.*;
+import java.applet.Applet;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.GridLayout;
 
-import cello.lui.*;
-
-import cello.tablet.*;
+import cello.lui.lLabel;
+import cello.lui.lPanel;
+import cello.lui.lRootPanel;
+import cello.tablet.JTablet;
+import cello.tablet.JTabletCursor;
+import cello.tablet.JTabletException;
 
 public final class JTablettest2 extends Applet
 				implements	Runnable {
 	private Thread mainThread;
 
-	private static final String DISTNAME = "JTablet";
+	//private static final String DISTNAME = "JTablet";
 	private static final String APPNAMEVERSION = "JTablet Test v2.0";
 
 	lLabel labels[], labels2[];
@@ -31,7 +33,7 @@ public final class JTablettest2 extends Applet
 		app.init();
 		app.start();
 		frame.setSize(new Dimension(400,300));
-		frame.show();
+		frame.setVisible(true);
 	}	
 	
 	public void init() {
