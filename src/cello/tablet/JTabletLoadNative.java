@@ -1,7 +1,7 @@
 /***************************************************************
  *
  * JTablet is an open-source native Tablet library for Java by
- *    Marcello Bastéa-Forte (marcello@cellosoft.com
+ *	Marcello Bastéa-Forte (marcello@cellosoft.com
  *
  *   You are free to modify this code as you wish, but any
  *   useful/significant changes should be contributed back to
@@ -25,15 +25,15 @@ import java.security.*;
  */
  
 public class JTabletLoadNative {
-    public static final void loadNative() {
-        AccessController.doPrivileged(
-            new PrivilegedAction() { 
-                public Object run() {
-                    System.loadLibrary("jtablet"); 
-                    return null;
-                }
-            }
-        );
-    }
+	public static final void loadNative() {
+		AccessController.doPrivileged(
+			new PrivilegedAction() { 
+				public Object run() {
+					System.loadLibrary("jtablet"); 
+					return null;
+				}
+			}
+		);
+	}
 
 }
