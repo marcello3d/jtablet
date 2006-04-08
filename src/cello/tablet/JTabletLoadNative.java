@@ -25,6 +25,9 @@ import java.security.*;
  */
 
 public class JTabletLoadNative {
+    /**
+     * 
+     */
     public static final void loadNative() {
         AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {

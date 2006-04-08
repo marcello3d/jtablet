@@ -401,5 +401,4 @@ public class JTabletCursor {
         return ((float) (getData(type) - getDataMinimum(type)))
                 / (getDataMaximum(type) - getDataMinimum(type));
     }
-
 }

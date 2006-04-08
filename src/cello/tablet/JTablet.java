@@ -132,6 +132,7 @@ public class JTablet {
      * It may be useful to disable this option if you want to retrieve an
      * extended amount of information.
      * 
+     * @param b Whether or not to enable poll mode.
      * @see #isPollModeLatest
      * @see #poll
      * @since 0.9.1
@@ -206,7 +207,7 @@ public class JTablet {
     /**
      * Retrieves the current pressure of the tablet as an int. Use
      * <code>getPressureExtent()</code> to find the maximum value.
-     * 
+     * @return Current pressure.
      * @see cello.tablet.JTabletCursor#getPressure
      * @see #getPressureExtent
      */
