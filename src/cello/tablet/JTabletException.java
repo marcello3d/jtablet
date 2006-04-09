@@ -30,6 +30,7 @@ public class JTabletException extends Exception {
 
     /**
      * Constructs a new JTabletException with a given error message.
+     * 
      * @param message Error message.
      */
     public JTabletException(String message) {

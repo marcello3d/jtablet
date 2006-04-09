@@ -21,12 +21,12 @@ package cello.tablet;
  * To construct a JTablet object, you must catch <code>JTabletException</code>.
  * 
  * <pre>
- *    try {
- *  	JTablet jtablet = new JTablet();
- *    } catch (JTabletException jte) {
- *  	System.err.println(&quot;Could not load JTablet! (&quot; + jte.toString() + &quot;).&quot;);
- *    }
- *   `
+ *     try {
+ *   	JTablet jtablet = new JTablet();
+ *     } catch (JTabletException jte) {
+ *   	System.err.println(&quot;Could not load JTablet! (&quot; + jte.toString() + &quot;).&quot;);
+ *     }
+ *    `
  * </pre>
  * 
  * @version 0.9.3 3/6/2004
@@ -46,11 +46,11 @@ public class JTablet {
             try {
                 Class.forName("java.security.AccessController");
                 JTabletLoadNative.loadNative();
-            } catch (Exception e) {
+            } catch(Exception e) {
                 System.loadLibrary("jtablet");
             }
             library_loaded = true;
-        } catch (Exception e) {
+        } catch(Exception e) {
             System.err.println("JTablet could not be loaded (" + e.toString()
                     + ").");
         }
@@ -63,9 +63,8 @@ public class JTablet {
     /**
      * Creates a new JTablet object without full control.
      * 
-     * @exception JTabletException
-     *                if the native library could not be loaded or no tablet is
-     *                available.
+     * @exception JTabletException if the native library could not be loaded or
+     *                no tablet is available.
      * @see #JTablet(boolean)
      */
     public JTablet() throws JTabletException {
@@ -75,18 +74,16 @@ public class JTablet {
     /**
      * Creates a new JTablet object.
      * 
-     * @param fullControl
-     *            Tries to access the tablet with full control for digitizing
-     *            purposes.
-     * @exception JTabletException
-     *                if the native library could not be loaded or no tablet is
-     *                available
+     * @param fullControl Tries to access the tablet with full control for
+     *            digitizing purposes.
+     * @exception JTabletException if the native library could not be loaded or
+     *                no tablet is available
      * @since 0.9.1
      */
     public JTablet(boolean fullControl) throws JTabletException {
-        if (!library_loaded)
+        if(!library_loaded)
             throw new JTabletException("Could not load JTablet native library.");
-        if (!tabletAvailable())
+        if(!tabletAvailable())
             throw new JTabletException("Tablet not available.");
         initializeTablet(fullControl);
         access_count++;
@@ -127,10 +124,8 @@ public class JTablet {
     /**
      * If this option is enabled (by default), whenever JTablet.poll() is called
      * the latest information will be retrieved, rather than the next available
-     * information.
-     * 
-     * It may be useful to disable this option if you want to retrieve an
-     * extended amount of information.
+     * information. It may be useful to disable this option if you want to
+     * retrieve an extended amount of information.
      * 
      * @param b Whether or not to enable poll mode.
      * @see #isPollModeLatest
@@ -144,8 +139,7 @@ public class JTablet {
     /**
      * Unloads the native driver for JTablet
      * 
-     * @exception JTabletException
-     *                if there was an error unloading the tablet
+     * @exception JTabletException if there was an error unloading the tablet
      */
     public void finalize() throws JTabletException {
         close();
@@ -155,7 +149,7 @@ public class JTablet {
      * Unloads the native driver for JTablet
      */
     public void close() {
-        if (access_count <= 1)
+        if(access_count <= 1)
             closeTablet();
         access_count--;
     }
@@ -182,22 +176,20 @@ public class JTablet {
 
     /**
      * Polls the tablet for the latest tablet information. This should be done
-     * as frequently as possible for the best results.
-     * 
-     * If poll mode is set to latest, then this will return the last known
-     * information from the tablet, skipping anything since the last poll.
+     * as frequently as possible for the best results. If poll mode is set to
+     * latest, then this will return the last known information from the tablet,
+     * skipping anything since the last poll.
      * 
      * @see #isPollModeLatest
      * @see #setPollModeLatest(boolean)
      * @return true if any new information was retrieved
-     * @exception JTabletException
-     *                if there was an error reading the tablet
+     * @exception JTabletException if there was an error reading the tablet
      */
     public boolean poll() throws JTabletException {
         JTabletCursor newCursor = pollCursor(pollModeLatest);
-        if (newCursor == null)
+        if(newCursor == null)
             return false;
-        if (currentCursor != newCursor) {
+        if(currentCursor != newCursor) {
             currentCursor = newCursor;
             // TODO: trigger some listener perhaps?
         }
@@ -207,12 +199,13 @@ public class JTablet {
     /**
      * Retrieves the current pressure of the tablet as an int. Use
      * <code>getPressureExtent()</code> to find the maximum value.
+     * 
      * @return Current pressure.
      * @see cello.tablet.JTabletCursor#getPressure
      * @see #getPressureExtent
      */
     public int getPressure() {
-        if (!hasCursor())
+        if(!hasCursor())
             return 0;
         return getCursor().getPressure();
     }
@@ -225,15 +218,14 @@ public class JTablet {
      * @see #getPressure
      */
     public int getPressureExtent() {
-        if (!hasCursor())
+        if(!hasCursor())
             return 0;
         return getCursor().getPressureExtent();
     }
 
     /**
-     * Retrieves the angle of the tablet.
-     * 
-     * As of version 0.9.1, this feature always returns 0.
+     * Retrieves the angle of the tablet. As of version 0.9.1, this feature
+     * always returns 0.
      * 
      * @deprecated
      * @return returns 0
@@ -274,31 +266,29 @@ public class JTablet {
 
     /**
      * Retrieves the orientation of the tablet. If this value is negative, the
-     * user has turned their stylus upside-down and is using it as an eraser.
-     * 
-     * As of v0.9.1, JTabletCursor.getData() should be used instead.
+     * user has turned their stylus upside-down and is using it as an eraser. As
+     * of v0.9.1, JTabletCursor.getData() should be used instead.
      * 
      * @see cello.tablet.JTabletCursor#getData(int)
      * @deprecated
      * @return the orientation value
      */
     public int getOrientation() {
-        if (!hasCursor())
+        if(!hasCursor())
             return 0;
         return getCursor().getData(JTabletCursor.DATA_ORIENTATION_ALTITUDE);
     }
 
     /**
-     * Retrieves the buttons from the tablet.
-     * 
-     * As of v0.9.1, JTabletCursor.getData() should be used instead.
+     * Retrieves the buttons from the tablet. As of v0.9.1,
+     * JTabletCursor.getData() should be used instead.
      * 
      * @see cello.tablet.JTabletCursor#getData(int)
      * @deprecated
      * @return the buttons value
      */
     public int getButtons() {
-        if (!hasCursor())
+        if(!hasCursor())
             return 0;
         return getCursor().getData(JTabletCursor.DATA_BUTTONS);
     }

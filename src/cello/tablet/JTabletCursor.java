@@ -16,21 +16,18 @@ package cello.tablet;
 
 /**
  * Object representation of a physical cursor on the tablet.
- * 
  * <p>
  * For each input of a stylus, mouse, airbrush, etc. on the tablet, a separate
  * JTabletCursor object is created. The same stylus could have multiple
  * JTabletCursor objects associated. They should have the same physicalId,
  * assuming the tablet supports this feature.
- * 
  * <p>
  * For example, the pen tip, and eraser will be separate JTabletCursor objects,
  * but getPhysicalId() on both will return the same value.
- * 
  * <p>
  * 
  * <pre>
- * if (jtablet.hasCursor()) {
+ * if(jtablet.hasCursor()) {
  *     JTabletCursor cursor = jtablet.getCursor();
  *     setPosition(cursor.getData(JTabletCursor.DATA_X), cursor
  *             .getData(JTabletCursor.DATA_Y));
@@ -271,8 +268,7 @@ public class JTabletCursor {
      * 
      * @see #getDataMaximum(int)
      * @see #getDataMinimum(int)
-     * @param type
-     *            A JTabletCursor.DATA_<i>XXX...</i> constant.
+     * @param type A JTabletCursor.DATA_<i>XXX...</i> constant.
      * @return the raw data
      */
     public int getData(int type) {
@@ -282,8 +278,7 @@ public class JTabletCursor {
     /**
      * Retrieves the tablet's maximum value for the specified data type.
      * 
-     * @param type
-     *            A JTabletCursor.DATA_<i>XXX...</i> constant.
+     * @param type A JTabletCursor.DATA_<i>XXX...</i> constant.
      * @return the maximum value
      */
     public int getDataMaximum(int type) {
@@ -294,8 +289,7 @@ public class JTabletCursor {
     /**
      * Retrieves the tablet's minimum value for the specified data type.
      * 
-     * @param type
-     *            A JTabletCursor.DATA_<i>XXX...</i> constant.
+     * @param type A JTabletCursor.DATA_<i>XXX...</i> constant.
      * @return the minimum value
      */
     public int getDataMinimum(int type) {
@@ -309,8 +303,7 @@ public class JTabletCursor {
      * a return value of true, does <i>not</i> guarantee that the cursor or
      * tablet actually supports this value.
      * 
-     * @param type
-     *            A JTabletCursor.DATA_<i>XXX...</i> constant.
+     * @param type A JTabletCursor.DATA_<i>XXX...</i> constant.
      * @return if specified data type is supported
      */
     public boolean isDataSupported(int type) {
@@ -321,22 +314,21 @@ public class JTabletCursor {
     /**
      * Checks and possibly updates cached range data.
      * 
-     * @param type
-     *            A JTabletCursor.DATA_<i>XXX...</i> constant.
+     * @param type A JTabletCursor.DATA_<i>XXX...</i> constant.
      */
     private void retrieveData(int type) {
-        if (dataIsAvailable == null) {
+        if(dataIsAvailable == null) {
             dataMaximum = new int[DATA_ARRAY_SIZE];
             dataMinimum = new int[DATA_ARRAY_SIZE];
             dataIsAvailable = new boolean[DATA_ARRAY_SIZE];
             dataSupported = new boolean[DATA_ARRAY_SIZE];
         }
 
-        if (dataIsAvailable[type])
+        if(dataIsAvailable[type])
             return;
         try {
             JTablet.getCursorData(this, type);
-        } catch (JTabletException e) {
+        } catch(JTabletException e) {
             dataIsAvailable[type] = false;
         }
     }
@@ -378,7 +370,7 @@ public class JTabletCursor {
      * uses the following code:
      * 
      * <pre>
-     *     ((float)getPressure())/getPressureExtent();
+     *      ((float)getPressure())/getPressureExtent();
      * </pre>
      * 
      * @see #getPressure
@@ -386,19 +378,18 @@ public class JTabletCursor {
      * @return the pressure range as a float [0,1]
      */
     public final float getPressureFloat() {
-        return ((float) getPressure()) / getPressureExtent();
+        return ((float)getPressure()) / getPressureExtent();
     }
 
     /**
      * A helper function that returns a percentage based on minimum, maximum,
      * and current value.
      * 
-     * @param type
-     *            A JTabletCursor.DATA_<i>XXX...</i> constant.
+     * @param type A JTabletCursor.DATA_<i>XXX...</i> constant.
      * @return the value range as a float [0,1]
      */
     public final float getDataFloat(int type) {
-        return ((float) (getData(type) - getDataMinimum(type)))
+        return ((float)(getData(type) - getDataMinimum(type)))
                 / (getDataMaximum(type) - getDataMinimum(type));
     }
 }
