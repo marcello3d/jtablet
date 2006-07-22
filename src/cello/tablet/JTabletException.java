@@ -1,7 +1,7 @@
 /***************************************************************
  *
  * JTablet is an open-source native Tablet library for Java by
- *    Marcello Bastéa-Forte (marcello@cellosoft.com
+ *?Marcello Bastéa-Forte (marcello@cellosoft.com
  *
  *   You are free to modify this code as you wish, but any
  *   useful/significant changes should be contributed back to
@@ -15,23 +15,25 @@
 package cello.tablet;
 
 /**
- * Class that handles JTablet exceptions.  This class is used internally
- * by JTablet to handle hardware and software errors.
- *
+ * Class that handles JTablet exceptions. This class is used internally by
+ * JTablet to handle hardware and software errors.
+ * 
  * @version 0.2 2/18/2003
  * @author Marcello Bastea-Forte
  */
- 
-public class JTabletException extends Exception {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2162749738051232777L;
 
-	/**
-	 * Constructs a new JTabletException with a given error message.
-	 */
-	public JTabletException(String message) {
-		super(message);
-	}
+public class JTabletException extends Exception {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 2162749738051232777L;
+
+    /**
+     * Constructs a new JTabletException with a given error message.
+     * 
+     * @param message Error message.
+     */
+    public JTabletException(String message) {
+        super(message);
+    }
 }
