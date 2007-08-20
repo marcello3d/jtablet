@@ -9,12 +9,12 @@ else
 endif
 # I don't know what these -D flags do. No licence implied or anything.
 FLAGS += -W -Wall -D_REENTRANT -D_GNU_SOURCE
-FLAGS += -I`java-config --jdk-home`/include -I`java-config --jdk-home`/include/linux
+FLAGS += -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux
 
 OBJECTS := xtabletaccess.o cello_tablet_JTablet.o JTablet.o
 
 libjtablet.so: $(OBJECTS) # JTablet.res
-	ld $^ -o $@ -shared -L/usr/X11R6/lib -lX11 -lXi
+	ld $^ -o $@ -shared -L/usr/X11R6/lib -L/usr/lib/gcc/i486-linux-gnu/4.1 -lX11 -lXi -lstdc++
 
 #%.res: %.rc
 #	rc /l 0x409 /fo"$@" $<

@@ -7,8 +7,8 @@ all:
 	@$(MAKE) --no-print-directory -f Makefile.linux.all
 
 install:
-	cp libjtablet.so `java-config --jdk-home`/jre/lib/i386/
-	cp ../jtablet.jar `java-config --jdk-home`/jre/lib/ext/
+	cp libjtablet.so ${JAVA_HOME}/jre/lib/i386/
+	cp ../dist/jtablet.jar ${JAVA_HOME}/jre/lib/ext/
 
 clean:
 	rm -f libjtablet.so *.o *.d
