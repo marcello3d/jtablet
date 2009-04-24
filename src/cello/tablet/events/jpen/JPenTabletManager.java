@@ -74,7 +74,7 @@ public class JPenTabletManager extends TabletManager {
 	 */
 	protected class JPenListener extends PenAdapter {
 		private float x=0,y=0,pressure=0;
-		private TabletDevice.Device device = TabletDevice.Device.MOUSE;
+		private TabletDevice device = null;
 		private int buttonsPressed = 0;
 
 		@Override
@@ -101,19 +101,19 @@ public class JPenTabletManager extends TabletManager {
 			// Translate the device
 			switch (ev.pen.getKind().getType()) {
 				case CURSOR:
-					device = TabletDevice.Device.MOUSE;
+					device = TabletDevice.MOUSE;
 					break;
 				case ERASER:
-					device = TabletDevice.Device.STYLUS_ERASER;
+					device = TabletDevice.STYLUS_ERASER;
 					break;
 				case STYLUS:
-					device = TabletDevice.Device.STYLUS;
+					device = TabletDevice.STYLUS;
 					break;
 			}
 			fireTabletEvent(new TabletEvent(component,
 					TabletEvent.Type.NEW_DEVICE, 
 					ev.getTime(),
-					new TabletDevice(device)));
+					device));
 		}
 		@Override
 		public void penLevelEvent(PLevelEvent ev) {

@@ -8,24 +8,16 @@ import java.io.Serializable;
 /**
  * @author marcello
  */
-public class TabletDevice implements Serializable {
+public abstract class TabletDevice implements Serializable {
 
-	private final Device device;
 
-	public TabletDevice(Device device) {
-		this.device = device;
-	}
+	private TabletDevice() {}
+	
+	public static final TabletDevice STYLUS = new Stylus();
+	public static final TabletDevice STYLUS_ERASER = new StylusEraser();
+	public static final TabletDevice MOUSE = new Mouse();
 
-	/**
-	 * Represents a cursor
-	 */
-	public static enum Device {
-		/** stylus cursor */
-		STYLUS,
-		/** stylus eraser cursor */
-		STYLUS_ERASER,
-		/** mouse cursor */
-		MOUSE
-	}
-
+	public static class Stylus extends TabletDevice { }
+	public static class StylusEraser extends TabletDevice { }
+	public static class Mouse extends TabletDevice { }
 }

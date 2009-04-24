@@ -1,0 +1,55 @@
+<html>
+<head>
+	<title>JTablet 2.0 installer</title>
+	<style type="text/css">
+		#log {
+			white-space: pre;
+		}
+	
+	</style>
+	<script type="text/javascript">
+		var div;
+		
+		function addLogMessage(message){
+			if (!div) {
+				div = document.getElementById("log");
+			}
+			div.appendChild(document.createTextNode(message+"\n"));
+		}
+		function requestInstallDirectories(jarDirs, libDirs, responder) {
+			var x=0; 
+			var ul = document.getElementById("jarDirs");
+			var li;
+			for (x = 0; x < jarDirs.length; x++) {
+				li = document.createElement("li");
+				li.appendChild(document.createTextNode(jarDirs[x].getCanonicalName()));
+				ul.appendChild(li);
+			} 
+			ul = document.getElementById("libDirs");
+			for (x = 0; x < libDirs.length; x++) {
+				li = document.createElement("li");
+				li.appendChild(document.createTextNode(libDirs[x].getCanonicalName()));
+				ul.appendChild(li);
+			}
+		}
+	</script>
+</head>
+<body>
+	<applet 
+		name="installer"
+		archive="jtablet-installer@buildVersion@.jar" 
+		code="cello.tablet.installer.JTabletInstaller.class" 
+		mayscript="yes"
+		width="500" 
+		height="150">
+		<a href="http://www.java.com/">Java is required</a> to use JTablet. 
+	</applet>
+	<h1>JTablet Web Installer</h1>
+	<h2>Step 1: Install directory</h2>
+	<p>Jar directory:</p>
+	<ul id="jarDirs"></ul>
+	<p>Library directory:</p>
+	<ul id="libDirs"></ul>
+	<div id="log"></div>
+</body>
+</html>	

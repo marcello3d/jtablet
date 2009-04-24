@@ -1,0 +1,120 @@
+<project name="JTablet2" default="dist" basedir=".">
+    <description>
+        JTablet2
+    </description>
+  <!-- set global properties for this build -->
+			 
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+  <property name="lib.dir"     value="lib"/>
+  
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+    <mkdir dir="${build}"/>
+    <mkdir dir="${dist}/signed"/>
+  </target>
+  
+  
+  <path id="classpath">
+        <fileset dir="lib" includes="**/*.jar"/>
+  </path>
+
+  <target name="compile" depends="init" description="compile the source" >
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac 
+		srcdir="${src}"          
+		includes="cello/tablet/**"
+		destdir="${build}" 
+		source="1.5" 
+		target="1.5"
+		debug="on"
+		classpathref="classpath"/>
+  </target>
+  <!--
+  <target name="jpen" depends="init" description="compile the source" >
+	<unzip src="lib/jpen-2.jar"
+	       dest="${build.lp}">
+	    <patternset>
+	        <exclude name="jpen/demo/**"/>
+	    </patternset>
+	</unzip>
+  </target>-->
+  
+  <target name="jtablet2" depends="compile" description="generate the initial jtablet jar" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/lib"/>
+
+    <jar 
+		jarfile="${dist}/lib/jtablet2-${DSTAMP}.original.jar"
+		includes="cello/tablet/**"
+		excludes="cello/tablet/installer/**"
+		basedir="${build}">  
+		<manifest>
+		    <attribute name="Main-Class" value="cello.tablet.installer.JTabletInstaller"/>
+		</manifest>
+	</jar>
+  </target>
+  <target name="genkey">
+    <genkey alias="jtablet-installer" storepass="notsecureatall5936510" 
+		keypass="notsecureatall5936510">
+      <dname>
+        <param name="CN" value="JTablet Installer"/>
+        <param name="O"  value="Cellosoft"/>
+        <param name="C"  value="US"/>
+      </dname>
+    </genkey>
+  </target>
+
+  
+  <target name="signedjars" depends="jtablet2,installer">
+  	<signjar 
+		destDir="${dist}/signed" 
+		alias="jtablet-installer" 
+		storepass="notsecureatall5936510"
+		keypass="notsecureatall5936510">
+	  <path>
+	    <fileset dir="${dist}/" includes="jtablet-installer${DSTAMP}.original.jar" />
+	  </path>
+	  <flattenmapper />
+	</signjar>
+
+  </target>
+
+  <target name="installer" depends="compile,jtablet2" description="generate the jtablet installer jar" >
+    <jar 
+		jarfile="${dist}/jtablet-installer${DSTAMP}.original.jar"
+		includes="cello/tablet/installer/**"
+		basedir="${build}">
+	</jar>	
+  </target>
+  <target name="installer-dist" depends="signedjars">
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}/installer"/>
+
+	<filter token="buildVersion" value="${DSTAMP}"/>
+	<copy todir="${dist}/installer" filtering="true">
+		<fileset dir="html">
+		  <include name="**/*"/>
+		</fileset>
+	</copy>
+	<copy file="${dist}/signed/jtablet-installer${DSTAMP}.original.jar" tofile="${dist}/installer/jtablet-installer${DSTAMP}.jar" />
+	<copy todir="${dist}/installer" file="lib/javascript.jar" />
+  </target>
+
+  <target name="dist" depends="installer-dist"></target>
+  
+  
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}/installer"/>
+    <delete file="${dist}/lib/jtablet2-${DSTAMP}.original.jar"/>
+    <delete file="${dist}/jtablet2.jar"/>
+  </target>
+</project>
