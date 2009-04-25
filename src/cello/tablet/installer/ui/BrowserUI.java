@@ -32,14 +32,9 @@ public class BrowserUI implements UI {
 			responder
 		});
 	}
-
-	public void renderDownload(URL source, File destination, long bytesDownloaded, long bytesTotal) {
-		window.call("renderDownload", new Object[]{
-			source,
-			destination,
-			bytesDownloaded,
-			bytesTotal
-		});
+	public void renderDownloads(List<Download> downloads) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

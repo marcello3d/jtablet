@@ -1,24 +1,23 @@
 package cello.tablet.installer;
 
-import java.awt.BorderLayout;
-import java.awt.Font;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JApplet;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 
 import netscape.javascript.JSException;
 import netscape.javascript.JSObject;
 import cello.tablet.installer.ui.AppletUI;
 import cello.tablet.installer.ui.BrowserUI;
+import cello.tablet.installer.ui.Download;
 import cello.tablet.installer.ui.UI;
 import cello.tablet.installer.ui.UIResponder;
 
@@ -27,6 +26,7 @@ import cello.tablet.installer.ui.UIResponder;
  *
  */
 public class JTabletInstaller extends JApplet {
+	private static final int BUFFER_SIZE = 4096;
 	private JSObject window;
 	private UI ui;
 	
@@ -125,48 +125,93 @@ public class JTabletInstaller extends JApplet {
 					public void run() {
 						String[] jarFiles = installer.getJarFiles();
 						String[] libraryFiles = installer.getLibraryFiles();
+						class FileDownload extends Download {
+
+							boolean started = false;
+							private final File destinationDirectory;
+							private long bytesDownloaded;
+							private long bytesTotal;
+							FileDownload(URL sourceBaseURL, String filename, File destinationDirectory) throws MalformedURLException {
+								super(new URL(sourceBaseURL,filename),new File(destinationDirectory,filename));
+								this.destinationDirectory = destinationDirectory;
+							}
+							protected void download() {
+								try {
+									started = true;
+									if (listener != null) {
+										listener.downloadStarted(this);
+									}
+	
+									URL sourceURL = getSource();
+									ui.logMessage("Downloading "+sourceURL+" to "+destinationDirectory);
+									URLConnection connection = sourceURL.openConnection();
+									connection.setUseCaches(false);
+									connection.connect();
+									
+									bytesTotal = connection.getContentLength();
+									ui.logMessage("Filesize: "+bytesTotal+" bytes");
+									
+									InputStream inputStream = connection.getInputStream();
+									File file = getDestination();
+									FileOutputStream fos = new FileOutputStream(file);
+									
+									byte data[] = new byte[BUFFER_SIZE];
+									
+									bytesDownloaded = 0;
+									int readByteCount; 
+									while (-1 != (readByteCount = inputStream.read(data))) {
+										fos.write(data, 0, readByteCount);
+										bytesDownloaded += readByteCount;
+										if (listener != null) {
+											listener.downloadProgress(this);
+										}
+									}
+	
+									ui.logMessage("Finished downloading.");
+								} catch (IOException ex) {
+									ex.printStackTrace();
+									if (listener != null) {
+										listener.downloadFailed(this, ex);
+									}
+								}
+							}
+							@Override
+							public long getBytesDownloaded() {
+								return bytesDownloaded;
+							}
+
+							@Override
+							public long getBytesTotal() {
+								return bytesTotal;
+							}
+
+							@Override
+							public boolean hasStarted() {
+								return started;
+							}
+							
+						}
+						List<Download> downloads = new ArrayList<Download>(jarFiles.length+libraryFiles.length);
 						for (String jar : jarFiles) {
 							try {
-								downloadFile(getCodeBase(), jar, jarDirectory);
-							} catch (IOException e) {
+								downloads.add(new FileDownload(getCodeBase(), jar, jarDirectory));
+							} catch (MalformedURLException e) {
 								e.printStackTrace();
 							}
 						}
 						for (String library : libraryFiles) {
 							try {
-								downloadFile(getCodeBase(), library, libraryDirectory);
-							} catch (IOException e) {
+								downloads.add(new FileDownload(getCodeBase(), library, libraryDirectory));
+							} catch (MalformedURLException e) {
 								e.printStackTrace();
 							}
 						}
-					}
-
-					private void downloadFile(URL source, String filename, File destination) throws IOException {
-						URL sourceURL = new URL(source,filename);
-						ui.logMessage("Downloading "+sourceURL+" to "+destination);
-						URLConnection connection = sourceURL.openConnection();
-						connection.setUseCaches(false);
-						connection.connect();
-						
-						long length = connection.getContentLength();
-						ui.logMessage("Filesize: "+length+" bytes");
-						
-						InputStream inputStream = connection.getInputStream();
-						File file = new File(destination,filename);
-						FileOutputStream fos = new FileOutputStream(file);
-						
-						byte data[] = new byte[4096];
-						
-						long totalWriteCount = 0;
-						int readByteCount; 
-						while (-1 != (readByteCount = inputStream.read(data))) {
-							fos.write(data, 0, readByteCount);
-							totalWriteCount += readByteCount;
-							ui.renderDownload(sourceURL, file, totalWriteCount, length);
+						ui.renderDownloads(downloads);
+						for (Download d : downloads) {
+							((FileDownload)d).download();
 						}
-
-						ui.logMessage("Finished downloading.");
 					}
+
 				});
 				t.start();
 			}
