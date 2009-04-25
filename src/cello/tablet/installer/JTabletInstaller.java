@@ -1,5 +1,7 @@
 package cello.tablet.installer;
 
+import java.applet.AppletContext;
+import java.applet.AppletStub;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,14 +11,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JApplet;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 
-import netscape.javascript.JSException;
-import netscape.javascript.JSObject;
 import cello.tablet.installer.ui.AppletUI;
-import cello.tablet.installer.ui.BrowserUI;
 import cello.tablet.installer.ui.Download;
 import cello.tablet.installer.ui.UI;
 import cello.tablet.installer.ui.UIResponder;
@@ -27,23 +29,23 @@ import cello.tablet.installer.ui.UIResponder;
  */
 public class JTabletInstaller extends JApplet {
 	private static final int BUFFER_SIZE = 4096;
-	private JSObject window;
+//	private JSObject window;
 	private UI ui;
 	
 	
 	@Override
 	public void init() {
-		try {
-			window = JSObject.getWindow(this);
-		} catch (JSException e) {
-			e.printStackTrace();
-		}
-		
-		if (window != null) {
-			ui = new BrowserUI(window);
-		} else {
+//		try {
+//			window = JSObject.getWindow(this);
+//		} catch (JSException e) {
+//			e.printStackTrace();
+//		}
+//		
+//		if (window != null) {
+//			ui = new BrowserUI(window);
+//		} else {
 			ui = new AppletUI(this);
-		}
+//		}
 		
 		Thread t = new Thread() {
 			public void run() {
@@ -60,6 +62,7 @@ public class JTabletInstaller extends JApplet {
 				}
 
 				OSInstaller installers[] = {
+					new WindowsInstaller(JTabletInstaller.this),
 					new MacOSXInstaller(JTabletInstaller.this)
 				};
 				
@@ -221,7 +224,59 @@ public class JTabletInstaller extends JApplet {
 	 * @param s
 	 */
 	public void addLogMessage(String s) {
+		System.out.println("log - "+s);
 		ui.logMessage(s);
+	}
+
+	/**
+	 * @param args
+	 */
+	public static void main(String ...args) {
+		final JFrame frame = new JFrame("JTablet Plugin Installer");
+		try {
+			final JTabletInstaller installer = new JTabletInstaller();
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setSize(500,550);
+			frame.setLocationByPlatform(true);
+			frame.setContentPane(installer);
+			installer.setStub(new AppletStub() {
+	
+				public void appletResize(int width, int height) {
+					frame.setSize(width +(frame.getWidth() -installer.getWidth()), 
+							      height+(frame.getHeight()-installer.getHeight()));
+				}
+	
+				public AppletContext getAppletContext() {
+					return null;
+				}
+	
+				public URL getCodeBase() {
+					try {
+						return new File(".").toURI().toURL();
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					}
+					return null;
+				}
+	
+				public URL getDocumentBase() {
+					return getCodeBase();
+				}
+	
+				public String getParameter(String name) {
+					return null;
+				}
+	
+				public boolean isActive() {
+					return frame.isActive();
+				}
+				
+			});
+			installer.init();
+			installer.start();	
+		} catch (Throwable t) {
+			JOptionPane.showMessageDialog(frame, Arrays.toString(t.getStackTrace()));
+		}
 	}
 
 }
