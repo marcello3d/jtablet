@@ -28,7 +28,7 @@ public class WindowsInstaller extends OSInstaller {
 	@Override
 	public String[] getLibraryFiles() {
 		return new String[] {
-			"libjpen-2.jnilib"
+			"jpen-2.dll"
 		};
 	}
 
