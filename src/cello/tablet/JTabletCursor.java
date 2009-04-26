@@ -41,6 +41,7 @@ package cello.tablet;
  * @see cello.tablet.JTabletException
  */
 
+@Deprecated
 public class JTabletCursor {
     /**
      * Data type ID for getting the cursor id of this cursor.

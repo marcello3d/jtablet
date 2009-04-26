@@ -22,6 +22,7 @@ package cello.tablet;
  * @author Marcello Bastea-Forte
  */
 
+@Deprecated
 public class JTabletException extends Exception {
     /**
      * 

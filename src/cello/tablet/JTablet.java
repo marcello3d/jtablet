@@ -35,6 +35,7 @@ package cello.tablet;
  * @see cello.tablet.JTabletException
  */
 
+@Deprecated
 public class JTablet {
 
     static boolean library_loaded = false;

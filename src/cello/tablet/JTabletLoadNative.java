@@ -24,6 +24,7 @@ import java.security.*;
  * @author Marcello Bastea-Forte
  */
 
+@Deprecated
 public class JTabletLoadNative {
     /**
      * 
