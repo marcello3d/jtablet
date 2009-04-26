@@ -1,9 +1,11 @@
-package cello.jtablet.installer;
+package cello.jtablet.installer.platforms;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import cello.jtablet.installer.JTabletInstaller;
 
 /**
  * @author marcello

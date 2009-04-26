@@ -1,4 +1,6 @@
-package cello.jtablet.installer;
+package cello.jtablet.installer.platforms;
+
+import cello.jtablet.installer.JTabletInstaller;
 
 
 /**
@@ -7,7 +9,7 @@ package cello.jtablet.installer;
  */
 public class WindowsInstaller extends OSInstaller {
 
-	protected WindowsInstaller(JTabletInstaller installer) {
+	public WindowsInstaller(JTabletInstaller installer) {
 		super(installer);
 	}
 

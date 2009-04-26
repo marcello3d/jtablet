@@ -18,6 +18,9 @@ import javax.swing.JApplet;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import cello.jtablet.installer.platforms.MacOSXInstaller;
+import cello.jtablet.installer.platforms.OSInstaller;
+import cello.jtablet.installer.platforms.WindowsInstaller;
 import cello.jtablet.installer.ui.AppletUI;
 import cello.jtablet.installer.ui.Download;
 import cello.jtablet.installer.ui.UI;

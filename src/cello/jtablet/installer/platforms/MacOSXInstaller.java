@@ -1,4 +1,6 @@
-package cello.jtablet.installer;
+package cello.jtablet.installer.platforms;
+
+import cello.jtablet.installer.JTabletInstaller;
 
 
 /**
@@ -7,7 +9,7 @@ package cello.jtablet.installer;
  */
 public class MacOSXInstaller extends OSInstaller {
 
-	protected MacOSXInstaller(JTabletInstaller installer) {
+	public MacOSXInstaller(JTabletInstaller installer) {
 		super(installer);
 	}
 
