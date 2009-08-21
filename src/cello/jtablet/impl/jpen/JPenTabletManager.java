@@ -2,7 +2,6 @@ package cello.jtablet.impl.jpen;
 
 import java.awt.Component;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -111,7 +110,7 @@ public class JPenTabletManager extends TabletManager {
 			}
 			
 			Type type = pressed ? TabletEvent.Type.PRESSED : TabletEvent.Type.RELEASED;
-			fireTabletEvent(new TabletEvent(component, type, ev.getTime(), buttonMask,
+			fireTabletEvent(new TabletEvent(component, type, ev.getTime(), device, buttonMask,
 											x,y,
 											button));
 		}
@@ -151,17 +150,21 @@ public class JPenTabletManager extends TabletManager {
 					break;
 				}
 			}
+
+			if (device == TabletDevice.MOUSE && !pressured) {
+				pressure = 1;
+			}
 			if (moved) {
 				// Dragging?
 				if (buttonMask != 0) {
-					fireTabletEvent(new TabletEvent(component, TabletEvent.Type.DRAGGED, ev.getTime(), buttonMask,
+					fireTabletEvent(new TabletEvent(component, TabletEvent.Type.DRAGGED, ev.getTime(), device, buttonMask,
 									x,y, pressure));
 				} else {
-					fireTabletEvent(new TabletEvent(component, TabletEvent.Type.MOVED, ev.getTime(), buttonMask,
+					fireTabletEvent(new TabletEvent(component, TabletEvent.Type.MOVED, ev.getTime(), device, buttonMask,
 							x,y, pressure));
 				}
 			} else if (pressured) {
-				fireTabletEvent(new TabletEvent(component, TabletEvent.Type.LEVEL_CHANGED, ev.getTime(), buttonMask,
+				fireTabletEvent(new TabletEvent(component, TabletEvent.Type.LEVEL_CHANGED, ev.getTime(), device, buttonMask,
 						x,y,pressure));
 			}
 		}

@@ -16,8 +16,11 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	
 	private static final long serialVersionUID = 1;
 	
-	private final double x,y;
+	private final float x,y;
 	private final float pressure;
+	private final float tangentialPressure;
+	
+	private final float tiltX,tiltY;
 	
 	private final Type type;
 	private final TabletDevice device;
@@ -33,9 +36,13 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param modifiers
 	 * @param button 
 	 * @param pressure
+	 * @param tiltX 
+	 * @param tiltY 
+	 * @param tangentialPressure 
 	 */
 	protected TabletEvent(Component source, Type type, long when, int modifiers, 
-						TabletDevice device, double x, double y, float pressure, 
+						TabletDevice device, float x, float y, float pressure,
+						float tiltX, float tiltY, float tangentialPressure,
 						int button) {
 		
 		super(source, type.getId(), when, modifiers,
@@ -46,6 +53,9 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.x = x;
 		this.y = y;
 		this.pressure = pressure;
+		this.tiltX = tiltX;
+		this.tiltY = tiltY;
+		this.tangentialPressure = tangentialPressure;
 	}
 	
 
@@ -55,14 +65,16 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param source
 	 * @param type 
 	 * @param when
+	 * @param device 
 	 * @param x
 	 * @param y 
 	 * @param modifiers 
 	 * @param button 
 	 */
-	public TabletEvent(Component source, Type type, long when, int modifiers, double x, double y, int button) {
+	public TabletEvent(Component source, Type type, long when, TabletDevice device, int modifiers, float x, float y, int button) {
 		this(source,type,when,modifiers,
-				null,x,y,0,
+				device,x,y,0,
+				0,0,0,
 				button);
 	}
 	/**
@@ -71,15 +83,16 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param source
 	 * @param type 
 	 * @param when
+	 * @param device 
 	 * @param modifiers 
 	 * @param x 
 	 * @param y  
 	 * @param pressure 
-	 * @param button 
 	 */
-	public TabletEvent(Component source, Type type, long when, int modifiers, double x, double y, float pressure) {
+	public TabletEvent(Component source, Type type, long when, TabletDevice device, int modifiers, float x, float y, float pressure) {
 		this(source,type,when,modifiers,
-				null,x,y,pressure,
+				device,x,y,pressure,
+				0,0,0,
 				NOBUTTON);
 	}
 	/**
@@ -93,6 +106,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	public TabletEvent(Component source, Type type, long when, TabletDevice device) {
 		this(source,type,when,0,
 				device,0,0,0,
+				0,0,0,
 				NOBUTTON);
 	}
 	
@@ -173,13 +187,13 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	/**
 	 * @return the (possibly) fractional x coordinate
 	 */
-	public double getRealX() {
+	public float getRealX() {
 		return x;
 	}
 	/**
 	 * @return the (possibly) fractional y coordinate
 	 */
-	public double getRealY() {
+	public float getRealY() {
 		return y;
 	}
 
@@ -202,5 +216,29 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 */
 	public Type getType() {
 		return type;
+	}
+
+
+	/**
+	 * @return the tangentialPressure
+	 */
+	public float getTangentialPressure() {
+		return tangentialPressure;
+	}
+
+
+	/**
+	 * @return the tiltX
+	 */
+	public float getTiltX() {
+		return tiltX;
+	}
+
+
+	/**
+	 * @return the tiltY
+	 */
+	public float getTiltY() {
+		return tiltY;
 	}
 }

@@ -10,43 +10,56 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JComponent;
 
+import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletManager;
 import cello.jtablet.events.TabletAdapter;
 import cello.jtablet.events.TabletEvent;
 
+/**
+ * Simple demo component that handles tablet input to draw lines 
+ * 
+ * @author marcello
+ */
 public class DemoSurface extends JComponent {
 
 	private BufferedImage bi;
 	private Graphics2D g2d;
 	
+	/**
+	 * 
+	 */
 	public DemoSurface() {
 		createBuffer();
-		TabletManager.addTabletListener(this, new TabletAdapter() {
+		TabletManager.addTabletListener(null, new TabletAdapter() {
 
 			double lastX,lastY,lastPressure;
+			
+
 			@Override
 			public void cursorDragged(TabletEvent ev) {
-				GeneralPath p = new GeneralPath();
 				double x = ev.getRealX();
 				double y = ev.getRealY();
 				double pressure = ev.getPressure()*20;
-				double angle = Math.atan2(y-lastY, x-lastX);
-				double deg90 = Math.PI / 2;
-				
-				//    +---_______
-				//               -----+
-				//    +               +
-				//          _____-----+
-				//    +-----
-				p.moveTo((float)(lastX+Math.cos(angle+deg90)*lastPressure),(float)(lastY+Math.sin(angle+deg90)*lastPressure));
-				p.lineTo((float)(lastX+Math.cos(angle-deg90)*lastPressure),(float)(lastY+Math.sin(angle-deg90)*lastPressure));
-				p.lineTo((float)(x+Math.cos(angle-deg90)*pressure),        (float)(y+Math.sin(angle-deg90)*pressure));
-				p.lineTo((float)(x+Math.cos(angle+deg90)*pressure),        (float)(y+Math.sin(angle+deg90)*pressure));
-				p.closePath();
-				g2d.setColor(Color.BLACK);
-				g2d.fill(new Ellipse2D.Double(x-pressure,y-pressure,2*pressure,2*pressure));
-				g2d.fill(p);
-				repaint();
+				if (lastPressure>0) {
+					GeneralPath p = new GeneralPath();
+					double angle = Math.atan2(y-lastY, x-lastX);
+					double deg90 = Math.PI / 2;
+					
+					//    +---_______
+					//               -----+
+					//    +               +
+					//          _____-----+
+					//    +-----
+					p.moveTo((float)(lastX+Math.cos(angle+deg90)*lastPressure),(float)(lastY+Math.sin(angle+deg90)*lastPressure));
+					p.lineTo((float)(lastX+Math.cos(angle-deg90)*lastPressure),(float)(lastY+Math.sin(angle-deg90)*lastPressure));
+					p.lineTo((float)(x+Math.cos(angle-deg90)*pressure),        (float)(y+Math.sin(angle-deg90)*pressure));
+					p.lineTo((float)(x+Math.cos(angle+deg90)*pressure),        (float)(y+Math.sin(angle+deg90)*pressure));
+					p.closePath();
+					g2d.setColor(ev.getDevice() == TabletDevice.STYLUS_ERASER ? Color.WHITE : Color.BLACK);
+					g2d.fill(new Ellipse2D.Double(x-pressure,y-pressure,2*pressure,2*pressure));
+					g2d.fill(p);
+					repaint();
+				}
 				lastX = x;
 				lastY = y;
 				lastPressure = pressure;
@@ -92,5 +105,8 @@ public class DemoSurface extends JComponent {
 		g.drawImage(bi, 0, 0, null);
 	}
 
+	public String toString() {
+		return getClass().getSimpleName();
+	}
 	
 }

@@ -34,7 +34,8 @@ public abstract class TabletManager {
 		synchronized (managers) {
 			TabletManager manager = managers.get(c);
 			if (manager == null) {
-				managers.put(c, manager = getManager(c));
+				manager = getManager(c);
+				managers.put(c, manager);
 			}
 			manager.addTabletListener(l);
 		}

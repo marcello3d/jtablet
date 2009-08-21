@@ -1,7 +1,9 @@
 package cello.jtablet.demo;
 
 import java.awt.BorderLayout;
+import java.awt.Toolkit;
 import java.util.Arrays;
+import java.util.TreeSet;
 
 import javax.swing.JApplet;
 import javax.swing.JFrame;
@@ -13,6 +15,11 @@ public class DemoApplet extends JApplet {
 	
 	
 	public void init() {
+		System.out.println("System Properties:");
+		for (Object property : System.getProperties().keySet()) {
+			String propertyName = property.toString();
+			System.out.println(propertyName+": "+System.getProperty(propertyName));
+		}
 		getContentPane().add(new DemoSurface(),BorderLayout.CENTER);
 	}
 
