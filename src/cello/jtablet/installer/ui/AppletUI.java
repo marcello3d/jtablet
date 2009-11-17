@@ -247,25 +247,27 @@ public class AppletUI implements UI {
 		panel.add(libComboBox);
 		layoutSpringComponents(panel, 2, 0, 2);
 
-	    addComponents(new Component []{
+	    JButton installButton = new JButton(new AbstractAction("Install now!") {
+			public void actionPerformed(ActionEvent e) {
+				File jarFile = (File)jarComboBox.getSelectedItem();
+				File libFile = (File)libComboBox.getSelectedItem();
+				layoutSpringComponents(panel, 2, 0, 2);
+				panel.revalidate();
+				jarComboBox.setEnabled(false);
+				libComboBox.setEnabled(false);
+				setEnabled(false);
+
+			    addComponents(new Component []{
+				    makeLabel("Step 2: Downloading and installing...",SECTION_FONT,Color.BLACK)
+			    });
+				responder.useDirectories(jarFile, libFile);
+			}
+		});
+	    installButton.setFont(SECTION_FONT);
+		addComponents(new Component []{
 			makeWrappedLabel("Most users can leave these as default.", CAPTION_FONT, CAPTION_COLOR),
 			panel,
-			new JButton(new AbstractAction("Install now!") {
-				public void actionPerformed(ActionEvent e) {
-					File jarFile = (File)jarComboBox.getSelectedItem();
-					File libFile = (File)libComboBox.getSelectedItem();
-					layoutSpringComponents(panel, 2, 0, 2);
-					panel.revalidate();
-					jarComboBox.setEnabled(false);
-					libComboBox.setEnabled(false);
-					setEnabled(false);
-	
-				    addComponents(new Component []{
-					    makeLabel("Step 2: Downloading and installing...",SECTION_FONT,Color.BLACK)
-				    });
-					responder.useDirectories(jarFile, libFile);
-				}
-			}),
+			installButton,
 			makeWrappedLabel("", CAPTION_FONT, CAPTION_COLOR),
 	    });
 		

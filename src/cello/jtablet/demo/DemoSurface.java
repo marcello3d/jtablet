@@ -30,33 +30,49 @@ public class DemoSurface extends JComponent {
 	 */
 	public DemoSurface() {
 		createBuffer();
-		TabletManager.addTabletListener(null, new TabletAdapter() {
+		TabletManager.addTabletListener(this, new TabletAdapter() {
 
 			double lastX,lastY,lastPressure;
+			boolean dragged = false;
 			
 
 			@Override
-			public void cursorDragged(TabletEvent ev) {
-				double x = ev.getRealX();
-				double y = ev.getRealY();
-				double pressure = ev.getPressure()*20;
+			public synchronized void cursorDragged(TabletEvent ev) {
+				dragged = true;
+				float x = ev.getRealX();
+				float y = ev.getRealY();
+				float pressure = ev.getPressure() * 20;
+				if (x==0 && y==0) {
+					System.out.println("!");
+				}
 				if (lastPressure>0) {
-					GeneralPath p = new GeneralPath();
 					double angle = Math.atan2(y-lastY, x-lastX);
-					double deg90 = Math.PI / 2;
 					
-					//    +---_______
-					//               -----+
-					//    +               +
-					//          _____-----+
-					//    +-----
-					p.moveTo((float)(lastX+Math.cos(angle+deg90)*lastPressure),(float)(lastY+Math.sin(angle+deg90)*lastPressure));
-					p.lineTo((float)(lastX+Math.cos(angle-deg90)*lastPressure),(float)(lastY+Math.sin(angle-deg90)*lastPressure));
-					p.lineTo((float)(x+Math.cos(angle-deg90)*pressure),        (float)(y+Math.sin(angle-deg90)*pressure));
-					p.lineTo((float)(x+Math.cos(angle+deg90)*pressure),        (float)(y+Math.sin(angle+deg90)*pressure));
-					p.closePath();
+					// distance between points = c
+					double c = Math.hypot(x-lastX, y-lastY);
+					// radial difference = b - a
+					double b = lastPressure-pressure;
+					// remaining side length
+					// c*c = a*a + b*b ->
+					double a = Math.sqrt(c*c-b*b);
+					
+					double angle2 = Math.atan2(a, b);
+					 
+					double sin1 = Math.sin(angle-angle2);
+					double cos1 = Math.cos(angle-angle2);
+					double sin2 = Math.sin(angle+angle2);
+					double cos2 = Math.cos(angle+angle2);
+					GeneralPath p = new GeneralPath();
+					p.moveTo((float)(lastX+cos1*lastPressure),(float)(lastY+sin1*lastPressure));
+					p.lineTo((float)(lastX+cos2*lastPressure),(float)(lastY+sin2*lastPressure));
+					p.lineTo((float)(x+cos2*pressure),        (float)(y+sin2*pressure));
+					if (pressure>0) {
+						p.lineTo((float)(x+cos1*pressure),   	  (float)(y+sin1*pressure));
+					}
+					p.closePath();					
+					
 					g2d.setColor(ev.getDevice() == TabletDevice.STYLUS_ERASER ? Color.WHITE : Color.BLACK);
-					g2d.fill(new Ellipse2D.Double(x-pressure,y-pressure,2*pressure,2*pressure));
+					g2d.fill(new Ellipse2D.Float(x-pressure,y-pressure,2*pressure-0.5f,2*pressure-0.5f));
 					g2d.fill(p);
 					repaint();
 				}
@@ -67,6 +83,10 @@ public class DemoSurface extends JComponent {
 
 			@Override
 			public void cursorMoved(TabletEvent ev) {
+				lastX = ev.getRealX();
+				lastY = ev.getRealY();
+				lastPressure = ev.getPressure();
+				dragged = false;
 			}
 
 			@Override
@@ -74,10 +94,19 @@ public class DemoSurface extends JComponent {
 				lastX = ev.getRealX();
 				lastY = ev.getRealY();
 				lastPressure = ev.getPressure();
+				dragged = false;
 			}
 
 			@Override
 			public void cursorReleased(TabletEvent ev) {
+				if (!dragged) {
+					double x = ev.getRealX();
+					double y = ev.getRealY();
+					double pressure = ev.getPressure()*20;
+					g2d.setColor(ev.getDevice() == TabletDevice.STYLUS_ERASER ? Color.WHITE : Color.BLACK);
+					g2d.fill(new Ellipse2D.Double(x-pressure,y-pressure,2*pressure,2*pressure));
+				}
+				dragged = false;
 			}
 			
 		});
@@ -93,6 +122,7 @@ public class DemoSurface extends JComponent {
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
 		g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+		g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 	}
 	
 	@Override

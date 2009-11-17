@@ -21,6 +21,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	private final float tangentialPressure;
 	
 	private final float tiltX,tiltY;
+	private final float rotation;
 	
 	private final Type type;
 	private final TabletDevice device;
@@ -39,10 +40,12 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param tiltX 
 	 * @param tiltY 
 	 * @param tangentialPressure 
+	 * @param rotation 
 	 */
 	protected TabletEvent(Component source, Type type, long when, int modifiers, 
 						TabletDevice device, float x, float y, float pressure,
 						float tiltX, float tiltY, float tangentialPressure,
+						float rotation,
 						int button) {
 		
 		super(source, type.getId(), when, modifiers,
@@ -56,6 +59,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.tiltX = tiltX;
 		this.tiltY = tiltY;
 		this.tangentialPressure = tangentialPressure;
+		this.rotation = rotation;
 	}
 	
 
@@ -74,7 +78,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	public TabletEvent(Component source, Type type, long when, TabletDevice device, int modifiers, float x, float y, int button) {
 		this(source,type,when,modifiers,
 				device,x,y,0,
-				0,0,0,
+				0,0,0,0,
 				button);
 	}
 	/**
@@ -92,7 +96,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	public TabletEvent(Component source, Type type, long when, TabletDevice device, int modifiers, float x, float y, float pressure) {
 		this(source,type,when,modifiers,
 				device,x,y,pressure,
-				0,0,0,
+				0,0,0,0,
 				NOBUTTON);
 	}
 	/**
@@ -106,7 +110,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	public TabletEvent(Component source, Type type, long when, TabletDevice device) {
 		this(source,type,when,0,
 				device,0,0,0,
-				0,0,0,
+				0,0,0,0,
 				NOBUTTON);
 	}
 	
@@ -134,17 +138,22 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		PRESSED			( MOUSE_PRESSED ),
 		/** button/stylus tip released */
 		RELEASED		( MOUSE_RELEASED ),
+		/** button/stylus tip pressed */
+		PRESSURED		( ID_START ),
+		/** button/stylus tip released */
+		UNPRESSURED		( ID_START+1 ),
 		/** cursor moved */
 		MOVED			( MOUSE_MOVED ),
 		/** cursor dragged */
 		DRAGGED			( MOUSE_DRAGGED ),
 		/** new device */
-		NEW_DEVICE		( ID_START ),
+		NEW_DEVICE		( ID_START+2 ),
 		/** level changed */
-		LEVEL_CHANGED	( ID_START+1 );
+		LEVEL_CHANGED	( ID_START+3 );
 		
 		private final int id;
-		Type(int id) {
+		
+		private Type(int id) {
 			this.id = id;
 		}
 		/**
@@ -220,7 +229,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 
 	/**
-	 * @return the tangentialPressure
+	 * @return tangential pressure from -1 to 1.
 	 */
 	public float getTangentialPressure() {
 		return tangentialPressure;
@@ -228,7 +237,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 
 	/**
-	 * @return the tiltX
+	 * @return tiltX in radians
 	 */
 	public float getTiltX() {
 		return tiltX;
@@ -236,9 +245,17 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 
 	/**
-	 * @return the tiltY
+	 * @return tilt Y in radians
 	 */
 	public float getTiltY() {
 		return tiltY;
 	}
+	
+	/**
+	 * @return rotation in radians
+	 */
+	public float getRotation() {
+		return rotation;
+	}
+
 }

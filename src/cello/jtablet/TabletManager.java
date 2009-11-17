@@ -26,11 +26,32 @@ public abstract class TabletManager {
 	private static final Map<Component,TabletManager> managers = new WeakHashMap<Component, TabletManager>();
 
 	/**
-	 * Add a TabletListener to this Component
+	 * @param l
+	 */
+	public static void addScreenTabletListener(TabletListener l) {
+		addTabletListener0(null,l);
+	}
+
+	/**
+	 * @param l
+	 */
+	public static void removeScreenTabletListener(TabletListener l) {
+		removeTabletListener0(null,l);
+	}
+
+	/**
+	 * Add a TabletListener to given Component
 	 * @param c 
 	 * @param l
 	 */
 	public static void addTabletListener(Component c, TabletListener l) {
+		if (c == null) {
+			throw new IllegalArgumentException("Component is null");
+		}
+		addTabletListener0(c, l);
+	}
+
+	private static void addTabletListener0(Component c, TabletListener l) {
 		synchronized (managers) {
 			TabletManager manager = managers.get(c);
 			if (manager == null) {
@@ -47,6 +68,13 @@ public abstract class TabletManager {
 	 * @param l
 	 */
 	public static void removeTabletListener(Component c, TabletListener l) {
+		if (c == null) {
+			throw new IllegalArgumentException("Component is null");
+		}
+		removeTabletListener0(c, l);
+	}
+
+	private static void removeTabletListener0(Component c, TabletListener l) {
 		synchronized (managers) {
 			TabletManager manager = managers.get(c);
 			if (manager != null) {

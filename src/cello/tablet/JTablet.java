@@ -14,6 +14,12 @@
 
 package cello.tablet;
 
+import java.util.LinkedList;
+
+import cello.jtablet.TabletManager;
+import cello.jtablet.events.TabletEvent;
+import cello.jtablet.events.TabletListener;
+
 /**
  * The entrance JTablet class. Tablet information is stateless, but this class
  * allows it to function as a class entity.
@@ -38,28 +44,12 @@ package cello.tablet;
 @Deprecated
 public class JTablet {
 
-    static boolean library_loaded = false;
+    private JTabletCursor currentCursor = null;
 
-    static int access_count = 0;
-    static {
-        // Load system library
-        try {
-            try {
-                Class.forName("java.security.AccessController");
-                JTabletLoadNative.loadNative();
-            } catch(Exception e) {
-                System.loadLibrary("jtablet");
-            }
-            library_loaded = true;
-        } catch(Exception e) {
-            System.err.println("JTablet could not be loaded (" + e.toString()
-                    + ").");
-        }
-    }
-
-    protected JTabletCursor currentCursor = null;
-
-    protected boolean pollModeLatest = true;
+    private boolean pollModeLatest = true;
+    
+    private final LinkedList<JTabletCursor> cursorQueue = new LinkedList<JTabletCursor>();
+    
 
     /**
      * Creates a new JTablet object without full control.
@@ -71,8 +61,7 @@ public class JTablet {
     public JTablet() throws JTabletException {
         this(false);
     }
-
-    /**
+	/**
      * Creates a new JTablet object.
      * 
      * @param fullControl Tries to access the tablet with full control for
@@ -82,13 +71,41 @@ public class JTablet {
      * @since 0.9.1
      */
     public JTablet(boolean fullControl) throws JTabletException {
-        if(!library_loaded)
-            throw new JTabletException("Could not load JTablet native library.");
-        if(!tabletAvailable())
-            throw new JTabletException("Tablet not available.");
-        initializeTablet(fullControl);
-        access_count++;
+		System.out.println("JTablet loaded");
+    	TabletManager.addScreenTabletListener(tabletListener);
     }
+
+
+    /**
+     * 
+     */
+    private final TabletListener tabletListener = new TabletListener() {
+		public void cursorDragged(TabletEvent ev) {
+			handle(ev);
+		}
+		public void cursorMoved(TabletEvent ev) {
+			handle(ev);
+		}
+		public void cursorPressed(TabletEvent ev) {
+			handle(ev);
+		}
+		public void cursorReleased(TabletEvent ev) {
+			handle(ev);
+		}
+		public void levelChanged(TabletEvent ev) {
+			handle(ev);
+		}
+		public void newDevice(TabletEvent ev) {
+			handle(ev);
+		}    	
+    }; 
+
+    protected void handle(TabletEvent ev) {
+    	if (pollModeLatest) {
+    		cursorQueue.clear();
+    	}
+    	cursorQueue.add(new JTabletCursor(ev));
+	}
 
     /**
      * Checks if JTablet has a cursor. There will be no cursor until poll is
@@ -135,6 +152,11 @@ public class JTablet {
      */
     public void setPollModeLatest(boolean b) {
         pollModeLatest = b;
+    	if (pollModeLatest && !cursorQueue.isEmpty()) {
+    		JTabletCursor last = cursorQueue.getLast();
+    		cursorQueue.clear();
+    		cursorQueue.add(last);
+    	}
     }
 
     /**
@@ -150,9 +172,7 @@ public class JTablet {
      * Unloads the native driver for JTablet
      */
     public void close() {
-        if(access_count <= 1)
-            closeTablet();
-        access_count--;
+    	TabletManager.removeScreenTabletListener(tabletListener);
     }
 
     /**
@@ -162,7 +182,7 @@ public class JTablet {
      * @since 0.2
      */
     public String getVersion() {
-        return "0.9.5 BETA";
+        return getLibraryVersion();
     }
 
     /**
@@ -173,7 +193,9 @@ public class JTablet {
      * @return a String containing version information.
      * @since 0.9.2
      */
-    public static native String getLibraryVersion();
+    public static String getLibraryVersion() {
+    	return "0.9.9-jtablet2compatibility";
+    }
 
     /**
      * Polls the tablet for the latest tablet information. This should be done
@@ -187,17 +209,15 @@ public class JTablet {
      * @exception JTabletException if there was an error reading the tablet
      */
     public boolean poll() throws JTabletException {
-        JTabletCursor newCursor = pollCursor(pollModeLatest);
-        if(newCursor == null)
+        if (cursorQueue.isEmpty()) {
             return false;
-        if(currentCursor != newCursor) {
-            currentCursor = newCursor;
-            // TODO: trigger some listener perhaps?
         }
+        currentCursor = cursorQueue.removeFirst();
         return true;
     }
 
-    /**
+
+	/**
      * Retrieves the current pressure of the tablet as an int. Use
      * <code>getPressureExtent()</code> to find the maximum value.
      * 
@@ -294,19 +314,19 @@ public class JTablet {
         return getCursor().getData(JTabletCursor.DATA_BUTTONS);
     }
 
-    // Private methods
-    private static native boolean tabletAvailable();
-
-    private static synchronized native void initializeTablet(boolean fullControl)
-            throws JTabletException;
-
-    private static synchronized native void closeTablet();
-
-    private static synchronized native JTabletCursor pollCursor(
-            boolean pollToLatest) throws JTabletException;
-
-    // Package method
-    static native synchronized void getCursorData(JTabletCursor cursor, int type)
-            throws JTabletException;
+//    // Private methods
+//    private static native boolean tabletAvailable();
+//
+//    private static synchronized native void initializeTablet(boolean fullControl)
+//            throws JTabletException;
+//
+//    private static synchronized native void closeTablet();
+//
+//    private static synchronized native JTabletCursor pollCursor(
+//            boolean pollToLatest) throws JTabletException;
+//
+//    // Package method
+//    static native synchronized void getCursorData(JTabletCursor cursor, int type)
+//            throws JTabletException;
 
 }

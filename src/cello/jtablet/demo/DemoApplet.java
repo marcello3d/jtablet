@@ -1,16 +1,17 @@
 package cello.jtablet.demo;
 
 import java.awt.BorderLayout;
-import java.awt.Toolkit;
 import java.util.Arrays;
-import java.util.TreeSet;
 
 import javax.swing.JApplet;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import cello.jtablet.installer.JTabletInstaller;
-
+/**
+ * A simple sketching surface applet
+ * 
+ * @author marcello
+ */
 public class DemoApplet extends JApplet {
 	
 	
@@ -25,17 +26,34 @@ public class DemoApplet extends JApplet {
 
 	/**
 	 * @param args
+	 * @throws InterruptedException 
 	 */
-	public static void main(String ...args) {
-		final JFrame frame = new JFrame("JTablet Plugin Installer");
+	public static void main(String ...args) throws InterruptedException {
+//		JFrame frame = new JFrame("JTablet Demo");
+//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		frame.setResizable(true);
+//		frame.setSize(300,300);
+//		frame.setLocationByPlatform(true);
+//		frame.setVisible(true);
+//		
+////		TabletManager.addScreenTabletListener(new TabletAdapter() {
+//		TabletManager.addTabletListener(frame.getRootPane(), new TabletAdapter() {
+//			@Override
+//			public void cursorMoved(TabletEvent ev) {
+//				System.out.println(ev.toString());
+//			}
+//		});
+		
+//		TabletManager.addScreenTabletListener(new TabletAdapter() {
+		final JFrame frame = new JFrame("JTablet Demo");
 		try {
-			final JTabletInstaller installer = new JTabletInstaller();
+			final DemoApplet demo = new DemoApplet();
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			frame.setSize(500,550);
 			frame.setLocationByPlatform(true);
-			frame.setContentPane(installer);
-			installer.init();
-			installer.start();	
+			frame.setContentPane(demo);
+			demo.init();
+			demo.start();	
 			frame.setVisible(true);
 		} catch (Throwable t) {
 			JOptionPane.showMessageDialog(frame, Arrays.toString(t.getStackTrace()));
