@@ -42,7 +42,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param tangentialPressure 
 	 * @param rotation 
 	 */
-	protected TabletEvent(Component source, Type type, long when, int modifiers, 
+	public TabletEvent(Component source, Type type, long when, int modifiers, 
 						TabletDevice device, float x, float y, float pressure,
 						float tiltX, float tiltY, float tangentialPressure,
 						float rotation,
@@ -61,7 +61,26 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.tangentialPressure = tangentialPressure;
 		this.rotation = rotation;
 	}
-	
+
+	/**
+	 * Wrap a mouseevent as a TabletEvent
+	 * @param e
+	 * @param type 
+	 * @param device 
+	 */
+	public TabletEvent(MouseEvent e, Type type, TabletDevice device) {
+		super(e.getComponent(),e.getID(), e.getWhen(), e.getModifiersEx(), e.getX(), e.getY(), e.getClickCount(), e.isPopupTrigger(), e.getButton());
+		this.x = e.getX();
+		this.y = e.getY();
+		this.type = type;
+		this.pressure = (e.getModifiersEx() & (BUTTON1_DOWN_MASK|BUTTON2_DOWN_MASK|BUTTON3_DOWN_MASK)) != 0 ? 1.0f : 0;
+		this.tiltX = 0;
+		this.tiltY = 0;
+		this.tangentialPressure = 0;
+		this.rotation = 0;
+		this.device = device;
+	} 
+
 
 	/**
 	 * Constructs a new InputEvent
@@ -115,6 +134,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 	
 	
+
 	@Override
 	public String toString() {
 		return "InputEvent["+
@@ -139,9 +159,13 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		/** button/stylus tip released */
 		RELEASED		( MOUSE_RELEASED ),
 		/** button/stylus tip pressed */
-		PRESSURED		( ID_START ),
+		ENTERED			( MOUSE_ENTERED ),
 		/** button/stylus tip released */
-		UNPRESSURED		( ID_START+1 ),
+		EXITED			( MOUSE_EXITED ),
+//		/** button/stylus tip pressed */
+//		PRESSURED		( ID_START ),
+//		/** button/stylus tip released */
+//		UNPRESSURED		( ID_START+1 ),
 		/** cursor moved */
 		MOVED			( MOUSE_MOVED ),
 		/** cursor dragged */
@@ -174,6 +198,12 @@ public class TabletEvent extends MouseEvent implements Serializable {
 			break;
 		case RELEASED:
 			l.cursorReleased(this);
+			break;
+		case ENTERED:
+			l.cursorEntered(this);
+			break;
+		case EXITED:
+			l.cursorExited(this);
 			break;
 		case DRAGGED:
 			l.cursorDragged(this);
@@ -256,6 +286,30 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 */
 	public float getRotation() {
 		return rotation;
+	}
+
+	/**
+	 * Returns a translated version of this TabletEvent
+	 * @param c new component for translated event
+	 * @param deltaX
+	 * @param deltaY
+	 * @return the new TabletEvent
+	 */
+	public TabletEvent translated(Component c, float deltaX, float deltaY) {
+		return new TabletEvent(c, type, getWhen(), getModifiersEx(), 
+				device, x + deltaX, y + deltaY, pressure,
+				tiltX, tiltY, tangentialPressure,
+				rotation,
+				getButton());
+	}
+	/**
+	 * Returns a translated version of this TabletEvent
+	 * @param deltaX
+	 * @param deltaY
+	 * @return the new TabletEvent
+	 */
+	public TabletEvent translated(float deltaX, float deltaY) {
+		return translated(getComponent(), deltaX, deltaY);
 	}
 
 }

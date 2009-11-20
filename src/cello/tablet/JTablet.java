@@ -97,6 +97,12 @@ public class JTablet {
 		}
 		public void newDevice(TabletEvent ev) {
 			handle(ev);
+		}
+		public void cursorEntered(TabletEvent ev) {
+			handle(ev);
+		}
+		public void cursorExited(TabletEvent ev) {
+			handle(ev);
 		}    	
     }; 
 

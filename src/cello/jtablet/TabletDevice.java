@@ -11,25 +11,25 @@ import java.io.Serializable;
 public abstract class TabletDevice implements Serializable {
 
 
-	private TabletDevice() {}
-	
-	/**
-	 * Default Stylus-tip type
-	 */
-	public static final TabletDevice STYLUS_TIP = new Stylus();
-	/**
-	 * Default Stylus-eraser type
-	 */
-	public static final TabletDevice STYLUS_ERASER = new StylusEraser();
-	/**
-	 * Default Mouse type
-	 */
-	public static final TabletDevice MOUSE = new Mouse();
+	public static final TabletDevice BASIC_MOUSE = new MouseDevice();
 
+	protected TabletDevice() {}
+	
+	public enum Type {
+		MOUSE,
+		STYLUS_TIP,
+		ERASER,
+		UNKNOWN
+	};
+	
 	/**
 	 * A stylus tablet device
 	 */
 	public static class Stylus extends TabletDevice {
+		@Override
+		public Type getType() {
+			return Type.STYLUS_TIP;
+		}
 		@Override
 		public Support supportsPressure() {
 			return Support.UNKNOWN;
@@ -56,16 +56,13 @@ public abstract class TabletDevice implements Serializable {
 		}
 	}
 	/**
-	 * A stylus eraser tablet device
-	 * @author marcello
-	 *
-	 */
-	public static class StylusEraser extends Stylus {
-	}
-	/**
 	 * A mouse-like tablet device
 	 */
-	public static class Mouse extends TabletDevice {
+	public static class MouseDevice extends TabletDevice {
+		@Override
+		public Type getType() {
+			return Type.MOUSE;
+		}
 		@Override 
 		public Support supportsPressure() {
 			return Support.NONE;
@@ -111,6 +108,10 @@ public abstract class TabletDevice implements Serializable {
 	};
 
 	/**
+	 * @return the type of device
+	 */
+	public abstract Type getType();
+	/**
 	 * @return whether this device supports buttons
 	 */
 	public abstract Support supportsButtons();
@@ -144,7 +145,12 @@ public abstract class TabletDevice implements Serializable {
 	/**
 	 * @return the device id
 	 */
-	public int getPhysicalId() {
+	public long getPhysicalId() {
 		return 0;
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName()+"["+getType()+"]";
 	}
 }

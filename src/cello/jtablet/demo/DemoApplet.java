@@ -1,7 +1,6 @@
 package cello.jtablet.demo;
 
 import java.awt.BorderLayout;
-import java.util.Arrays;
 
 import javax.swing.JApplet;
 import javax.swing.JFrame;
@@ -56,7 +55,14 @@ public class DemoApplet extends JApplet {
 			demo.start();	
 			frame.setVisible(true);
 		} catch (Throwable t) {
-			JOptionPane.showMessageDialog(frame, Arrays.toString(t.getStackTrace()));
+			t.printStackTrace();
+	        StringBuilder buf = new StringBuilder();
+	        buf.append(t.toString()).append('\n');
+	        for (StackTraceElement s : t.getStackTrace()) {
+	        	buf.append('\n').append(s.toString());
+	        }
+			JOptionPane.showMessageDialog(frame, buf.toString());
+			System.exit(-1);
 		}
 	}
 }

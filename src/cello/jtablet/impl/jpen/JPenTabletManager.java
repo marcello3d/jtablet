@@ -124,13 +124,13 @@ public class JPenTabletManager extends TabletManager {
 			// Translate the device
 			switch (ev.pen.getKind().getType()) {
 				case CURSOR:
-					device = TabletDevice.MOUSE;
+//					device = TabletDevice.MOUSE;
 					break;
 				case ERASER:
-					device = TabletDevice.STYLUS_ERASER;
+//					device = TabletDevice.STYLUS_ERASER;
 					break;
 				case STYLUS:
-					device = TabletDevice.STYLUS_TIP;
+//					device = TabletDevice.STYLUS_TIP;
 					break;
 			}
 			fireTabletEvent(new TabletEvent(eventSource, TabletEvent.Type.NEW_DEVICE, ev.getTime(), device));
@@ -175,14 +175,14 @@ public class JPenTabletManager extends TabletManager {
 				}
 			}
 
-			if (device == TabletDevice.MOUSE) {
-				if (!pressured && buttonMask != 0) {
-					pressure = 1;
-				} 
-				if (buttonMask == 0){
-					pressure = 0;
-				}
-			}
+//			if (device == TabletDevice.MOUSE) {
+//				if (!pressured && buttonMask != 0) {
+//					pressure = 1;
+//				} 
+//				if (buttonMask == 0){
+//					pressure = 0;
+//				}
+//			}
 			if (moved) {
 				// Dragging?
 				if (pressure > 0) {

@@ -14,6 +14,7 @@ import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletManager;
 import cello.jtablet.events.TabletAdapter;
 import cello.jtablet.events.TabletEvent;
+import cello.jtablet.impl.jpen.JPenDirectTabletManager;
 
 /**
  * Simple demo component that handles tablet input to draw lines 
@@ -66,12 +67,10 @@ public class DemoSurface extends JComponent {
 					p.moveTo((float)(lastX+cos1*lastPressure),(float)(lastY+sin1*lastPressure));
 					p.lineTo((float)(lastX+cos2*lastPressure),(float)(lastY+sin2*lastPressure));
 					p.lineTo((float)(x+cos2*pressure),        (float)(y+sin2*pressure));
-					if (pressure>0) {
-						p.lineTo((float)(x+cos1*pressure),   	  (float)(y+sin1*pressure));
-					}
+					p.lineTo((float)(x+cos1*pressure),   	  (float)(y+sin1*pressure));
 					p.closePath();					
 					
-					g2d.setColor(ev.getDevice() == TabletDevice.STYLUS_ERASER ? Color.WHITE : Color.BLACK);
+					g2d.setColor(ev.getDevice().getType() == TabletDevice.Type.ERASER ? Color.WHITE : Color.BLACK);
 					g2d.fill(new Ellipse2D.Float(x-pressure,y-pressure,2*pressure-0.5f,2*pressure-0.5f));
 					g2d.fill(p);
 					repaint();
@@ -103,7 +102,7 @@ public class DemoSurface extends JComponent {
 					double x = ev.getRealX();
 					double y = ev.getRealY();
 					double pressure = ev.getPressure()*20;
-					g2d.setColor(ev.getDevice() == TabletDevice.STYLUS_ERASER ? Color.WHITE : Color.BLACK);
+					g2d.setColor(ev.getDevice().getType() == TabletDevice.Type.ERASER ? Color.WHITE : Color.BLACK);
 					g2d.fill(new Ellipse2D.Double(x-pressure,y-pressure,2*pressure,2*pressure));
 				}
 				dragged = false;

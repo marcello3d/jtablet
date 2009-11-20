@@ -215,7 +215,7 @@ public class JTabletCursor {
      * @return the id int
      */
     public int getPhysicalId() {
-        return event.getDevice().getPhysicalId();
+        return (int)event.getDevice().getPhysicalId();
     }
 
     /**
@@ -226,16 +226,16 @@ public class JTabletCursor {
      */
     public int getCursorType() {
     	TabletDevice device = event.getDevice();
-    	if (device instanceof TabletDevice.Stylus) {
-    		return TYPE_PEN_TIP;
-    	} 
-    	if (device instanceof TabletDevice.StylusEraser) {
-    		return TYPE_PEN_ERASER;
+    	switch (device.getType()) {
+	    	case MOUSE:
+	    		return TYPE_PUCK;
+	    	case ERASER:
+	    		return TYPE_PEN_ERASER;
+	    	case STYLUS_TIP:
+	    		return TYPE_PEN_TIP;
+	    	default:
+	    		return TYPE_UNKNOWN;
     	}
-    	if (device instanceof TabletDevice.Mouse) {
-    		return TYPE_PUCK;
-    	}
-        return TYPE_UNKNOWN;
     }
 
     /**
