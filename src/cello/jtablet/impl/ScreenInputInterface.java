@@ -79,7 +79,6 @@ public abstract class ScreenInputInterface implements CursorDevice {
 	}
 	
 	protected void fireScreenTabletEvent(TabletEvent ev) {
-		System.out.println("ev="+ev);
 		for (TabletListener l : screenListeners) {
 			ev.fireEvent(l);
 		}
@@ -176,20 +175,33 @@ public abstract class ScreenInputInterface implements CursorDevice {
 
 			boolean nowCursorOver = c.contains(newEv.getPoint());
 			if (cursorOver != nowCursorOver) {
-				cursorOver = nowCursorOver;
-				TabletEvent enterExitEvent;
-				if (cursorOver) {
-					enterExitEvent = new TabletEvent(c, TabletEvent.Type.ENTERED, newEv.getWhen(), newEv.getDevice(),newEv.getModifiersEx(),newEv.getRealX(),newEv.getRealY(),newEv.getButton());
+				TabletEvent enterExitEvent = new TabletEvent(
+					c, 
+					nowCursorOver ? TabletEvent.Type.ENTERED : TabletEvent.Type.EXITED, 
+					newEv.getWhen(), 
+					newEv.getDevice(),
+					newEv.getModifiersEx(),
+					newEv.getRealX(), newEv.getRealY(),
+					newEv.getButton()
+				);
+				if (nowCursorOver) {
+					fireEvent(enterExitEvent);
+					fireEvent(newEv);
 				} else {
-					enterExitEvent = new TabletEvent(c, TabletEvent.Type.EXITED, newEv.getWhen(), newEv.getDevice(),newEv.getModifiersEx(),newEv.getRealX(),newEv.getRealY(),newEv.getButton());
+					fireEvent(newEv);
+					fireEvent(enterExitEvent);
 				}
-				for (TabletListener l : listeners) {
-					enterExitEvent.fireEvent(l);
-				}
+
+				cursorOver = nowCursorOver;
+			} else {
+				fireEvent(newEv);
 			}
-				
+		}
+
+		private void fireEvent(TabletEvent event) {
+			System.out.println("ev="+event);
 			for (TabletListener l : listeners) {
-				newEv.fireEvent(l);
+				event.fireEvent(l);
 			}
 		}
 

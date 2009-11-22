@@ -43,10 +43,12 @@ public class DemoSurface extends JComponent {
 				float x = ev.getRealX();
 				float y = ev.getRealY();
 				float pressure = ev.getPressure() * 20;
-				if (x==0 && y==0) {
-					System.out.println("!");
-				}
 				if (lastPressure>0) {
+					
+
+					g2d.setColor(ev.getDevice().getType() == TabletDevice.Type.ERASER ? Color.WHITE : Color.BLACK);
+					g2d.fill(new Ellipse2D.Float(x-pressure,y-pressure,2*pressure-0.5f,2*pressure-0.5f));
+					
 					double angle = Math.atan2(y-lastY, x-lastX);
 					
 					// distance between points = c
@@ -58,21 +60,25 @@ public class DemoSurface extends JComponent {
 					double a = Math.sqrt(c*c-b*b);
 					
 					double angle2 = Math.atan2(a, b);
-					 
-					double sin1 = Math.sin(angle-angle2);
-					double cos1 = Math.cos(angle-angle2);
-					double sin2 = Math.sin(angle+angle2);
-					double cos2 = Math.cos(angle+angle2);
-					GeneralPath p = new GeneralPath();
-					p.moveTo((float)(lastX+cos1*lastPressure),(float)(lastY+sin1*lastPressure));
-					p.lineTo((float)(lastX+cos2*lastPressure),(float)(lastY+sin2*lastPressure));
-					p.lineTo((float)(x+cos2*pressure),        (float)(y+sin2*pressure));
-					p.lineTo((float)(x+cos1*pressure),   	  (float)(y+sin1*pressure));
-					p.closePath();					
+
 					
-					g2d.setColor(ev.getDevice().getType() == TabletDevice.Type.ERASER ? Color.WHITE : Color.BLACK);
-					g2d.fill(new Ellipse2D.Float(x-pressure,y-pressure,2*pressure-0.5f,2*pressure-0.5f));
-					g2d.fill(p);
+					// This can happen if the endpoint circles contain each other...
+					if (!Double.isNaN(angle2)) {
+						
+						double sin1 = Math.sin(angle-angle2);
+						double cos1 = Math.cos(angle-angle2);
+						double sin2 = Math.sin(angle+angle2);
+						double cos2 = Math.cos(angle+angle2);
+						GeneralPath p = new GeneralPath();
+						p.moveTo((float)(lastX+cos1*lastPressure),(float)(lastY+sin1*lastPressure));
+						p.lineTo((float)(lastX+cos2*lastPressure),(float)(lastY+sin2*lastPressure));
+						p.lineTo((float)(x+cos2*pressure),        (float)(y+sin2*pressure));
+						p.lineTo((float)(x+cos1*pressure),   	  (float)(y+sin1*pressure));
+						p.closePath();
+
+						g2d.fill(p);
+						
+					}
 					repaint();
 				}
 				lastX = x;

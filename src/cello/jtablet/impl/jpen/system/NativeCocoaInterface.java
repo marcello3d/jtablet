@@ -20,7 +20,7 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 
 	private final float PRESSED_THRESHOLD = 0;
 	
-	private final Map<Long,TabletDevice> devices = new HashMap<Long,TabletDevice>();
+	private final Map<String,TabletDevice> devices = new HashMap<String,TabletDevice>();
 
 	private final CocoaAccess ca = new CocoaAccess() {
 
@@ -69,9 +69,15 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 					x,y,
 					0
 				));
+				lastProximity = enteringProximity;
 			}
 			if (!enteringProximity) {
-				td = TabletDevice.BASIC_MOUSE;
+				lastDevice = TabletDevice.BASIC_MOUSE;
+				lastPressure = 0;
+				lastTiltX = 0;
+				lastTiltY = 0;
+				lastTangentialPressure = 0;
+				lastRotation = 0;
 			}
 			
 			lastX = x;
@@ -246,13 +252,14 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 	}
 
 
-	private TabletDevice getDevice(int capabilityMask, final long uniqueID,
+	private TabletDevice getDevice(int capabilityMask, final long uniqueId,
 			int vendorPointingDeviceType) {
-		TabletDevice td = devices.get(uniqueID);
+		String id = uniqueId+"/"+vendorPointingDeviceType+"/"+capabilityMask;
+		TabletDevice td = devices.get(id);
 		
 		if (td == null) {
-			td = makeDevice(uniqueID,capabilityMask,vendorPointingDeviceType);
-			devices.put(uniqueID, td);
+			td = makeDevice(uniqueId,capabilityMask,vendorPointingDeviceType);
+			devices.put(id, td);
 		}
 		return td;
 	}
@@ -263,10 +270,9 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 		}
 		return (capabilityMask&capability) != 0 ? Support.SUPPORTED : Support.NONE;
 	}
-	protected TabletDevice makeDevice(final long uniqueID, final int capabilityMask,
-			final int pointingDeviceType) {
+	protected TabletDevice makeDevice(final long uniqueId, int capabilityMask, int pointingDeviceType) {
 		final Support supportsButtons 		= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_BUTTONSMASK);
-		final Support supportsDeviceID  	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_DEVICEIDMASK);
+		final Support supportsDeviceId  	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_DEVICEIDMASK);
 		final Support supportsPressure  	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_PRESSUREMASK);
 		final Support supportsRotation 		= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_ROTATIONMASK);
 //		final Support supportsOrientation	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_ORIENTINFOMASK);
@@ -286,8 +292,8 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 				type = Type.ERASER;
 				break;
 			default:
-				 type = Type.UNKNOWN;
-				 break;
+				type = Type.UNKNOWN;
+				break;
 		}
 		return new CocoaTabletDevice() {
 			@Override
@@ -296,7 +302,7 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 			}
 			@Override
 			public long getPhysicalId() {
-				return uniqueID;
+				return uniqueId;
 			}
 
 			@Override
@@ -305,7 +311,7 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 			}
 			@Override
 			public Support supportsDeviceID() {
-				return supportsDeviceID;
+				return supportsDeviceId;
 			}
 			@Override
 			public Support supportsPressure() {
@@ -328,7 +334,8 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 			
 		};
 	}
-	private abstract class CocoaTabletDevice extends TabletDevice {	}
+	private abstract class CocoaTabletDevice extends TabletDevice {
+	}
 
 	@Override
 	protected void start() {
