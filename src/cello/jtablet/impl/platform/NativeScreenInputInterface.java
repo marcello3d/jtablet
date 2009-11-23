@@ -1,5 +1,6 @@
-package cello.jtablet.impl;
+package cello.jtablet.impl.platform;
 
+import cello.jtablet.impl.ScreenInputInterface;
 import jpen.provider.NativeLibraryLoader;
 import jpen.provider.NativeLibraryLoader.LoadException;
 
@@ -7,7 +8,7 @@ import jpen.provider.NativeLibraryLoader.LoadException;
  * @author marcello
  *
  */
-public abstract class NativeScreenInputInterface extends ScreenInputInterface implements NativeSystemDevice {
+public abstract class NativeScreenInputInterface extends ScreenInputInterface implements NativeCursorDevice {
 
 	private static final NativeLibraryLoader LIB_LOADER=new NativeLibraryLoader();
 	private boolean loaded = false;

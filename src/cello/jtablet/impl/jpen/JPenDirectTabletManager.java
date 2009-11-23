@@ -3,60 +3,62 @@ package cello.jtablet.impl.jpen;
 import java.awt.Component;
 
 import cello.jtablet.events.TabletListener;
+import cello.jtablet.impl.CursorDevice;
 import cello.jtablet.impl.MouseListenerInterace;
-import cello.jtablet.impl.NativeDeviceException;
-import cello.jtablet.impl.NativeSystemDevice;
 import cello.jtablet.impl.TabletInterface;
 import cello.jtablet.impl.jpen.system.NativeCocoaInterface;
 import cello.jtablet.impl.jpen.system.NativeWinTabInterface;
 import cello.jtablet.impl.jpen.system.NativeXInputInterface;
+import cello.jtablet.impl.platform.NativeCursorDevice;
+import cello.jtablet.impl.platform.NativeDeviceException;
 
 public class JPenDirectTabletManager implements TabletInterface {
 
-	private final NativeSystemDevice interfaces[] = {
+	private final CursorDevice interfaces[] = {
 		new NativeCocoaInterface(),
 		new NativeWinTabInterface(),
-		new NativeXInputInterface()
+		new NativeXInputInterface(),
+		new MouseListenerInterace()
 	};
-	private final NativeSystemDevice nsi;
-	private final MouseListenerInterace mouseInterface = new MouseListenerInterace();
+	private final CursorDevice cursorDevice;
 	private NativeDeviceException exception; 
 	
 	public JPenDirectTabletManager() {
 		String os = System.getProperty("os.name").toLowerCase();
 		
-		NativeSystemDevice chosenNsi = null; 
-		for (NativeSystemDevice nsi : interfaces) {
-			if (nsi.isSystemSupported(os)) {
-				try {
-					nsi.load();
-					chosenNsi = nsi;
-				} catch (NativeDeviceException e) {
-					exception = e;					
+		CursorDevice chosenDevice = null; 
+		for (CursorDevice cd : interfaces) {
+			if (cd instanceof NativeCursorDevice) {
+				NativeCursorDevice nsd = (NativeCursorDevice)cd;
+				if (nsd.isSystemSupported(os)) {
+					try {
+						nsd.load();
+						chosenDevice = nsd;
+						break;
+					} catch (NativeDeviceException e) {
+						exception = e;					
+					}
 				}
+			} else {
+				chosenDevice = cd;
+				break;
 			}
 		}
-		this.nsi = chosenNsi;
+		this.cursorDevice = chosenDevice;
 	}
 
 	public void addScreenTabletListener(TabletListener l) {
-		nsi.addScreenTabletListener(l);
+		cursorDevice.addScreenTabletListener(l);
 	}
 	public void removeScreenTabletListener(TabletListener l) {
-		nsi.addScreenTabletListener(l);
+		cursorDevice.addScreenTabletListener(l);
 	}
 
 	public void addTabletListener(Component c, TabletListener l) {
-		nsi.addTabletListener(c,l);
-		if (!nsi.overridesMouseListener()) {
-			mouseInterface.addTabletListener(c,l);
-		}
+		cursorDevice.addTabletListener(c,l);
 	}
 	public void removeTabletListener(Component c, TabletListener l) {
-		nsi.removeTabletListener(c,l);
-		if (!nsi.overridesMouseListener()) {
-			mouseInterface.removeTabletListener(c,l);
-		}
+		cursorDevice.removeTabletListener(c,l);
 	}
 	
 }

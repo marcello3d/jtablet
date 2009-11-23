@@ -1,6 +1,7 @@
 package cello.jtablet.impl;
 
 import java.awt.Component;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -78,7 +79,7 @@ public class MouseListenerInterace implements CursorDevice {
 			count++;
 		}
 		
-		private TabletEvent toTabletEvent(MouseEvent e) {
+		private void fireTabletEvent(MouseEvent e) {
 
 			TabletEvent.Type type = null;
 			switch (e.getID()) {
@@ -101,43 +102,65 @@ public class MouseListenerInterace implements CursorDevice {
 					type = Type.EXITED;
 					break;
 				case MouseEvent.MOUSE_CLICKED:
-				case MouseEvent.MOUSE_WHEEL:
 				default:
 					type = null;
 					break;
 			}
-			return new TabletEvent(e,type,mousedevice);
+			fireEvent(new TabletEvent(e,type,mousedevice));
 		}
 
+		private void fireEvent(TabletEvent ev) {
+			System.out.println("mouse input: "+ev);
+			ev.fireEvent(listener);
+		}
 		public void mouseClicked(MouseEvent e) {
 		}
 
 		public void mouseEntered(MouseEvent e) {
-			listener.cursorEntered(toTabletEvent(e));
+			fireTabletEvent(e);
 		}
 
 		public void mouseExited(MouseEvent e) {
-			listener.cursorExited(toTabletEvent(e));
+			fireTabletEvent(e);
 		}
 
 		public void mousePressed(MouseEvent e) {
-			listener.cursorPressed(toTabletEvent(e));
-		}
+			fireTabletEvent(e);
+		}		
+
 
 		public void mouseReleased(MouseEvent e) {
-			listener.cursorReleased(toTabletEvent(e));
+			fireTabletEvent(e);
 		}
 
 		public void mouseDragged(MouseEvent e) {
-			listener.cursorDragged(toTabletEvent(e));
+			fireTabletEvent(e);
 		}
 
 		public void mouseMoved(MouseEvent e) {
-			listener.cursorMoved(toTabletEvent(e));
+			fireTabletEvent(e);
 		}
 
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			
+			float deltaX=0,deltaY=0;
+			if ((e.getModifiersEx()&InputEvent.SHIFT_DOWN_MASK)!=0) {
+				deltaX = -e.getWheelRotation()*e.getScrollAmount();
+			} else {
+				deltaY = -e.getWheelRotation()*e.getScrollAmount();
+			}
+			listener.cursorScrolled(new TabletEvent(
+				e.getComponent(),
+				TabletEvent.Type.SCROLLED,
+				e.getWhen(),
+				e.getModifiersEx(),
+				mousedevice,
+				e.getX(),
+				e.getY(),
+				0,
+				deltaX,
+				deltaY,
+				0
+			));
 		}
 
 	}

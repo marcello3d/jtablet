@@ -12,4 +12,6 @@ public abstract class TabletAdapter implements TabletListener {
 	public void cursorDragged(TabletEvent ev) {}
 	public void levelChanged(TabletEvent ev) {}
 	public void newDevice(TabletEvent ev) {}
+	public void cursorGestured(TabletEvent ev) {}
+	public void cursorScrolled(TabletEvent ev) {}
 }

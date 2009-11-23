@@ -14,7 +14,7 @@ import cello.jtablet.impl.NativeScreenInputInterface;
 /**
  * @author marcello
  */
-public class NativeCocoaInterface extends NativeScreenInputInterface {
+public class NativeCocoaInterface extends cello.jtablet.impl.platform.NativeScreenInputInterface {
 	
 
 

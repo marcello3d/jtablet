@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.swing.SwingUtilities;
+
 import cello.jtablet.events.TabletEvent;
 import cello.jtablet.events.TabletListener;
 
@@ -77,14 +79,32 @@ public abstract class ScreenInputInterface implements CursorDevice {
 			started = false;
 		}
 	}
+
 	
-	protected void fireScreenTabletEvent(TabletEvent ev) {
-		for (TabletListener l : screenListeners) {
-			ev.fireEvent(l);
+	protected void invokeOnEventThread(Runnable r) {
+		if (SwingUtilities.isEventDispatchThread()) {
+			r.run();
+		} else {
+			SwingUtilities.invokeLater(r);
 		}
-		for (ComponentManager cm : activeComponents) {
-			cm.fireScreenTabletEvent(ev);
-		}
+	}
+	protected void fireScreenTabletEvent(final TabletEvent ev) {
+		invokeOnEventThread(new Runnable() {
+			public void run() {
+				for (TabletListener l : screenListeners) {
+					ev.fireEvent(l);
+					if (ev.isConsumed()) {
+						return;
+					}
+				}
+				for (ComponentManager cm : activeComponents) {
+					cm.fireScreenTabletEvent(ev);
+					if (ev.isConsumed()) {
+						break;
+					}
+				}
+			}
+		});
 	}
 
 	public void addScreenTabletListener(TabletListener l) {
@@ -175,15 +195,9 @@ public abstract class ScreenInputInterface implements CursorDevice {
 
 			boolean nowCursorOver = c.contains(newEv.getPoint());
 			if (cursorOver != nowCursorOver) {
-				TabletEvent enterExitEvent = new TabletEvent(
-					c, 
-					nowCursorOver ? TabletEvent.Type.ENTERED : TabletEvent.Type.EXITED, 
-					newEv.getWhen(), 
-					newEv.getDevice(),
-					newEv.getModifiersEx(),
-					newEv.getRealX(), newEv.getRealY(),
-					newEv.getButton()
-				);
+				TabletEvent enterExitEvent = newEv.withType(nowCursorOver ? 
+																TabletEvent.Type.ENTERED : 
+																TabletEvent.Type.EXITED);
 				if (nowCursorOver) {
 					fireEvent(enterExitEvent);
 					fireEvent(newEv);
@@ -202,6 +216,9 @@ public abstract class ScreenInputInterface implements CursorDevice {
 			System.out.println("ev="+event);
 			for (TabletListener l : listeners) {
 				event.fireEvent(l);
+				if (event.isConsumed()) {
+					break;
+				}
 			}
 		}
 

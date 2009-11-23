@@ -13,12 +13,12 @@ public interface TabletListener {
 	 */
 	public void newDevice(TabletEvent ev);
 	/**
-	 * Called when a button/stylus tip is pressed
+	 * Called when the stylus tip is pressed
 	 * @param ev
 	 */
 	public void cursorPressed(TabletEvent ev);
 	/**
-	 * Called when a button/stylus tip is released
+	 * Called when the stylus tip is released
 	 * @param ev
 	 */
 	public void cursorReleased(TabletEvent ev);
@@ -42,6 +42,17 @@ public interface TabletListener {
 	 * @param ev
 	 */
 	public void cursorDragged(TabletEvent ev);
+	/**
+	 * Called when the cursor is scrolled
+	 * @param ev
+	 */
+	public void cursorScrolled(TabletEvent ev);
+
+	/**
+	 * Called when the cursor is gestured
+	 * @param ev
+	 */
+	public void cursorGestured(TabletEvent ev);
 	/**
 	 * Called when a pressure level has changed
 	 * @param ev

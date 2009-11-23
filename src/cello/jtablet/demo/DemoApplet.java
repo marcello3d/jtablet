@@ -1,6 +1,20 @@
 package cello.jtablet.demo;
 
+import java.awt.AWTException;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.RenderingHints;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
 
 import javax.swing.JApplet;
 import javax.swing.JFrame;
@@ -28,22 +42,6 @@ public class DemoApplet extends JApplet {
 	 * @throws InterruptedException 
 	 */
 	public static void main(String ...args) throws InterruptedException {
-//		JFrame frame = new JFrame("JTablet Demo");
-//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//		frame.setResizable(true);
-//		frame.setSize(300,300);
-//		frame.setLocationByPlatform(true);
-//		frame.setVisible(true);
-//		
-////		TabletManager.addScreenTabletListener(new TabletAdapter() {
-//		TabletManager.addTabletListener(frame.getRootPane(), new TabletAdapter() {
-//			@Override
-//			public void cursorMoved(TabletEvent ev) {
-//				System.out.println(ev.toString());
-//			}
-//		});
-		
-//		TabletManager.addScreenTabletListener(new TabletAdapter() {
 		final JFrame frame = new JFrame("JTablet Demo");
 		try {
 			final DemoApplet demo = new DemoApplet();

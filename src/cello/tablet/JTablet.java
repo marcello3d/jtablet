@@ -1,7 +1,7 @@
 /***************************************************************
  *
  * JTablet is an open-source native Tablet library for Java by
- *	Marcello Bastéa-Forte (marcello@cellosoft.com
+ *	Marcello Bastï¿½a-Forte (marcello@cellosoft.com
  *
  *   You are free to modify this code as you wish, but any
  *   useful/significant changes should be contributed back to
@@ -17,6 +17,7 @@ package cello.tablet;
 import java.util.LinkedList;
 
 import cello.jtablet.TabletManager;
+import cello.jtablet.events.TabletAdapter;
 import cello.jtablet.events.TabletEvent;
 import cello.jtablet.events.TabletListener;
 
@@ -79,7 +80,7 @@ public class JTablet {
     /**
      * 
      */
-    private final TabletListener tabletListener = new TabletListener() {
+    private final TabletListener tabletListener = new TabletAdapter() {
 		public void cursorDragged(TabletEvent ev) {
 			handle(ev);
 		}
@@ -103,7 +104,7 @@ public class JTablet {
 		}
 		public void cursorExited(TabletEvent ev) {
 			handle(ev);
-		}    	
+		}
     }; 
 
     protected void handle(TabletEvent ev) {

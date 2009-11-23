@@ -1,11 +1,13 @@
-package cello.jtablet.impl;
+package cello.jtablet.impl.platform;
+
+import cello.jtablet.impl.CursorDevice;
 
 /**
  * This interface specifies cursor devices that load native code
  * 
  * @author marcello
  */
-public interface NativeSystemDevice extends CursorDevice {
+public interface NativeCursorDevice extends CursorDevice {
 
 	/**
 	 * Loads the actual device

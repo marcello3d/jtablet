@@ -11,14 +11,24 @@ import java.io.Serializable;
 public abstract class TabletDevice implements Serializable {
 
 
+	/**
+	 * The default mouse tablet device
+	 */
 	public static final TabletDevice BASIC_MOUSE = new MouseDevice();
 
 	protected TabletDevice() {}
 	
+	/**
+	 * Types of tablet devices
+	 */
 	public enum Type {
+		/** a mouse-style device */
 		MOUSE,
+		/** the tip of a stylus */
 		STYLUS_TIP,
+		/** the eraser of a stylus */
 		ERASER,
+		/** unknown input device */
 		UNKNOWN
 	};
 	

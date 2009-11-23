@@ -79,8 +79,8 @@ public class JPenTabletManager extends TabletManager {
 	 * @author Marcello
 	 */
 	protected class JPenListener extends PenAdapter {
-		private float x=0,y=0,pressure=0,tiltX=0,tiltY=0;
-		private TabletDevice device = null;
+		private float x=0,y=0,pressure=0,tangentialPressure=0,tiltX=0,tiltY=0,rotation=0;
+		private TabletDevice device = TabletDevice.BASIC_MOUSE;
 		private int buttonMask = 0;
 
 		@Override
@@ -124,7 +124,7 @@ public class JPenTabletManager extends TabletManager {
 			// Translate the device
 			switch (ev.pen.getKind().getType()) {
 				case CURSOR:
-//					device = TabletDevice.MOUSE;
+					device = TabletDevice.BASIC_MOUSE;
 					break;
 				case ERASER:
 //					device = TabletDevice.STYLUS_ERASER;
@@ -133,13 +133,12 @@ public class JPenTabletManager extends TabletManager {
 //					device = TabletDevice.STYLUS_TIP;
 					break;
 			}
-			fireTabletEvent(new TabletEvent(eventSource, TabletEvent.Type.NEW_DEVICE, ev.getTime(), device));
+			fireTabletEvent(new TabletEvent(eventSource, TabletEvent.Type.NEW_DEVICE, ev.getTime(), buttonMask, device, x, y));
 		}
 		@Override
 		public void penLevelEvent(PLevelEvent ev) {
 			boolean moved = false;
-			boolean pressured = false;
-			boolean tilted = false;
+			boolean levelChanged = false;
 			for (PLevel level : ev.levels) {
 				switch (level.getType()) {
 				case X:
@@ -157,19 +156,31 @@ public class JPenTabletManager extends TabletManager {
 				case PRESSURE:
 					if (pressure != level.value) {
 						pressure = level.value;
-						pressured = true;
+						levelChanged = true;
+					}
+					break;
+				case TANGENTIAL_PRESSURE:
+					if (tangentialPressure != level.value) {
+						tangentialPressure = level.value;
+						levelChanged = true;
+					}
+					break;
+				case ROTATION:
+					if (rotation != level.value) {
+						rotation = level.value;
+						levelChanged = true;
 					}
 					break;
 				case TILT_X:
 					if (tiltX != level.value) {
 						tiltX = level.value;
-						tilted = true;
+						levelChanged = true;
 					}
 					break;
 				case TILT_Y:
 					if (tiltY != level.value) {
 						tiltY = level.value;
-						tilted = true;
+						levelChanged = true;
 					}
 					break;
 				}
@@ -186,15 +197,15 @@ public class JPenTabletManager extends TabletManager {
 			if (moved) {
 				// Dragging?
 				if (pressure > 0) {
-					fireTabletEvent(new TabletEvent(eventSource, TabletEvent.Type.DRAGGED, ev.getTime(), device, buttonMask,
-									x,y, pressure));
+					fireTabletEvent(new TabletEvent(eventSource, TabletEvent.Type.DRAGGED, ev.getTime(), buttonMask, device, 
+									x,y, pressure, tiltX,tiltY, tangentialPressure, rotation, TabletEvent.NOBUTTON));
 				} else {
-					fireTabletEvent(new TabletEvent(eventSource, TabletEvent.Type.MOVED, ev.getTime(), device, buttonMask,
-							x,y, pressure));
+					fireTabletEvent(new TabletEvent(eventSource, TabletEvent.Type.MOVED, ev.getTime(), buttonMask, device,
+							x,y, pressure, tiltX,tiltY, tangentialPressure, rotation, TabletEvent.NOBUTTON));
 				}
-			} else if (pressured || tilted) {
-				fireTabletEvent(new TabletEvent(eventSource, TabletEvent.Type.LEVEL_CHANGED, ev.getTime(), device, buttonMask,
-						x,y,pressure));
+			} else if (levelChanged) {
+				fireTabletEvent(new TabletEvent(eventSource, TabletEvent.Type.LEVEL_CHANGED, ev.getTime(), buttonMask, device,
+						x,y,pressure, tiltX,tiltY, tangentialPressure, rotation, TabletEvent.NOBUTTON));
 			}
 		}
 	}

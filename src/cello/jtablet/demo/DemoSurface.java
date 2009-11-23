@@ -4,8 +4,10 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JComponent;
@@ -14,7 +16,6 @@ import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletManager;
 import cello.jtablet.events.TabletAdapter;
 import cello.jtablet.events.TabletEvent;
-import cello.jtablet.impl.jpen.JPenDirectTabletManager;
 
 /**
  * Simple demo component that handles tablet input to draw lines 
@@ -26,6 +27,10 @@ public class DemoSurface extends JComponent {
 	private BufferedImage bi;
 	private Graphics2D g2d;
 	
+	private double lastX,lastY,lastPressure;
+	
+	private AffineTransform at = new AffineTransform();
+	
 	/**
 	 * 
 	 */
@@ -33,7 +38,6 @@ public class DemoSurface extends JComponent {
 		createBuffer();
 		TabletManager.addTabletListener(this, new TabletAdapter() {
 
-			double lastX,lastY,lastPressure;
 			boolean dragged = false;
 			
 
@@ -45,6 +49,11 @@ public class DemoSurface extends JComponent {
 				float pressure = ev.getPressure() * 20;
 				if (lastPressure>0) {
 					
+					try {
+						g2d.setTransform(at.createInverse());
+					} catch (NoninvertibleTransformException e) {
+						e.printStackTrace();
+					}
 
 					g2d.setColor(ev.getDevice().getType() == TabletDevice.Type.ERASER ? Color.WHITE : Color.BLACK);
 					g2d.fill(new Ellipse2D.Float(x-pressure,y-pressure,2*pressure-0.5f,2*pressure-0.5f));
@@ -92,6 +101,7 @@ public class DemoSurface extends JComponent {
 				lastY = ev.getRealY();
 				lastPressure = ev.getPressure();
 				dragged = false;
+				repaint();
 			}
 
 			@Override
@@ -113,7 +123,29 @@ public class DemoSurface extends JComponent {
 				}
 				dragged = false;
 			}
-			
+			@Override
+			public void cursorScrolled(TabletEvent ev) {
+				at.translate(ev.getDeltaX()*10, ev.getDeltaY()*10);
+				repaint();
+			}
+			@Override
+			public void cursorGestured(TabletEvent ev) {
+				switch (ev.getType()) {
+					case ZOOMED:
+						float zoom = 1+ev.getZoom();
+						at.translate(getWidth()/2, getHeight()/2);
+						at.scale(zoom, zoom);
+						at.translate(zoom*getWidth()/-2, zoom*getHeight()/-2);
+						repaint();
+						break;
+					case ROTATED:
+						at.translate(getWidth()/2, getHeight()/2);
+						at.rotate(-ev.getRotation());
+						at.translate(getWidth()/-2, getHeight()/-2);
+						repaint();
+						break;
+				}
+			}
 		});
 	}
 
@@ -137,7 +169,13 @@ public class DemoSurface extends JComponent {
 			createBuffer();
 			g2d.drawImage(old,0,0,null);
 		}
-		g.drawImage(bi, 0, 0, null);
+		Graphics2D gg = (Graphics2D)g;
+		AffineTransform t = gg.getTransform();
+		gg.setTransform(at);
+		gg.drawImage(bi, 0, 0, null);
+		gg.setTransform(t);
+		gg.setColor(Color.BLUE);
+		gg.draw(new Ellipse2D.Double(lastX-lastPressure,lastY-lastPressure,2*lastPressure,2*lastPressure));
 	}
 
 	public String toString() {

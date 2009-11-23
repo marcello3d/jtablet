@@ -1,4 +1,4 @@
-package cello.jtablet.impl;
+package cello.jtablet.impl.platform;
 
 public class NativeDeviceException extends Exception {
 

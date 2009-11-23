@@ -23,6 +23,10 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	private final float tiltX,tiltY;
 	private final float rotation;
 	
+	private final float deltaX,deltaY;
+	private final float zoom;
+	
+	
 	private final Type type;
 	private final TabletDevice device;
 
@@ -41,11 +45,14 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param tiltY 
 	 * @param tangentialPressure 
 	 * @param rotation 
+	 * @param deltaX 
+	 * @param deltaY 
+	 * @param zoom 
 	 */
 	public TabletEvent(Component source, Type type, long when, int modifiers, 
 						TabletDevice device, float x, float y, float pressure,
 						float tiltX, float tiltY, float tangentialPressure,
-						float rotation,
+						float rotation, float deltaX, float deltaY, float zoom,
 						int button) {
 		
 		super(source, type.getId(), when, modifiers,
@@ -60,8 +67,10 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.tiltY = tiltY;
 		this.tangentialPressure = tangentialPressure;
 		this.rotation = rotation;
+		this.deltaX = deltaX;
+		this.deltaY = deltaY;
+		this.zoom = zoom;
 	}
-
 	/**
 	 * Wrap a mouseevent as a TabletEvent
 	 * @param e
@@ -73,80 +82,81 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.x = e.getX();
 		this.y = e.getY();
 		this.type = type;
-		this.pressure = (e.getModifiersEx() & (BUTTON1_DOWN_MASK|BUTTON2_DOWN_MASK|BUTTON3_DOWN_MASK)) != 0 ? 1.0f : 0;
+		this.pressure = (e.getModifiersEx() & BUTTON1_DOWN_MASK) != 0 ? 1.0f : 0;
 		this.tiltX = 0;
 		this.tiltY = 0;
 		this.tangentialPressure = 0;
 		this.rotation = 0;
 		this.device = device;
+		this.deltaX = 0;
+		this.deltaY = 0;
+		this.zoom = 0;
 	} 
 
-
-	/**
-	 * Constructs a new InputEvent
-	 * 
-	 * @param source
-	 * @param type 
-	 * @param when
-	 * @param device 
-	 * @param x
-	 * @param y 
-	 * @param modifiers 
-	 * @param button 
-	 */
-	public TabletEvent(Component source, Type type, long when, TabletDevice device, int modifiers, float x, float y, int button) {
-		this(source,type,when,modifiers,
-				device,x,y,0,
-				0,0,0,0,
-				button);
-	}
-	/**
-	 * Constructs a new InputEvent
-	 * 
-	 * @param source
-	 * @param type 
-	 * @param when
-	 * @param device 
-	 * @param modifiers 
-	 * @param x 
-	 * @param y  
-	 * @param pressure 
-	 */
-	public TabletEvent(Component source, Type type, long when, TabletDevice device, int modifiers, float x, float y, float pressure) {
-		this(source,type,when,modifiers,
-				device,x,y,pressure,
-				0,0,0,0,
-				NOBUTTON);
-	}
-	/**
-	 * Constructs a new InputEvent
-	 * 
-	 * @param source
-	 * @param type 
-	 * @param when
-	 * @param device
-	 */
-	public TabletEvent(Component source, Type type, long when, TabletDevice device) {
-		this(source,type,when,0,
-				device,0,0,0,
-				0,0,0,0,
-				NOBUTTON);
-	}
-	
 	
 
+
+	public TabletEvent(Component source, Type type, long when, int modifiers, TabletDevice device, 
+			float x, float y, 
+			float pressure, 
+			float tiltX, float tiltY,
+			float tangentialPressure, 
+			float rotation, 
+			int button) {
+		this(source,type,when,modifiers,device,x,y,pressure,tiltX,tiltY,tangentialPressure,rotation,0,0,0,button);
+	}
+	public TabletEvent(Component source, Type type, long when, int modifiers, TabletDevice device, 
+			float x, float y) {
+		this(source,type,when,modifiers,device,x,y,0,0,0,0,0,0,0,0,NOBUTTON);
+	}
+	public TabletEvent(Component source, Type type, long when, int modifiers, TabletDevice device,
+			float x, float y, 
+			float rotation, 
+			float deltaX, float deltaY,
+			float zoom) {
+		this(source,type,when,modifiers,device,x,y,0,0,0,0,rotation,deltaX,deltaY,zoom,NOBUTTON);
+	}
+	public TabletEvent(Component source, Type type, long when, TabletDevice device, int modifiers, 
+			float x, float y,
+			int button) {
+		this(source,type,when,modifiers,device,x,y,0,0,0,0,0,0,0,0,button);
+	}
 	@Override
 	public String toString() {
-		return "InputEvent["+
-				"source="+source+
-				",type="+type+
-				",when="+getWhen()+
-				",device="+device+
-				",x="+x+
-				",y="+y+
-				",modifiers="+MouseEvent.getMouseModifiersText(getModifiers())+
-				",pressure="+pressure+
-				"]";
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(getClass().getSimpleName());
+		sb.append("[source=").append(source);
+		sb.append(",type=").append(type);
+		sb.append(",when=").append(getWhen());
+		sb.append(",device=").append(device);
+		sb.append(",x=").append(x);
+		sb.append(",y=").append(y);
+		
+        if (getModifiersEx() != 0) {
+            sb.append(",modifiers=").append(getModifiersExText(getModifiersEx()));
+        }
+        if (pressure != 0) {
+        	sb.append(",pressure=").append(pressure);
+        }
+        if (tangentialPressure != 0) {
+            sb.append(",tanPressure=").append(tangentialPressure);
+        }
+        if (tiltX != 0 || tiltY != 0) {
+            sb.append(",tilt=").append(tiltX).append(',').append(tiltY);
+        }
+        if (rotation != 0) {
+        	sb.append(",rotation=").append(rotation);
+        }
+        if (deltaX != 0 || deltaY != 0) {
+        	sb.append(",delta=").append(deltaX).append(',').append(deltaY);
+        }
+        if (zoom != 0) {
+        	sb.append(",zoom=").append(zoom);
+        }
+        sb.append("]");
+        
+		return sb.toString();
 	}
 
 	private static final int ID_START = RESERVED_ID_MAX + 1200;
@@ -158,22 +168,27 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		PRESSED			( MOUSE_PRESSED ),
 		/** button/stylus tip released */
 		RELEASED		( MOUSE_RELEASED ),
-		/** button/stylus tip pressed */
+		/** cursor enters proximity and/or component */
 		ENTERED			( MOUSE_ENTERED ),
-		/** button/stylus tip released */
+		/** cursor exits proximity and/or component*/
 		EXITED			( MOUSE_EXITED ),
-//		/** button/stylus tip pressed */
-//		PRESSURED		( ID_START ),
-//		/** button/stylus tip released */
-//		UNPRESSURED		( ID_START+1 ),
 		/** cursor moved */
 		MOVED			( MOUSE_MOVED ),
 		/** cursor dragged */
 		DRAGGED			( MOUSE_DRAGGED ),
+		/** scrolled */
+		SCROLLED		( MOUSE_WHEEL ),
 		/** new device */
-		NEW_DEVICE		( ID_START+2 ),
+		NEW_DEVICE		( ID_START ),
 		/** level changed */
-		LEVEL_CHANGED	( ID_START+3 );
+		LEVEL_CHANGED	( ID_START+1 ),
+		/** gestured */
+		ZOOMED			( ID_START+2 ),
+		/** gestured */
+		ROTATED			( ID_START+3 ),
+		/** gestured */
+		SWIPED			( ID_START+4 )
+		;
 		
 		private final int id;
 		
@@ -216,6 +231,14 @@ public class TabletEvent extends MouseEvent implements Serializable {
 			break;
 		case NEW_DEVICE:
 			l.newDevice(this);
+			break;
+		case SCROLLED:
+			l.cursorScrolled(this);
+			break;
+		case ZOOMED:
+		case ROTATED:
+		case SWIPED:
+			l.cursorGestured(this);
 			break;
 		}
 	}
@@ -299,9 +322,21 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		return new TabletEvent(c, type, getWhen(), getModifiersEx(), 
 				device, x + deltaX, y + deltaY, pressure,
 				tiltX, tiltY, tangentialPressure,
-				rotation,
+				rotation,this.deltaX,this.deltaY,zoom,
 				getButton());
 	}
+	/**
+	 * @param type
+	 * @return a new TabletEvent with the given type
+	 */
+	public TabletEvent withType(Type type) {
+		return new TabletEvent((Component)source, type, getWhen(), getModifiersEx(), 
+				device, x + deltaX, y + deltaY, pressure,
+				tiltX, tiltY, tangentialPressure,
+				rotation,this.deltaX,this.deltaY,zoom,
+				getButton());
+	}
+
 	/**
 	 * Returns a translated version of this TabletEvent
 	 * @param deltaX
@@ -312,4 +347,24 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		return translated(getComponent(), deltaX, deltaY);
 	}
 
+	/**
+	 * @return the deltaX
+	 */
+	public float getDeltaX() {
+		return deltaX;
+	}
+
+	/**
+	 * @return the deltaY
+	 */
+	public float getDeltaY() {
+		return deltaY;
+	}
+
+	/**
+	 * @return the zoom
+	 */
+	public float getZoom() {
+		return zoom;
+	}
 }
