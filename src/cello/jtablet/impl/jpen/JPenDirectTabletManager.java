@@ -6,9 +6,9 @@ import cello.jtablet.events.TabletListener;
 import cello.jtablet.impl.CursorDevice;
 import cello.jtablet.impl.MouseListenerInterace;
 import cello.jtablet.impl.TabletInterface;
-import cello.jtablet.impl.jpen.system.NativeCocoaInterface;
-import cello.jtablet.impl.jpen.system.NativeWinTabInterface;
-import cello.jtablet.impl.jpen.system.NativeXInputInterface;
+import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
+import cello.jtablet.impl.jpen.platform.NativeWinTabInterface;
+import cello.jtablet.impl.jpen.platform.NativeXInputInterface;
 import cello.jtablet.impl.platform.NativeCursorDevice;
 import cello.jtablet.impl.platform.NativeDeviceException;
 
