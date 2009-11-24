@@ -39,6 +39,10 @@ public abstract class ScreenInputInterface implements CursorDevice {
 			}
 			return null;
 		}
+		@Override
+		public Point getLocationOnScreen() {
+			return new Point(0,0);
+		}
 		
 		@Override
 		public Rectangle bounds() {
@@ -97,10 +101,12 @@ public abstract class ScreenInputInterface implements CursorDevice {
 						return;
 					}
 				}
-				for (ComponentManager cm : activeComponents) {
-					cm.fireScreenTabletEvent(ev);
-					if (ev.isConsumed()) {
-						break;
+				synchronized (activeComponents) {
+					for (ComponentManager cm : activeComponents) {
+						cm.fireScreenTabletEvent(ev);
+						if (ev.isConsumed()) {
+							break;
+						}
 					}
 				}
 			}
@@ -167,14 +173,18 @@ public abstract class ScreenInputInterface implements CursorDevice {
 		
 		protected void activate() {
 			if (!active) {
-				activeComponents.add(ComponentManager.this);
+				synchronized (activeComponents) {
+					activeComponents.add(ComponentManager.this);
+				}
 				active = true;
 			}
 		}
 		protected void deactivate() {
 			// Only deactivate if we're not dragging
 			if (active && !dragging && !mouseOver) {
-				activeComponents.remove(ComponentManager.this);
+				synchronized (activeComponents) {
+					activeComponents.remove(ComponentManager.this);
+				}
 				active = false;
 			}
 		}

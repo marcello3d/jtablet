@@ -1,20 +1,7 @@
 package cello.jtablet.demo;
 
-import java.awt.AWTException;
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
-import java.awt.RenderingHints;
-import java.awt.SystemTray;
-import java.awt.TrayIcon;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.geom.Ellipse2D;
-import java.awt.image.BufferedImage;
+import java.awt.Container;
 
 import javax.swing.JApplet;
 import javax.swing.JFrame;
@@ -29,12 +16,16 @@ public class DemoApplet extends JApplet {
 	
 	
 	public void init() {
-		System.out.println("System Properties:");
-		for (Object property : System.getProperties().keySet()) {
-			String propertyName = property.toString();
-			System.out.println(propertyName+": "+System.getProperty(propertyName));
-		}
-		getContentPane().add(new DemoSurface(),BorderLayout.CENTER);
+		
+		Container contentPane = getContentPane();
+		contentPane.setLayout(new BorderLayout());
+		
+		DemoSurface demoSurface = new DemoSurface();
+		contentPane.add(demoSurface,BorderLayout.CENTER);
+		contentPane.add(new DemoLogPanel(demoSurface),BorderLayout.SOUTH);
+		contentPane.add(new DemoInfoPanel(demoSurface),BorderLayout.EAST);
+		
+		invalidate();
 	}
 
 	/**
@@ -46,7 +37,7 @@ public class DemoApplet extends JApplet {
 		try {
 			final DemoApplet demo = new DemoApplet();
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setSize(500,550);
+			frame.setSize(800,550);
 			frame.setLocationByPlatform(true);
 			frame.setContentPane(demo);
 			demo.init();

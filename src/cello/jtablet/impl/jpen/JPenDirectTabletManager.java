@@ -18,10 +18,12 @@ public class JPenDirectTabletManager implements TabletInterface {
 		new NativeCocoaInterface(),
 		new NativeWinTabInterface(),
 		new NativeXInputInterface(),
+		new JPenTranslationInterface(),
 		new MouseListenerInterace()
 	};
 	private final CursorDevice cursorDevice;
-	private NativeDeviceException exception; 
+	private NativeDeviceException exception;
+	private DriverStatus driverStatus; 
 	
 	public JPenDirectTabletManager() {
 		String os = System.getProperty("os.name").toLowerCase();
@@ -47,6 +49,16 @@ public class JPenDirectTabletManager implements TabletInterface {
 		this.cursorDevice = chosenDevice;
 	}
 
+	public enum DriverStatus {
+		
+	}
+	public DriverStatus getDriverStatus() {
+		return driverStatus;
+	}
+	public NativeDeviceException getDriverException() {
+		return exception;
+	}
+	
 	public void addScreenTabletListener(TabletListener l) {
 		cursorDevice.addScreenTabletListener(l);
 	}

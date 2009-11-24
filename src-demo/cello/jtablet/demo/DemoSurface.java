@@ -1,6 +1,8 @@
 package cello.jtablet.demo;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -11,6 +13,9 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JComponent;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.text.BadLocationException;
 
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletManager;
@@ -31,6 +36,7 @@ public class DemoSurface extends JComponent {
 	
 	private AffineTransform at = new AffineTransform();
 	
+	
 	/**
 	 * 
 	 */
@@ -40,7 +46,6 @@ public class DemoSurface extends JComponent {
 
 			boolean dragged = false;
 			
-
 			@Override
 			public synchronized void cursorDragged(TabletEvent ev) {
 				dragged = true;
@@ -181,5 +186,4 @@ public class DemoSurface extends JComponent {
 	public String toString() {
 		return getClass().getSimpleName();
 	}
-	
 }

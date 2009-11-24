@@ -1,7 +1,7 @@
 /***************************************************************
  *
  * JTablet is an open-source native Tablet library for Java by
- *	Marcello Bastéa-Forte (marcello@cellosoft.com
+ *	Marcello Bastï¿½a-Forte (marcello@cellosoft.com
  *
  *   You are free to modify this code as you wish, but any
  *   useful/significant changes should be contributed back to
@@ -285,7 +285,11 @@ public class JTabletCursor {
 	    		// NOT SUPPORTED
 //	    	case DATA_CURSOR:
 //	    	case DATA_Z:
-//	    	case DATA_ORIENTATION_ALTITUDE:
+	    	case DATA_ORIENTATION_ALTITUDE:
+	            if (getCursorType() == JTabletCursor.TYPE_PEN_ERASER) {
+	            	return -1;
+	            }
+	            return 0;
 //	    	case DATA_ORIENTATION_AZIMUTH:
 //	    	case DATA_ORIENTATION_TWIST:
 //	    	case DATA_ROTATION_PITCH:
