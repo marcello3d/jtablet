@@ -126,8 +126,8 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append(getClass().getSimpleName());
-		sb.append("[source=").append(source);
-		sb.append(",type=").append(type);
+		sb.append("[");
+		sb.append("").append(type);
 		sb.append(",when=").append(getWhen());
 		sb.append(",device=").append(device);
 		sb.append(",x=").append(x);
@@ -154,7 +154,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
         if (zoom != 0) {
         	sb.append(",zoom=").append(zoom);
         }
-        sb.append("]");
+        sb.append("] on ").append(source);
         
 		return sb.toString();
 	}
@@ -311,6 +311,18 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		return rotation;
 	}
 
+	public TabletEvent withPoint(Component c, float x, float y) {
+		return new TabletEvent(c, type, getWhen(), getModifiersEx(), 
+				device, x, y, pressure,
+				tiltX, tiltY, tangentialPressure,
+				rotation,this.deltaX,this.deltaY,zoom,
+				getButton());
+	}
+
+	public TabletEvent withPoint(float x, float y) {
+		return withPoint(getComponent(), x, y);
+	}
+
 	/**
 	 * Returns a translated version of this TabletEvent
 	 * @param c new component for translated event
@@ -319,11 +331,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @return the new TabletEvent
 	 */
 	public TabletEvent translated(Component c, float deltaX, float deltaY) {
-		return new TabletEvent(c, type, getWhen(), getModifiersEx(), 
-				device, x + deltaX, y + deltaY, pressure,
-				tiltX, tiltY, tangentialPressure,
-				rotation,this.deltaX,this.deltaY,zoom,
-				getButton());
+		return withPoint(c, x+deltaX, y+deltaY);
 	}
 	/**
 	 * @param type

@@ -6,13 +6,11 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.SwingUtilities;
 
@@ -25,9 +23,8 @@ import cello.jtablet.events.TabletListener;
  */
 public abstract class ScreenInputInterface implements CursorDevice {	
 	private final List<TabletListener> screenListeners = new ArrayList<TabletListener>();
-	private final Map<Component,ComponentManager> componentListeners = new ConcurrentHashMap<Component,ComponentManager>();
-	
-	private final List<ComponentManager> activeComponents = Collections.synchronizedList(new ArrayList<ComponentManager>());
+	private final Map<Component,ComponentManager> componentManagers = new ConcurrentHashMap<Component,ComponentManager>();	
+	private final List<ComponentManager> showingComponents = new CopyOnWriteArrayList<ComponentManager>();
 	
 	private static class ScreenComponent extends Component {
 		
@@ -78,7 +75,7 @@ public abstract class ScreenInputInterface implements CursorDevice {
 
 
 	private void stopIfNeeded() {
-		if (started && screenListeners.isEmpty() && componentListeners.isEmpty()) {
+		if (started && screenListeners.isEmpty() && componentManagers.isEmpty()) {
 			stop();
 			started = false;
 		}
@@ -92,21 +89,29 @@ public abstract class ScreenInputInterface implements CursorDevice {
 			SwingUtilities.invokeLater(r);
 		}
 	}
+	private boolean pressed = false;
 	protected void fireScreenTabletEvent(final TabletEvent ev) {
 		invokeOnEventThread(new Runnable() {
 			public void run() {
+				switch (ev.getType()) {
+					case PRESSED:
+						pressed = true;
+						break;
+					case RELEASED:
+						pressed = false;
+						break;
+				}
+				
 				for (TabletListener l : screenListeners) {
 					ev.fireEvent(l);
 					if (ev.isConsumed()) {
 						return;
 					}
 				}
-				synchronized (activeComponents) {
-					for (ComponentManager cm : activeComponents) {
-						cm.fireScreenTabletEvent(ev);
-						if (ev.isConsumed()) {
-							break;
-						}
+				for (ComponentManager cm : showingComponents) {
+					cm.fireScreenTabletEvent(ev);
+					if (ev.isConsumed()) {
+						break;
 					}
 				}
 			}
@@ -124,106 +129,85 @@ public abstract class ScreenInputInterface implements CursorDevice {
 
 	public void addTabletListener(Component c, TabletListener l) {
 		synchronized (c) {
-			ComponentManager list = componentListeners.get(c);
-			if (list == null) {
-				list = new ComponentManager(c);
-				componentListeners.put(c, list);
+			ComponentManager manager = componentManagers.get(c);
+			if (manager == null) {
+				manager = new ComponentManager(c);
+				componentManagers.put(c, manager);
+				showingComponents.add(manager);
 			}
-			list.add(l);
+			manager.add(l);
 			startIfNeeded();
 		}
 	}
 	
 	public void removeTabletListener(Component c, TabletListener l) {
-		ComponentManager list = componentListeners.get(c);
-		if (list == null) {
+		ComponentManager manager = componentManagers.get(c);
+		if (manager == null) {
 			return;
 		}
-		if (!list.remove(l)) {
-			componentListeners.remove(c);
+		if (!manager.remove(l)) {
+			componentManagers.remove(c);
+			showingComponents.remove(manager);
 			stopIfNeeded();
 		}
 	}
 
-	private class ComponentManager implements MouseListener {
-		private boolean mouseOver = false;
+	private class ComponentManager {
 		private boolean cursorOver = false;
-		private boolean active = false;
 		private boolean dragging = false;
 		private List<TabletListener> listeners = new ArrayList<TabletListener>();
 		private final Component c;
 		
 		public ComponentManager(Component c) {
 			this.c = c;
-			c.addMouseListener(this);
 		}
 		
-		public void mouseClicked(MouseEvent e) {}
-		public void mouseEntered(MouseEvent e) {
-			mouseOver = true;
-			activate();
-		}
-		public void mouseExited(MouseEvent e) {
-			mouseOver = false;
-			deactivate();
-		}
-		public void mousePressed(MouseEvent e) {}
-		public void mouseReleased(MouseEvent e) {}
 		
-		
-		protected void activate() {
-			if (!active) {
-				synchronized (activeComponents) {
-					activeComponents.add(ComponentManager.this);
-				}
-				active = true;
-			}
-		}
-		protected void deactivate() {
-			// Only deactivate if we're not dragging
-			if (active && !dragging && !mouseOver) {
-				synchronized (activeComponents) {
-					activeComponents.remove(ComponentManager.this);
-				}
-				active = false;
-			}
-		}
-
 		public void fireScreenTabletEvent(TabletEvent ev) {
-			switch (ev.getType()) {
-				case PRESSED:
-				case DRAGGED:
-					dragging = true;
-					break;
-				case RELEASED:
-				case MOVED:
-					dragging = false;
-					break;
+			if (!c.isShowing()) {
+				return;
 			}
+			
+			// Translate the event into the coordinate space of the component
 			Point point = c.getLocationOnScreen();
 			TabletEvent newEv = ev.translated(c, -point.x, -point.y);
 
+
+			switch (ev.getType()) {
+				case PRESSED:
+					dragging = cursorOver;
+					break;
+				case RELEASED:
+					dragging = false;
+					break;
+			}
+			// is this an enter/exit event?
 			boolean nowCursorOver = c.contains(newEv.getPoint());
 			if (cursorOver != nowCursorOver) {
 				TabletEvent enterExitEvent = newEv.withType(nowCursorOver ? 
 																TabletEvent.Type.ENTERED : 
 																TabletEvent.Type.EXITED);
 				if (nowCursorOver) {
+					// Send two events, one with the enter event, the second with the mouse move
 					fireEvent(enterExitEvent);
-					fireEvent(newEv);
+					// Only send event if the component is active
+					if ((cursorOver && !pressed) || dragging) {
+						fireEvent(newEv);
+					}
 				} else {
-					fireEvent(newEv);
+					// Java only sends an exit event, no mouse motion event, in this case
+					// My hypothesis is that move events only occur within the bounds of the component
 					fireEvent(enterExitEvent);
 				}
 
 				cursorOver = nowCursorOver;
-			} else {
+			} else if ((!pressed && cursorOver) || dragging) {
+				
 				fireEvent(newEv);
 			}
 		}
 
 		private void fireEvent(TabletEvent event) {
-			System.out.println("ev="+event);
 			for (TabletListener l : listeners) {
 				event.fireEvent(l);
 				if (event.isConsumed()) {
@@ -240,7 +224,6 @@ public abstract class ScreenInputInterface implements CursorDevice {
 			listeners.remove(l);
 			
 			if (listeners.isEmpty()) {
-				c.removeMouseListener(this);
 				return false;
 			}
 			return true;
@@ -249,6 +232,7 @@ public abstract class ScreenInputInterface implements CursorDevice {
 		public synchronized void add(TabletListener l) {
 			listeners.add(l);
 		}
+
 	}
 
 }

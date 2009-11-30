@@ -1,8 +1,6 @@
 package cello.jtablet.demo;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -13,9 +11,6 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.image.BufferedImage;
 
 import javax.swing.JComponent;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.text.BadLocationException;
 
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletManager;
@@ -29,12 +24,15 @@ import cello.jtablet.events.TabletEvent;
  */
 public class DemoSurface extends JComponent {
 
+	private static final int MAX_RADIUS = 20;
 	private BufferedImage bi;
 	private Graphics2D g2d;
 	
 	private double lastX,lastY,lastPressure;
 	
 	private AffineTransform at = new AffineTransform();
+	private boolean onSurface = false;
+	private boolean dragging = false;
 	
 	
 	/**
@@ -42,16 +40,23 @@ public class DemoSurface extends JComponent {
 	 */
 	public DemoSurface() {
 		createBuffer();
-		TabletManager.addTabletListener(this, new TabletAdapter() {
+		TabletManager.getManager().addTabletListener(this, new TabletAdapter() {
 
 			boolean dragged = false;
+			@Override
+			public void cursorExited(TabletEvent ev) {
+				onSurface = false;
+				repaint();
+			}
+			
 			
 			@Override
 			public synchronized void cursorDragged(TabletEvent ev) {
+				onSurface = true;
 				dragged = true;
 				float x = ev.getRealX();
 				float y = ev.getRealY();
-				float pressure = ev.getPressure() * 20;
+				float pressure = ev.getPressure() * MAX_RADIUS;
 				if (lastPressure>0) {
 					
 					try {
@@ -102,6 +107,7 @@ public class DemoSurface extends JComponent {
 
 			@Override
 			public void cursorMoved(TabletEvent ev) {
+				onSurface = true;
 				lastX = ev.getRealX();
 				lastY = ev.getRealY();
 				lastPressure = ev.getPressure();
@@ -115,6 +121,7 @@ public class DemoSurface extends JComponent {
 				lastY = ev.getRealY();
 				lastPressure = ev.getPressure();
 				dragged = false;
+				dragging = true;
 			}
 
 			@Override
@@ -127,6 +134,7 @@ public class DemoSurface extends JComponent {
 					g2d.fill(new Ellipse2D.Double(x-pressure,y-pressure,2*pressure,2*pressure));
 				}
 				dragged = false;
+				dragging = false;
 			}
 			@Override
 			public void cursorScrolled(TabletEvent ev) {
@@ -147,6 +155,10 @@ public class DemoSurface extends JComponent {
 						at.translate(getWidth()/2, getHeight()/2);
 						at.rotate(-ev.getRotation());
 						at.translate(getWidth()/-2, getHeight()/-2);
+						repaint();
+						break;
+					case SWIPED:
+						at.setToIdentity();
 						repaint();
 						break;
 				}
@@ -175,15 +187,27 @@ public class DemoSurface extends JComponent {
 			g2d.drawImage(old,0,0,null);
 		}
 		Graphics2D gg = (Graphics2D)g;
+		gg.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		gg.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+		gg.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+		gg.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+		g.setColor(Color.GRAY);
+		gg.fill(g.getClip());
 		AffineTransform t = gg.getTransform();
-		gg.setTransform(at);
+		gg.transform(at);
 		gg.drawImage(bi, 0, 0, null);
 		gg.setTransform(t);
-		gg.setColor(Color.BLUE);
-		gg.draw(new Ellipse2D.Double(lastX-lastPressure,lastY-lastPressure,2*lastPressure,2*lastPressure));
+		if (onSurface || dragging) {
+			gg.setColor(Color.LIGHT_GRAY);
+			if (lastPressure == 0) {
+				gg.draw(new Ellipse2D.Double(lastX-MAX_RADIUS,lastY-MAX_RADIUS,2*MAX_RADIUS,2*MAX_RADIUS));
+			} else { 
+				gg.draw(new Ellipse2D.Double(lastX-lastPressure,lastY-lastPressure,2*lastPressure,2*lastPressure));
+			}
+		}
 	}
 
 	public String toString() {
-		return getClass().getSimpleName();
+		return getClass().getSimpleName()+"@"+hashCode();
 	}
 }

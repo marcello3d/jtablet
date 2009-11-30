@@ -73,7 +73,7 @@ public class JTablet {
      */
     public JTablet(boolean fullControl) throws JTabletException {
 		System.out.println("JTablet loaded");
-    	TabletManager.addScreenTabletListener(tabletListener);
+    	TabletManager.getManager().addScreenTabletListener(tabletListener);
     }
 
 
@@ -179,7 +179,7 @@ public class JTablet {
      * Unloads the native driver for JTablet
      */
     public void close() {
-    	TabletManager.removeScreenTabletListener(tabletListener);
+    	TabletManager.getManager().removeScreenTabletListener(tabletListener);
     }
 
     /**

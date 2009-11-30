@@ -17,6 +17,11 @@ import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.events.TabletEvent;
 import cello.jtablet.events.TabletFunneler;
 
+/**
+ * This panel displays tablet information for  
+ * 
+ * @author marcello
+ */
 public class DemoInfoPanel extends JPanel {
 
 	private JLabel typeValue = new JLabel("Type");
@@ -27,6 +32,7 @@ public class DemoInfoPanel extends JPanel {
 	private JLabel tiltYValue = new JLabel("Tilt Y");
 	private JLabel sidePressureValue = new JLabel("Side Pressure");
 	private JLabel rotationValue = new JLabel("Rotation");
+	private JLabel ppsValue = new JLabel("Rate");
 	private JLabel labels[] = {
 		typeValue,
 		xValue,
@@ -35,7 +41,8 @@ public class DemoInfoPanel extends JPanel {
 		tiltXValue,
 		tiltYValue,
 		sidePressureValue,
-		rotationValue
+		rotationValue,
+		ppsValue
 	};
 	
 	private NumberFormat nf = DecimalFormat.getNumberInstance();
@@ -44,6 +51,10 @@ public class DemoInfoPanel extends JPanel {
 		nf.setGroupingUsed(true);
 	}
 	
+	/**
+	 * Constructs a new DemoInfoPanel targetting a given component
+	 * @param targetComponent
+	 */
 	public DemoInfoPanel(Component targetComponent) {
 		super (new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -61,15 +72,25 @@ public class DemoInfoPanel extends JPanel {
 			
 			gbc.gridx=2;
 			gbc.fill = GridBagConstraints.HORIZONTAL;
-			label.setText("XXXXXXXXXXXXX");
+			label.setText("XXXXXXXXX");
 			label.setPreferredSize(label.getPreferredSize());
+			label.setText("");
 			add(label, gbc);
 			
 			gbc.gridy++;
 		}
 
-		TabletManager.addScreenTabletListener(new TabletFunneler() {
+		TabletManager.getManager().addTabletListener(targetComponent, new TabletFunneler() {
+			private int eventCount;
+			private long lastTime = System.currentTimeMillis();
 			protected void handleEvent(TabletEvent ev) {
+				eventCount++;
+				long time = System.currentTimeMillis();
+				if (time-lastTime > 1000) {
+					ppsValue.setText(eventCount+" pps");
+					lastTime = time;
+					eventCount = 0;
+				}
 				TabletDevice device = ev.getDevice();
 				setText(typeValue, 			device.getType().toString(), 			Support.SUPPORTED);
 				setText(xValue,				nf.format(ev.getRealX()),				Support.SUPPORTED);

@@ -20,7 +20,7 @@ public class DemoLogPanel extends JScrollPane {
 		setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		setPreferredSize(new Dimension(100,100));
 		
-		TabletManager.addTabletListener(targetComponent, new TabletFunneler() {
+		TabletManager.getManager().addTabletListener(targetComponent, new TabletFunneler() {
 			protected void handleEvent(TabletEvent ev) {
 				logMessage(ev.toString());
 			}		

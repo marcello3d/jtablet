@@ -1,11 +1,17 @@
 package cello.jtablet.demo;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
+import java.awt.GridLayout;
 
 import javax.swing.JApplet;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 
 /**
  * A simple sketching surface applet
@@ -20,12 +26,40 @@ public class DemoApplet extends JApplet {
 		Container contentPane = getContentPane();
 		contentPane.setLayout(new BorderLayout());
 		
-		DemoSurface demoSurface = new DemoSurface();
-		contentPane.add(demoSurface,BorderLayout.CENTER);
-		contentPane.add(new DemoLogPanel(demoSurface),BorderLayout.SOUTH);
-		contentPane.add(new DemoInfoPanel(demoSurface),BorderLayout.EAST);
+		JTabbedPane tabbedPane = new JTabbedPane();
+		
+
+
+		tabbedPane.addTab("1 Component",createDrawingGroup(BorderLayout.EAST));
+
+		JPanel panel = new JPanel(new GridLayout(1,3,5,5));
+		panel.setBackground(Color.BLACK);
+		panel.add(createDrawingGroup(BorderLayout.NORTH));
+		panel.add(createDrawingGroup(BorderLayout.NORTH));
+		panel.add(createDrawingGroup(BorderLayout.NORTH));
+		
+		tabbedPane.addTab("3 Components",panel);
+
+		panel = new JPanel(new GridLayout(4,4,5,5));
+//		panel.setBackground(Color.BLACK);
+		for (int i=0; i<16; i++) {
+			panel.add(new DemoSurface());
+		}
+		tabbedPane.addTab("16 Components",panel);
+		
+		
+		contentPane.add(tabbedPane,BorderLayout.CENTER);
 		
 		invalidate();
+	}
+
+	private Component createDrawingGroup(String infoPosition) {
+		JPanel panel = new JPanel(new BorderLayout());
+		DemoSurface demoSurface = new DemoSurface();
+		panel.add(demoSurface,BorderLayout.CENTER);
+		panel.add(new DemoLogPanel(demoSurface),BorderLayout.SOUTH);
+		panel.add(new JScrollPane(new DemoInfoPanel(demoSurface)),infoPosition);
+		return panel;
 	}
 
 	/**
