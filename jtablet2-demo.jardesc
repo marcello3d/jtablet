@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <jardesc>
-    <jar path="LP/lib/jtablet2-demo.jar"/>
+    <jar path="LP/lib/jtabletdemo.jar"/>
     <options buildIfNeeded="true" compress="true" descriptionLocation="/jtablet/jtablet2-demo.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>
@@ -12,5 +12,8 @@
     </manifest>
     <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
         <javaElement handleIdentifier="=jtablet/src-demo"/>
+        <javaElement handleIdentifier="=jpen/src\/main\/java"/>
+        <javaElement handleIdentifier="=jpen/src\/main\/resources"/>
+        <javaElement handleIdentifier="=jtablet/src"/>
     </selectedElements>
 </jardesc>

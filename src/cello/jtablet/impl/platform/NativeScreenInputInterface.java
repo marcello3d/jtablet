@@ -10,20 +10,19 @@ import jpen.provider.NativeLibraryLoader.LoadException;
  */
 public abstract class NativeScreenInputInterface extends ScreenInputInterface implements NativeCursorDevice {
 
-	private static final NativeLibraryLoader LIB_LOADER=new NativeLibraryLoader();
 	private boolean loaded = false;
+	
 	
 	public void load() throws NativeDeviceException {
 		try {
-			LIB_LOADER.load();
+			getLoader().load();
 			loaded = true;
 		} catch (LoadException ex) {
 			throw new NativeDeviceException(ex);
 		}
 	}
-	public boolean overridesMouseListener() {
-		return false;
-	}
+	protected abstract NativeLibraryLoader getLoader();
+	
 	@Override
 	public boolean isDeviceAvailable() {
 		return loaded;

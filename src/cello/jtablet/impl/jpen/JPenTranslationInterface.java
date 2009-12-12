@@ -9,9 +9,11 @@ import jpen.PLevelEvent;
 import jpen.PenManager;
 import jpen.event.PenAdapter;
 import jpen.owner.ScreenPenOwner;
+import jpen.provider.NativeLibraryLoader;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.events.TabletEvent;
 import cello.jtablet.events.TabletEvent.Type;
+import cello.jtablet.impl.ScreenInputInterface;
 import cello.jtablet.impl.platform.NativeScreenInputInterface;
 
 /**
@@ -19,7 +21,7 @@ import cello.jtablet.impl.platform.NativeScreenInputInterface;
  * @author marcello
  */
 
-public class JPenTranslationInterface extends NativeScreenInputInterface {
+public class JPenTranslationInterface extends ScreenInputInterface {
 
 	private PenManager penManager;
 	private JPenListener listener = new JPenListener();
@@ -53,8 +55,8 @@ public class JPenTranslationInterface extends NativeScreenInputInterface {
 	 * @author Marcello
 	 */
 	protected class JPenListener extends PenAdapter {
-		private float x=0,y=0,pressure=0,tangentialPressure=0,tiltX=0,tiltY=0,rotation=0;
-		private TabletDevice device = TabletDevice.BASIC_MOUSE;
+		private float x=0,y=0,pressure=0,sidePressure=0,tiltX=0,tiltY=0,rotation=0;
+		private TabletDevice device = TabletDevice.SYSTEM_MOUSE;
 		private int buttonMask = 0;
 
 		@Override
@@ -62,20 +64,20 @@ public class JPenTranslationInterface extends NativeScreenInputInterface {
 			// Translate the button
 			int mask = 0;
 			int button = MouseEvent.NOBUTTON;
-			switch (ev.button.typeNumber) {
-			case 0: // LEFT
+			switch (ev.button.getType()) {
+			case LEFT:
 				button = MouseEvent.BUTTON1;
 				mask = MouseEvent.BUTTON1_DOWN_MASK;
 				break;
-			case 1: // CENTER
+			case CENTER:
 				button = MouseEvent.BUTTON2;
 				mask = MouseEvent.BUTTON2_DOWN_MASK;
 				break;
-			case 2: // RIGHT
+			case RIGHT:
 				button = MouseEvent.BUTTON3;
 				mask = MouseEvent.BUTTON3_DOWN_MASK;
 				break;
-			case 3: // CUSTOM
+			case CUSTOM:
 			default:
 				break;
 			}
@@ -96,17 +98,62 @@ public class JPenTranslationInterface extends NativeScreenInputInterface {
 		@Override
 		public void penKindEvent(PKindEvent ev) {
 			// Translate the device
+			final TabletDevice.Type type;
 			switch (ev.pen.getKind().getType()) {
 				case CURSOR:
-					device = TabletDevice.BASIC_MOUSE;
+					type = TabletDevice.Type.MOUSE;
 					break;
 				case ERASER:
-//					device = TabletDevice.STYLUS_ERASER;
+					type = TabletDevice.Type.ERASER;
 					break;
 				case STYLUS:
-//					device = TabletDevice.STYLUS_TIP;
+					type = TabletDevice.Type.STYLUS_TIP;
+					break;
+				default:
+					type = TabletDevice.Type.UNKNOWN;
 					break;
 			}
+			
+
+			device = new TabletDevice() {
+
+				@Override
+				public TabletDevice.Type getType() {
+					return type;
+				}
+
+				@Override
+				public Support supportsButtons() {
+					return Support.SUPPORTED;
+				}
+
+				@Override
+				public Support supportsDeviceID() {
+					return Support.UNKNOWN;
+				}
+
+				@Override
+				public Support supportsPressure() {
+					return Support.UNKNOWN;
+				}
+
+				@Override
+				public Support supportsRotation() {
+					return Support.UNKNOWN;
+				}
+
+				@Override
+				public Support supportsSidePressure() {
+					return Support.UNKNOWN;
+				}
+
+				@Override
+				public Support supportsTilt() {
+					return Support.UNKNOWN;
+				}
+				
+			};
+			
 			fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.NEW_DEVICE, ev.getTime(), buttonMask, device, x, y));
 		}
 		@Override
@@ -133,9 +180,9 @@ public class JPenTranslationInterface extends NativeScreenInputInterface {
 						levelChanged = true;
 					}
 					break;
-				case TANGENTIAL_PRESSURE:
-					if (tangentialPressure != level.value) {
-						tangentialPressure = level.value;
+				case SIDE_PRESSURE:
+					if (sidePressure != level.value) {
+						sidePressure = level.value;
 						levelChanged = true;
 					}
 					break;
@@ -172,14 +219,14 @@ public class JPenTranslationInterface extends NativeScreenInputInterface {
 				// Dragging?
 				if (pressure > 0) {
 					fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.DRAGGED, ev.getTime(), buttonMask, device, 
-									x,y, pressure, tiltX,tiltY, tangentialPressure, rotation, TabletEvent.NOBUTTON));
+									x,y, pressure, tiltX,tiltY, sidePressure, rotation, TabletEvent.NOBUTTON));
 				} else {
 					fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.MOVED, ev.getTime(), buttonMask, device,
-							x,y, pressure, tiltX,tiltY, tangentialPressure, rotation, TabletEvent.NOBUTTON));
+							x,y, pressure, tiltX,tiltY, sidePressure, rotation, TabletEvent.NOBUTTON));
 				}
 			} else if (levelChanged) {
 				fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.LEVEL_CHANGED, ev.getTime(), buttonMask, device,
-						x,y,pressure, tiltX,tiltY, tangentialPressure, rotation, TabletEvent.NOBUTTON));
+						x,y,pressure, tiltX,tiltY, sidePressure, rotation, TabletEvent.NOBUTTON));
 			}
 		}
 	}

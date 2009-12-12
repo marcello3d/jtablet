@@ -276,7 +276,7 @@ public class JTabletCursor {
 	    	case DATA_PRESSURE:
 	    		return getPressure();
 	    	case DATA_TANGENT_PRESSURE:
-	    		return (int)Math.round(event.getTangentialPressure()*PRESSURE_MAX);
+	    		return (int)Math.round(event.getSidePressure()*PRESSURE_MAX);
 	    	case DATA_X:
 	    		return event.getX();
 	    	case DATA_Y:
@@ -381,7 +381,7 @@ public class JTabletCursor {
 	    	case DATA_PRESSURE:
 	    		return event.getDevice().supportsPressure() != Support.NONE;
 	    	case DATA_TANGENT_PRESSURE:
-	    		return event.getDevice().supportsTangentialPressure() != Support.NONE;
+	    		return event.getDevice().supportsSidePressure() != Support.NONE;
 	    	case DATA_BUTTONS:
 	    	case DATA_X:
 	    	case DATA_Y:

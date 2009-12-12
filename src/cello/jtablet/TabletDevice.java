@@ -14,7 +14,7 @@ public abstract class TabletDevice implements Serializable {
 	/**
 	 * The default mouse tablet device
 	 */
-	public static final TabletDevice BASIC_MOUSE = new MouseDevice();
+	public static final TabletDevice SYSTEM_MOUSE = new SystemDevice();
 
 	protected TabletDevice() {}
 	
@@ -49,7 +49,7 @@ public abstract class TabletDevice implements Serializable {
 			return Support.UNKNOWN;
 		}
 		@Override
-		public Support supportsTangentialPressure() {
+		public Support supportsSidePressure() {
 			return Support.UNKNOWN;
 		}
 		@Override
@@ -68,7 +68,7 @@ public abstract class TabletDevice implements Serializable {
 	/**
 	 * A mouse-like tablet device
 	 */
-	public static class MouseDevice extends TabletDevice {
+	public static class SystemDevice extends TabletDevice {
 		@Override
 		public Type getType() {
 			return Type.MOUSE;
@@ -82,7 +82,7 @@ public abstract class TabletDevice implements Serializable {
 			return Support.NONE;
 		}
 		@Override
-		public Support supportsTangentialPressure() {
+		public Support supportsSidePressure() {
 			return Support.NONE;
 		}
 		@Override
@@ -140,7 +140,7 @@ public abstract class TabletDevice implements Serializable {
 	/**
 	 * @return whether this device supports tangential pressure (e.g. control wheel on Wacom airbrush)
 	 */
-	public abstract Support supportsTangentialPressure();
+	public abstract Support supportsSidePressure();
 	/**
 	 * @return whether this device supports rotation (around the axis of the stylus)
 	 */

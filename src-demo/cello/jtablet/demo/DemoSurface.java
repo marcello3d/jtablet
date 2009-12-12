@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.InputEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
@@ -28,7 +29,7 @@ public class DemoSurface extends JComponent {
 	private BufferedImage bi;
 	private Graphics2D g2d;
 	
-	private double lastX,lastY,lastPressure;
+	private float lastX,lastY,lastPressure;
 	
 	private AffineTransform at = new AffineTransform();
 	private boolean onSurface = false;
@@ -57,6 +58,10 @@ public class DemoSurface extends JComponent {
 				float x = ev.getRealX();
 				float y = ev.getRealY();
 				float pressure = ev.getPressure() * MAX_RADIUS;
+				boolean rightClick = (ev.getModifiersEx()&InputEvent.BUTTON3_DOWN_MASK) != 0;
+				if (rightClick && ev.getDevice().getType() == TabletDevice.Type.MOUSE) {
+					pressure = MAX_RADIUS;
+				}
 				if (lastPressure>0) {
 					
 					try {
@@ -65,46 +70,14 @@ public class DemoSurface extends JComponent {
 						e.printStackTrace();
 					}
 
-					g2d.setColor(ev.getDevice().getType() == TabletDevice.Type.ERASER ? Color.WHITE : Color.BLACK);
-					g2d.fill(new Ellipse2D.Float(x-pressure,y-pressure,2*pressure-0.5f,2*pressure-0.5f));
-					
-					double angle = Math.atan2(y-lastY, x-lastX);
-					
-					// distance between points = c
-					double c = Math.hypot(x-lastX, y-lastY);
-					// radial difference = b - a
-					double b = lastPressure-pressure;
-					// remaining side length
-					// c*c = a*a + b*b ->
-					double a = Math.sqrt(c*c-b*b);
-					
-					double angle2 = Math.atan2(a, b);
-
-					
-					// This can happen if the endpoint circles contain each other...
-					if (!Double.isNaN(angle2)) {
-						
-						double sin1 = Math.sin(angle-angle2);
-						double cos1 = Math.cos(angle-angle2);
-						double sin2 = Math.sin(angle+angle2);
-						double cos2 = Math.cos(angle+angle2);
-						GeneralPath p = new GeneralPath();
-						p.moveTo((float)(lastX+cos1*lastPressure),(float)(lastY+sin1*lastPressure));
-						p.lineTo((float)(lastX+cos2*lastPressure),(float)(lastY+sin2*lastPressure));
-						p.lineTo((float)(x+cos2*pressure),        (float)(y+sin2*pressure));
-						p.lineTo((float)(x+cos1*pressure),   	  (float)(y+sin1*pressure));
-						p.closePath();
-
-						g2d.fill(p);
-						
-					}
-					repaint();
+					boolean erasing = rightClick || ev.getDevice().getType() == TabletDevice.Type.ERASER;
+					drawRoundedLine(x, y, pressure, lastX, lastY, lastPressure, erasing);
 				}
 				lastX = x;
 				lastY = y;
 				lastPressure = pressure;
+				repaint();
 			}
-
 			@Override
 			public void cursorMoved(TabletEvent ev) {
 				onSurface = true;
@@ -166,6 +139,47 @@ public class DemoSurface extends JComponent {
 		});
 	}
 
+
+
+
+	private void drawRoundedLine(float x, float y, float radius,
+			float x2, float y2, float radius2, boolean erasing) {
+		g2d.setColor(erasing ? Color.WHITE : Color.BLACK);
+		g2d.fill(new Ellipse2D.Float(x-radius,y-radius,2*radius-0.5f,2*radius-0.5f));
+		g2d.fill(new Ellipse2D.Float(x2-radius2,y2-radius2,2*radius2-0.5f,2*radius2-0.5f));
+		
+		double angle = Math.atan2(y-y2, x-x2);
+		
+		// distance between points = c
+		double c = Math.hypot(x-x2, y-y2);
+		// radial difference = b - a
+		double b = radius2-radius;
+		// remaining side length
+		// c*c = a*a + b*b ->
+		double a = Math.sqrt(c*c-b*b);
+		
+		double angle2 = Math.atan2(a, b);
+		
+		// This can happen if the endpoint circles contain each other...
+		if (!Double.isNaN(angle2)) {
+			
+			double sin1 = Math.sin(angle-angle2);
+			double cos1 = Math.cos(angle-angle2);
+			double sin2 = Math.sin(angle+angle2);
+			double cos2 = Math.cos(angle+angle2);
+			
+			GeneralPath p = new GeneralPath();
+			p.moveTo(Math.round((float)(x2+cos1*radius2)), Math.round((float)(y2+sin1*radius2)));
+			p.lineTo(Math.round((float)(x2+cos2*radius2)), Math.round((float)(y2+sin2*radius2)));
+			p.lineTo(Math.round((float)(x+cos2*radius)),   Math.round((float)(y+sin2*radius)));
+			p.lineTo(Math.round((float)(x+cos1*radius)),   Math.round((float)(y+sin1*radius)));
+			p.closePath();
+
+			g2d.fill(p);
+		}
+	}
+
+	
 	private void createBuffer() {
 		int width = Math.max(1,getWidth());
 		int height= Math.max(1,getHeight());
@@ -177,6 +191,7 @@ public class DemoSurface extends JComponent {
 		g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
 		g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 		g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+		drawRoundedLine(40, 40, 10, 200, 200, 80, false);
 	}
 	
 	@Override

@@ -96,7 +96,7 @@ public class DemoInfoPanel extends JPanel {
 				setText(xValue,				nf.format(ev.getRealX()),				Support.SUPPORTED);
 				setText(yValue,				nf.format(ev.getRealY()),				Support.SUPPORTED);
 				setText(pressureValue,		nf.format(ev.getPressure()),			device.supportsPressure());
-				setText(sidePressureValue,	nf.format(ev.getTangentialPressure()),	device.supportsTangentialPressure());
+				setText(sidePressureValue,	nf.format(ev.getSidePressure()),		device.supportsSidePressure());
 				setText(tiltXValue,			nf.format(ev.getTiltX())+" rad",		device.supportsTilt());
 				setText(tiltYValue,			nf.format(ev.getTiltY())+" rad",		device.supportsTilt());
 				setText(rotationValue,		nf.format(ev.getRotation())+" rad",		device.supportsRotation());

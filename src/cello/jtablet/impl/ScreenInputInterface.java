@@ -14,6 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.SwingUtilities;
 
+import cello.jtablet.TabletDevice;
 import cello.jtablet.events.TabletEvent;
 import cello.jtablet.events.TabletListener;
 
@@ -22,6 +23,10 @@ import cello.jtablet.events.TabletListener;
  *
  */
 public abstract class ScreenInputInterface implements CursorDevice {	
+	
+	private boolean enableEnterExitEventsOnDrag = true;
+	private boolean sendNewDeviceEventOnEnter = true;
+	
 	private final List<TabletListener> screenListeners = new ArrayList<TabletListener>();
 	private final Map<Component,ComponentManager> componentManagers = new ConcurrentHashMap<Component,ComponentManager>();	
 	private final List<ComponentManager> showingComponents = new CopyOnWriteArrayList<ComponentManager>();
@@ -91,6 +96,7 @@ public abstract class ScreenInputInterface implements CursorDevice {
 	}
 	private boolean pressed = false;
 	protected void fireScreenTabletEvent(final TabletEvent ev) {
+		System.out.println(ev);
 		invokeOnEventThread(new Runnable() {
 			public void run() {
 				switch (ev.getType()) {
@@ -157,6 +163,7 @@ public abstract class ScreenInputInterface implements CursorDevice {
 		private boolean dragging = false;
 		private List<TabletListener> listeners = new ArrayList<TabletListener>();
 		private final Component c;
+		private TabletDevice lastDevice = null;
 		
 		public ComponentManager(Component c) {
 			this.c = c;
@@ -183,15 +190,23 @@ public abstract class ScreenInputInterface implements CursorDevice {
 			}
 			// is this an enter/exit event?
 			boolean nowCursorOver = c.contains(newEv.getPoint());
+			boolean activeComponent = (cursorOver && !pressed) || dragging;
 			if (cursorOver != nowCursorOver) {
 				TabletEvent enterExitEvent = newEv.withType(nowCursorOver ? 
 																TabletEvent.Type.ENTERED : 
 																TabletEvent.Type.EXITED);
 				if (nowCursorOver) {
+					// entering proximity with new device?
+					if (sendNewDeviceEventOnEnter && (lastDevice == null || !lastDevice.equals(ev.getDevice()))) {
+						fireEvent(newEv.withType(TabletEvent.Type.NEW_DEVICE));
+						lastDevice = ev.getDevice();
+					}
 					// Send two events, one with the enter event, the second with the mouse move
-					fireEvent(enterExitEvent);
-					// Only send event if the component is active
-					if ((cursorOver && !pressed) || dragging) {
+					if (enableEnterExitEventsOnDrag || !pressed) {
+						fireEvent(enterExitEvent);
+					}
+
+					if (activeComponent) {
 						fireEvent(newEv);
 					}
 				} else {
@@ -201,8 +216,10 @@ public abstract class ScreenInputInterface implements CursorDevice {
 				}
 
 				cursorOver = nowCursorOver;
-			} else if ((!pressed && cursorOver) || dragging) {
-				
+			} else if (activeComponent) {
+				if (sendNewDeviceEventOnEnter && ev.getType() == TabletEvent.Type.NEW_DEVICE) {
+					lastDevice = ev.getDevice();
+				}
 				fireEvent(newEv);
 			}
 		}

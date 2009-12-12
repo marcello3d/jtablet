@@ -1,7 +1,7 @@
 package cello.jtablet;
 
 import cello.jtablet.impl.TabletInterface;
-import cello.jtablet.impl.jpen.JPenDirectTabletManager;
+import cello.jtablet.impl.jpen.JPenTabletManager;
 
 /**
  * Manages tablet implementations.
@@ -10,7 +10,7 @@ import cello.jtablet.impl.jpen.JPenDirectTabletManager;
  */
 public class TabletManager {
 	
-	private static TabletInterface tabletInterface = new JPenDirectTabletManager();
+	private static TabletInterface tabletInterface = new JPenTabletManager();
 	
 	/**
 	 * @return tablet interface 

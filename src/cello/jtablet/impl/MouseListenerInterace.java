@@ -31,7 +31,7 @@ public class MouseListenerInterace implements CursorDevice {
 	}
 
 	private final ConcurrentHashMap<TabletListener,MagicListener> listenerMap = new ConcurrentHashMap<TabletListener, MagicListener>();
-	private final TabletDevice mousedevice = new TabletDevice.MouseDevice();
+	private final TabletDevice mousedevice = new TabletDevice.SystemDevice();
 	
 	public void addTabletListener(Component c, TabletListener l) {
 		synchronized (l) {

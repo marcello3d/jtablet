@@ -4,22 +4,27 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
+import jpen.provider.NativeLibraryLoader;
 import jpen.provider.osx.CocoaAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
 import cello.jtablet.events.TabletEvent;
-import cello.jtablet.impl.platform.NativeScreenInputInterface;
+import cello.jtablet.impl.platform.RawDataScreenInputInterface;
 
 /**
  * @author marcello
  */
-public class NativeCocoaInterface extends NativeScreenInputInterface {
+public class NativeCocoaInterface extends RawDataScreenInputInterface {
 	
+	private static final NativeLibraryLoader LIB_LOADER=new NativeLibraryLoader(
+			Integer.valueOf(jpen.Utils.getModuleProperties().getString("jpen.provider.osx.nativeVersion")));
 
+	@Override
+	protected NativeLibraryLoader getLoader() {
+		return LIB_LOADER;
+	}
 
-	private final float PRESSED_THRESHOLD = 0;
-	
 	private final Map<String,TabletDevice> devices = new HashMap<String,TabletDevice>();
 
 	private final CocoaAccess ca = new CocoaAccess() {
@@ -39,13 +44,13 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 				  float deltaX, float deltaY
 				) {
 			long when = System.currentTimeMillis();
-			int modifiers = lastButtonMask | getMouseEventModifiers(cocoaModifierFlags);
+			int modifiers = getLastButtonMask() | getMouseEventModifiers(cocoaModifierFlags);
 			fireScreenTabletEvent(new TabletEvent(
 				NativeCocoaInterface.SCREEN_COMPONENT,
 				TabletEvent.Type.SCROLLED,
 				when,
 				modifiers,
-				lastDevice,
+				getLastDevice(),
 				screenX,screenY,
 				0,
 				deltaX,deltaY,
@@ -60,13 +65,13 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 				  float magnificationFactor
 				) {
 			long when = System.currentTimeMillis();
-			int modifiers = lastButtonMask | getMouseEventModifiers(cocoaModifierFlags);
+			int modifiers = getLastButtonMask() | getMouseEventModifiers(cocoaModifierFlags);
 			fireScreenTabletEvent(new TabletEvent(
 				NativeCocoaInterface.SCREEN_COMPONENT,
 				TabletEvent.Type.ZOOMED,
 				when,
 				modifiers,
-				lastDevice,
+				getLastDevice(),
 				screenX,screenY,
 				0,
 				0,0,
@@ -81,13 +86,13 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 				  float deltaX, float deltaY
 				) {
 			long when = System.currentTimeMillis();
-			int modifiers = lastButtonMask | getMouseEventModifiers(cocoaModifierFlags);
+			int modifiers = getLastButtonMask() | getMouseEventModifiers(cocoaModifierFlags);
 			fireScreenTabletEvent(new TabletEvent(
 				NativeCocoaInterface.SCREEN_COMPONENT,
 				TabletEvent.Type.SWIPED,
 				when,
 				modifiers,
-				lastDevice,
+				getLastDevice(),
 				screenX,screenY,
 				0,
 				deltaX,deltaY,
@@ -102,13 +107,13 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 				  float rotationDegrees
 				) {
 			long when = System.currentTimeMillis();
-			int modifiers = lastButtonMask | getMouseEventModifiers(cocoaModifierFlags);
+			int modifiers = getLastButtonMask() | getMouseEventModifiers(cocoaModifierFlags);
 			fireScreenTabletEvent(new TabletEvent(
 				NativeCocoaInterface.SCREEN_COMPONENT,
 				TabletEvent.Type.ROTATED,
 				when,
 				modifiers,
-				lastDevice,
+				getLastDevice(),
 				screenX,screenY,
 				rotationDegrees * RADIANS_PER_DEGREE,
 				0,0,
@@ -116,13 +121,11 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 			));
 		}
 		
-		private TabletDevice lastDevice = TabletDevice.BASIC_MOUSE;
-		private boolean lastProximity = false;
+
 		@Override
 		protected void postProximityEvent(
 				double eventTimeSeconds,
 				int cocoaModifierFlags,
-				float x, float y,
 				int capabilityMask, 
 				int deviceID,
 				boolean enteringProximity, 
@@ -134,47 +137,15 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 				final long uniqueID, 
 				int vendorID,
 				int vendorPointingDeviceType) {
+			
 			long when = System.currentTimeMillis();			
-			int modifiers = lastButtonMask | getMouseEventModifiers(cocoaModifierFlags);
+			int keyModifiers = getMouseEventModifiers(cocoaModifierFlags);
 
-			TabletDevice td = getDevice(capabilityMask, uniqueID, pointingDeviceType);
+			TabletDevice device = getDevice(capabilityMask, uniqueID, pointingDeviceType);
 			
-			if (enteringProximity && !lastDevice.equals(td)) {
-				fireScreenTabletEvent(new TabletEvent(
-					NativeCocoaInterface.SCREEN_COMPONENT,
-					TabletEvent.Type.NEW_DEVICE,
-					when,
-					modifiers,
-					td, 
-					x,y
-				));
-				lastDevice = td;
-			}
+			generateDeviceEvents(device, when, keyModifiers, enteringProximity);
 			
-			if (lastProximity != enteringProximity) {
-				fireScreenTabletEvent(new TabletEvent(
-					NativeCocoaInterface.SCREEN_COMPONENT,
-					enteringProximity ? TabletEvent.Type.ENTERED : TabletEvent.Type.EXITED,
-					when,
-					modifiers,
-					td,
-					x,y
-				));
-				lastProximity = enteringProximity;
-			}
-			if (!enteringProximity) {
-				lastDevice = TabletDevice.BASIC_MOUSE;
-				lastPressure = 0;
-				lastTiltX = 0;
-				lastTiltY = 0;
-				lastTangentialPressure = 0;
-				lastRotation = 0;
-			}
-			
-			lastX = x;
-			lastY = y;
 		}
-		
 
 		private TabletDevice getDevice(int capabilityMask, final long uniqueId,
 				int vendorPointingDeviceType) {
@@ -192,19 +163,17 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 			if (capabilityMask == 0) {
 				return Support.UNKNOWN;
 			}
-			return (capabilityMask&capability) != 0 ? Support.SUPPORTED : Support.NONE;
+			return (capabilityMask & capability) != 0 ? Support.SUPPORTED : Support.NONE;
 		}
 		protected TabletDevice makeDevice(final long uniqueId, int capabilityMask, int pointingDeviceType) {
-			final Support supportsButtons 		= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_BUTTONSMASK);
-			final Support supportsDeviceId  	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_DEVICEIDMASK);
-			final Support supportsPressure  	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_PRESSUREMASK);
-			final Support supportsRotation 		= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_ROTATIONMASK);
-//			final Support supportsOrientation	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_ORIENTINFOMASK);
-			final Support supportsTanPressure	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_TANGENTIALPRESSUREMASK);
-			final Support supportsTiltXY 		= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_TILTXMASK|
-														CocoaAccess.WACOM_CAPABILITY_TILTYMASK);
+			Support supportsButtons 	 = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_BUTTONSMASK);
+			Support supportsDeviceId  	 = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_DEVICEIDMASK);
+			Support supportsPressure  	 = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_PRESSUREMASK);
+			Support supportsRotation 	 = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_ROTATIONMASK);
+			Support supportsSidePressure = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_TANGENTIALPRESSUREMASK);
+			Support supportsTiltXY 		 = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_TILTMASK);
 
-			final TabletDevice.Type type;
+			TabletDevice.Type type;
 			switch (pointingDeviceType) {
 				case NSPenPointingDevice:
 					type = Type.STYLUS_TIP;
@@ -219,63 +188,17 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 					type = Type.UNKNOWN;
 					break;
 			}
-			return new CocoaTabletDevice() {
-				@Override
-				public Type getType() {
-					return type;
-				}
-				@Override
-				public long getPhysicalId() {
-					return uniqueId;
-				}
-
-				@Override
-				public Support supportsButtons() {
-					return supportsButtons;
-				}
-				@Override
-				public Support supportsDeviceID() {
-					return supportsDeviceId;
-				}
-				@Override
-				public Support supportsPressure() {
-					return supportsPressure;
-				}
-				@Override
-				public Support supportsRotation() {
-					return supportsRotation;
-				}
-
-				@Override
-				public Support supportsTangentialPressure() {
-					return supportsTanPressure;
-				}
-
-				@Override
-				public Support supportsTilt() {
-					return supportsTiltXY;
-				}
-				
-			};
+			return new CocoaTabletDevice(type,uniqueId,supportsButtons,supportsDeviceId,supportsPressure,supportsRotation,supportsSidePressure, supportsTiltXY);
 		}
 		
 		
 		
-
-		private boolean lastPressed = false;
-		private float lastX = 0, lastY = 0;
-		private float lastPressure = 0;
-		private float lastTiltX = 0;
-		private float lastTiltY = 0;
-		private float lastTangentialPressure = 0;
-		private float lastRotation = 0;
-		private int lastButtonMask = 0;
 		
 		@Override
-		protected void postEvent(int type, 
+		protected void postEvent(int type,
 								 double eventTimeSeconds,
 								 int cocoaModifierFlags,
-								 float x, float y, 
+								 float x, float y,
 								 int absoluteX, int absoluteY, int absoluteZ, 
 								 int rawTabletButtonMask,
 								 float pressure,
@@ -283,113 +206,55 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 								 float tiltX, float tiltY,
 								 float tangentialPressure) {
 			
-			boolean down = false, up = false;
-			int button = 0;
-			int buttonMask = lastButtonMask;
+
+			boolean buttonJustPressed = false, buttonJustReleased = false;
+			int button = MouseEvent.NOBUTTON;
 			switch (type) {
 			    case NS_EVENT_TYPE_LeftMouseDown:
-			    	down = true;
+			    	buttonJustPressed = true;
 			    	button = MouseEvent.BUTTON1;
-			    	buttonMask |= MouseEvent.BUTTON1_DOWN_MASK;
 			    	break;       
 			    case NS_EVENT_TYPE_LeftMouseUp:
-			    	up = true;
+			    	buttonJustReleased = true;
 			    	button = MouseEvent.BUTTON1;
-			    	buttonMask &= ~MouseEvent.BUTTON1_DOWN_MASK;
 			    	break;
 			    case NS_EVENT_TYPE_RightMouseDown:
-			    	down = true;
+			    	buttonJustPressed = true;
 			    	button = MouseEvent.BUTTON3;
-			    	buttonMask |= MouseEvent.BUTTON3_DOWN_MASK;
 			    	break;
 			    case NS_EVENT_TYPE_RightMouseUp:
-			    	up = true;
+			    	buttonJustReleased = true;
 			    	button = MouseEvent.BUTTON3;
-			    	buttonMask &= ~MouseEvent.BUTTON3_DOWN_MASK;
 			    	break;
 			    case NS_EVENT_TYPE_OtherMouseDown:
-			    	down = true;
+			    	buttonJustPressed = true;
 			    	button = MouseEvent.BUTTON2;
-			    	buttonMask |= MouseEvent.BUTTON2_DOWN_MASK;
 			    	break;
 			    case NS_EVENT_TYPE_OtherMouseUp:
-			    	up = true;
+			    	buttonJustReleased = true;
 			    	button = MouseEvent.BUTTON2;
-			    	buttonMask &= ~MouseEvent.BUTTON2_DOWN_MASK;
 			    	break;
 			}
 
 
 			long when = System.currentTimeMillis();
-			int modifiers = buttonMask | getMouseEventModifiers(cocoaModifierFlags);
+			int modifiers = getMouseEventModifiers(cocoaModifierFlags);
 			
-			if (lastDevice.getType()==Type.MOUSE && (buttonMask & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
-				pressure = 1;
-			}
 
-			boolean pressed = pressure > PRESSED_THRESHOLD;
-			
-			if (up || down) {
-				fireScreenTabletEvent(new TabletEvent(
-					NativeCocoaInterface.SCREEN_COMPONENT,
-					down ? TabletEvent.Type.PRESSED : TabletEvent.Type.RELEASED,
-					when,
-					modifiers,
-					lastDevice,
-					x,y,
-					pressure,
-					tiltX,tiltY,
-					tangentialPressure,
-					rotation,
-					button
-				));
-			}
-			if (lastX != x || lastY != y) {
-				fireScreenTabletEvent(new TabletEvent(
-					NativeCocoaInterface.SCREEN_COMPONENT,
-					buttonMask != 0 ? TabletEvent.Type.DRAGGED : TabletEvent.Type.MOVED,
-					when,
-					modifiers,
-					lastDevice,
-					x,y,
-					pressure,
-					tiltX,tiltY,
-					tangentialPressure,
-					rotation,
-					button
-				));
-
-			} else if (pressed == lastPressed && !up && !down && (
-					pressure != lastPressure ||
-					tiltX != lastTiltX ||
-					tiltY != lastTiltY ||
-					tangentialPressure!= lastTangentialPressure ||
-					rotation != lastRotation
-			)) {
-				fireScreenTabletEvent(new TabletEvent(
-					NativeCocoaInterface.SCREEN_COMPONENT,
-					TabletEvent.Type.LEVEL_CHANGED,
-					when,
-					modifiers,
-					lastDevice,
-					x,y,
-					pressure,
-					tiltX,tiltY,
-					tangentialPressure,
-					rotation,
-					button
-				));
-			}
-			lastButtonMask = buttonMask;
-			lastPressed = pressed;
-			lastX = x;
-			lastY = y;
-			lastPressure = pressure;
-			lastTiltX = tiltX;
-			lastTiltY = tiltY;
-			lastTangentialPressure = tangentialPressure;
-			lastRotation = rotation;
+			generatePointEvents(
+				when, 
+				modifiers, 
+				x, y, 
+				pressure, 
+				tiltX, tiltY, 
+				tangentialPressure, 
+				rotation, 
+				button, 
+				buttonJustPressed,
+				buttonJustReleased
+			);
 		}
+
 
 		private int getMouseEventModifiers(int cocoaModifierFlags) {
 			int modifiers = 0;
@@ -413,7 +278,72 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 	}
 
 
-	private abstract class CocoaTabletDevice extends TabletDevice {
+	private class CocoaTabletDevice extends TabletDevice {
+		private final Type type;
+		private final long uniqueId;
+		private final Support supportsButtons;
+		private final Support supportsDeviceId;
+		private final Support supportsPressure;
+		private final Support supportsRotation;
+		private final Support supportsSidePressure;
+		private final Support supportsTiltXY;
+		
+		
+
+		public CocoaTabletDevice(Type type, long uniqueId,
+				Support supportsButtons, Support supportsDeviceId,
+				Support supportsPressure, Support supportsRotation,
+				Support supportsSidePressure, Support supportsTiltXY) {
+			super();
+			this.type = type;
+			this.uniqueId = uniqueId;
+			this.supportsButtons = supportsButtons;
+			this.supportsDeviceId = supportsDeviceId;
+			this.supportsPressure = supportsPressure;
+			this.supportsRotation = supportsRotation;
+			this.supportsSidePressure = supportsSidePressure;
+			this.supportsTiltXY = supportsTiltXY;
+		}
+		@Override
+		public String toString() {
+			return "CocoaDevice["+getType()+"-"+getPhysicalId()+"]";
+		}
+		@Override
+		public Type getType() {
+			return type;
+		}
+		@Override
+		public long getPhysicalId() {
+			return uniqueId;
+		}
+
+		@Override
+		public Support supportsButtons() {
+			return supportsButtons;
+		}
+		@Override
+		public Support supportsDeviceID() {
+			return supportsDeviceId;
+		}
+		@Override
+		public Support supportsPressure() {
+			return supportsPressure;
+		}
+		@Override
+		public Support supportsRotation() {
+			return supportsRotation;
+		}
+
+		@Override
+		public Support supportsSidePressure() {
+			return supportsSidePressure;
+		}
+
+		@Override
+		public Support supportsTilt() {
+			return supportsTiltXY;
+		}
+		
 	}
 
 	@Override
@@ -433,11 +363,4 @@ public class NativeCocoaInterface extends NativeScreenInputInterface {
 		super.finalize();
 		ca.stop();
 	}
-
-
-	@Override
-	public boolean overridesMouseListener() {
-		return true;
-	}
-
 }

@@ -20,8 +20,4 @@ public interface NativeCursorDevice extends CursorDevice {
 	 * @return true if the given os is supported by this native device
 	 */
 	public boolean isSystemSupported(String os);
-	/**
-	 * @return true if this device handles all mouse input
-	 */
-	public boolean overridesMouseListener();
 }

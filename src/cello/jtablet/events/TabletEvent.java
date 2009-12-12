@@ -2,6 +2,7 @@ package cello.jtablet.events;
 
 import java.awt.Component;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.io.Serializable;
 
 import cello.jtablet.TabletDevice;
@@ -18,7 +19,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	
 	private final float x,y;
 	private final float pressure;
-	private final float tangentialPressure;
+	private final float sidePressure;
 	
 	private final float tiltX,tiltY;
 	private final float rotation;
@@ -43,7 +44,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param pressure
 	 * @param tiltX 
 	 * @param tiltY 
-	 * @param tangentialPressure 
+	 * @param sidePressure 
 	 * @param rotation 
 	 * @param deltaX 
 	 * @param deltaY 
@@ -51,7 +52,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 */
 	public TabletEvent(Component source, Type type, long when, int modifiers, 
 						TabletDevice device, float x, float y, float pressure,
-						float tiltX, float tiltY, float tangentialPressure,
+						float tiltX, float tiltY, float sidePressure,
 						float rotation, float deltaX, float deltaY, float zoom,
 						int button) {
 		
@@ -65,7 +66,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.pressure = pressure;
 		this.tiltX = tiltX;
 		this.tiltY = tiltY;
-		this.tangentialPressure = tangentialPressure;
+		this.sidePressure = sidePressure;
 		this.rotation = rotation;
 		this.deltaX = deltaX;
 		this.deltaY = deltaY;
@@ -85,7 +86,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.pressure = (e.getModifiersEx() & BUTTON1_DOWN_MASK) != 0 ? 1.0f : 0;
 		this.tiltX = 0;
 		this.tiltY = 0;
-		this.tangentialPressure = 0;
+		this.sidePressure = 0;
 		this.rotation = 0;
 		this.device = device;
 		this.deltaX = 0;
@@ -100,10 +101,10 @@ public class TabletEvent extends MouseEvent implements Serializable {
 			float x, float y, 
 			float pressure, 
 			float tiltX, float tiltY,
-			float tangentialPressure, 
+			float sidePressure, 
 			float rotation, 
 			int button) {
-		this(source,type,when,modifiers,device,x,y,pressure,tiltX,tiltY,tangentialPressure,rotation,0,0,0,button);
+		this(source,type,when,modifiers,device,x,y,pressure,tiltX,tiltY,sidePressure,rotation,0,0,0,button);
 	}
 	public TabletEvent(Component source, Type type, long when, int modifiers, TabletDevice device, 
 			float x, float y) {
@@ -139,8 +140,8 @@ public class TabletEvent extends MouseEvent implements Serializable {
         if (pressure != 0) {
         	sb.append(",pressure=").append(pressure);
         }
-        if (tangentialPressure != 0) {
-            sb.append(",tanPressure=").append(tangentialPressure);
+        if (sidePressure != 0) {
+            sb.append(",tanPressure=").append(sidePressure);
         }
         if (tiltX != 0 || tiltY != 0) {
             sb.append(",tilt=").append(tiltX).append(',').append(tiltY);
@@ -243,7 +244,12 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		}
 	}
 	
-	
+	/** 
+	 * @return the (possibly) fractional point
+	 */
+	public Point2D.Float getPoint2D() {
+		return new Point2D.Float(x,y);
+	}
 
 	
 	/**
@@ -284,8 +290,8 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	/**
 	 * @return tangential pressure from -1 to 1.
 	 */
-	public float getTangentialPressure() {
-		return tangentialPressure;
+	public float getSidePressure() {
+		return sidePressure;
 	}
 
 
@@ -314,7 +320,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	public TabletEvent withPoint(Component c, float x, float y) {
 		return new TabletEvent(c, type, getWhen(), getModifiersEx(), 
 				device, x, y, pressure,
-				tiltX, tiltY, tangentialPressure,
+				tiltX, tiltY, sidePressure,
 				rotation,this.deltaX,this.deltaY,zoom,
 				getButton());
 	}
@@ -340,7 +346,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	public TabletEvent withType(Type type) {
 		return new TabletEvent((Component)source, type, getWhen(), getModifiersEx(), 
 				device, x + deltaX, y + deltaY, pressure,
-				tiltX, tiltY, tangentialPressure,
+				tiltX, tiltY, sidePressure,
 				rotation,this.deltaX,this.deltaY,zoom,
 				getButton());
 	}
