@@ -17,8 +17,10 @@ import cello.jtablet.events.TabletEvent.Type;
 /**
  * @author marcello
  */
-public class MouseListenerInterace implements CursorDevice {
+public class MouseListenerInterface implements CursorDevice {
 
+	private boolean enabled = true;
+	
 	public boolean isDeviceAvailable() {
 		return true;
 	}
@@ -61,6 +63,14 @@ public class MouseListenerInterace implements CursorDevice {
 		
 	}
 
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
 	private class MagicListener implements MouseListener, MouseMotionListener, MouseWheelListener {
 
 		private final TabletListener listener;
@@ -80,7 +90,9 @@ public class MouseListenerInterace implements CursorDevice {
 		}
 		
 		private void fireTabletEvent(MouseEvent e) {
-
+			if (!enabled) {
+				return;
+			}
 			TabletEvent.Type type = null;
 			switch (e.getID()) {
 				case MouseEvent.MOUSE_PRESSED:
@@ -142,6 +154,9 @@ public class MouseListenerInterace implements CursorDevice {
 		}
 
 		public void mouseWheelMoved(MouseWheelEvent e) {
+			if (!enabled) {
+				return;
+			}
 			float deltaX=0,deltaY=0;
 			if ((e.getModifiersEx()&InputEvent.SHIFT_DOWN_MASK)!=0) {
 				deltaX = -e.getWheelRotation()*e.getScrollAmount();

@@ -5,31 +5,30 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 import static java.lang.Math.tan;
 
+import java.awt.Component;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-import jpen.PLevel;
 import jpen.provider.NativeLibraryLoader;
 import jpen.provider.wintab.WintabAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
-import cello.jtablet.events.TabletEvent;
-import cello.jtablet.impl.ScreenInputInterface;
+import cello.jtablet.events.TabletListener;
+import cello.jtablet.impl.MouseListenerInterface;
 import cello.jtablet.impl.platform.NativeCursorDevice;
 import cello.jtablet.impl.platform.NativeDeviceException;
-import cello.jtablet.impl.platform.NativeScreenInputInterface;
 import cello.jtablet.impl.platform.RawDataScreenInputInterface;
 
 
 public class NativeWinTabInterface extends RawDataScreenInputInterface implements NativeCursorDevice {
 
-	private static final NativeLibraryLoader LIB_LOADER=new NativeLibraryLoader(new String[]{""},
-			new String[]{"64"},
-			Integer.valueOf(jpen.Utils.getModuleProperties().getString("jpen.provider.wintab.nativeVersion")));
-
-	
+	private MouseListenerInterface mouseListener = new MouseListenerInterface();
 	private WintabAccess wa;
 	private boolean running = true;
 	private Thread thread = new Thread("JTablet-WinTab") {
@@ -40,7 +39,10 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 		public void run() {
 			while (running) {
 				readPackets();
-				Thread.yield();
+				try {
+					Thread.sleep(5);
+				} catch (InterruptedException e) {
+				}
 			}
 		}
 	};
@@ -151,21 +153,31 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 	private int modifiers = 0;
 	private static final double PI_over_2=Math.PI/2;
 	private static final double PI_over_2_over_900=PI_over_2/900; // (/10) and (/90)
-
-
 	private static final double PI_2 = Math.PI * 2;
 	
 	private WinTabCursor cursor = null;
+	private long lastTime = 0;
 	protected void readPackets() {
+		long when = System.currentTimeMillis();
 		while (wa.nextPacket()) {
+			mouseListener.setEnabled(false);
 			boolean newCursor = checkCursor();
-
-			long when = System.currentTimeMillis();
 			
 			readValues();
 			
 			float x = toFloat(this.x, cursor.xRange);
-			float y = toFloat(this.y, cursor.yRange); 
+			float y = 1 - toFloat(this.y, cursor.yRange);
+
+			Rectangle r = new Rectangle();
+			for (GraphicsDevice gd : environment.getScreenDevices()){
+				GraphicsConfiguration graphicsConfiguration = gd.getDefaultConfiguration();
+				r.add(graphicsConfiguration.getBounds());
+			}
+			x *= r.width;
+			y *= r.height;
+			
+			x += r.x;
+			y += r.y;
 
 			float pressure = toFloat(this.pressure, cursor.pressureRange);
 			float sidePressure = toFloat(this.sidePressure, cursor.sidePressureRange);
@@ -192,7 +204,7 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 			int keyModifiers = 0;
 			
 			if (newCursor) {
-				generateDeviceEvents(cursor.getDevice(), when, 0, true, x, y);
+				generateDeviceEvents(cursor.getDevice(), when, modifiers, true, x, y);
 			}
 			int button = 0;
 			boolean buttonJustReleased = false;
@@ -226,6 +238,12 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 				buttonJustPressed, 
 				buttonJustReleased
 			);
+			lastTime = when;
+		}
+		if (getLastDevice() != SYSTEM_MOUSE && when - lastTime > 100) {
+			generateDeviceEvents(cursor != null ? cursor.getDevice() : null, when, modifiers, false, x, y);
+			cursor = null;
+			mouseListener.setEnabled(true);
 		}
 	}
 	private float toFloat(int value, int minMax[]) {
@@ -236,6 +254,9 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 
 	private int x,y,pressure,altitude,azimuth,sidePressure,rotation;
 	private int buttonMask,lastButtonMask=0;
+
+
+	private GraphicsEnvironment environment;
 	
 	
 	private void readValues() {
@@ -269,6 +290,7 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 	@Override
 	protected void start() {
 		wa.setEnabled(true);
+		environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		if (!thread.isAlive()) {
 			thread.start();
 		}
@@ -282,5 +304,14 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 	protected NativeLibraryLoader getLoader() {
 		return null;
 	}
-
+	@Override
+	public void addTabletListener(Component c, TabletListener l) {
+		mouseListener.addTabletListener(c, l);
+		super.addTabletListener(c, l);
+	}
+	@Override
+	public void removeTabletListener(Component c, TabletListener l) {
+		mouseListener.removeTabletListener(c, l);
+		super.removeTabletListener(c, l);
+	}
 }

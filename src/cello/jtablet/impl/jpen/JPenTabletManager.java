@@ -4,7 +4,7 @@ import java.awt.Component;
 
 import cello.jtablet.events.TabletListener;
 import cello.jtablet.impl.CursorDevice;
-import cello.jtablet.impl.MouseListenerInterace;
+import cello.jtablet.impl.MouseListenerInterface;
 import cello.jtablet.impl.TabletInterface;
 import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
 import cello.jtablet.impl.jpen.platform.NativeWinTabInterface;

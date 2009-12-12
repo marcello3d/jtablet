@@ -9,7 +9,7 @@ import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
 
 public abstract class RawDataScreenInputInterface extends NativeScreenInputInterface {
 
-	private static final TabletDevice SYSTEM_MOUSE = TabletDevice.SYSTEM_MOUSE;
+	protected static final TabletDevice SYSTEM_MOUSE = TabletDevice.SYSTEM_MOUSE;
 
 	private final float PRESSED_THRESHOLD = 0;
 	

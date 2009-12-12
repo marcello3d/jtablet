@@ -96,7 +96,6 @@ public abstract class ScreenInputInterface implements CursorDevice {
 	}
 	private boolean pressed = false;
 	protected void fireScreenTabletEvent(final TabletEvent ev) {
-		System.out.println(ev);
 		invokeOnEventThread(new Runnable() {
 			public void run() {
 				switch (ev.getType()) {
