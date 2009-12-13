@@ -3,7 +3,9 @@ package cello.jtablet.demo;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.InputEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
@@ -35,7 +37,8 @@ public class DemoSurface extends JComponent {
 	private boolean onSurface = false;
 	private boolean dragging = false;
 	
-	
+
+	Ellipse2D.Double cursorShape;
 	/**
 	 * 
 	 */
@@ -76,7 +79,7 @@ public class DemoSurface extends JComponent {
 				lastX = x;
 				lastY = y;
 				lastPressure = pressure;
-				repaint();
+				updateCursor();
 			}
 			@Override
 			public void cursorMoved(TabletEvent ev) {
@@ -85,7 +88,7 @@ public class DemoSurface extends JComponent {
 				lastY = ev.getRealY();
 				lastPressure = ev.getPressure();
 				dragged = false;
-				repaint();
+				updateCursor();
 			}
 
 			@Override
@@ -104,16 +107,30 @@ public class DemoSurface extends JComponent {
 					double y = ev.getRealY();
 					double pressure = ev.getPressure()*20;
 					g2d.setColor(ev.getDevice().getType() == TabletDevice.Type.ERASER ? Color.WHITE : Color.BLACK);
-					g2d.fill(new Ellipse2D.Double(x-pressure,y-pressure,2*pressure,2*pressure));
+					fill(new Ellipse2D.Double(x-pressure,y-pressure,2*pressure,2*pressure));
 				}
 				dragged = false;
 				dragging = false;
+				updateCursor();
 			}
 			@Override
 			public void cursorScrolled(TabletEvent ev) {
 				at.translate(ev.getDeltaX()*10, ev.getDeltaY()*10);
 				repaint();
 			}
+			
+			public void updateCursor() {
+				if (cursorShape != null) {
+					repaint(cursorShape);
+				}
+				if (lastPressure == 0) {
+					cursorShape = new Ellipse2D.Double(lastX-MAX_RADIUS,lastY-MAX_RADIUS,2*MAX_RADIUS,2*MAX_RADIUS);
+				} else { 
+					cursorShape = new Ellipse2D.Double(lastX-lastPressure,lastY-lastPressure,2*lastPressure,2*lastPressure);
+				}
+				repaint(cursorShape);
+			}
+			
 			@Override
 			public void cursorGestured(TabletEvent ev) {
 				switch (ev.getType()) {
@@ -122,17 +139,17 @@ public class DemoSurface extends JComponent {
 						at.translate(getWidth()/2, getHeight()/2);
 						at.scale(zoom, zoom);
 						at.translate(zoom*getWidth()/-2, zoom*getHeight()/-2);
-						repaint();
+						DemoSurface.this.repaint();
 						break;
 					case ROTATED:
 						at.translate(getWidth()/2, getHeight()/2);
 						at.rotate(-ev.getRotation());
 						at.translate(getWidth()/-2, getHeight()/-2);
-						repaint();
+						DemoSurface.this.repaint();
 						break;
 					case SWIPED:
 						at.setToIdentity();
-						repaint();
+						DemoSurface.this.repaint();
 						break;
 				}
 			}
@@ -145,8 +162,9 @@ public class DemoSurface extends JComponent {
 	private void drawRoundedLine(float x, float y, float radius,
 			float x2, float y2, float radius2, boolean erasing) {
 		g2d.setColor(erasing ? Color.WHITE : Color.BLACK);
-		g2d.fill(new Ellipse2D.Float(x-radius,y-radius,2*radius-0.5f,2*radius-0.5f));
-		g2d.fill(new Ellipse2D.Float(x2-radius2,y2-radius2,2*radius2-0.5f,2*radius2-0.5f));
+		
+		fill(new Ellipse2D.Float(x-radius,y-radius,2*radius-0.5f,2*radius-0.5f));
+		fill(new Ellipse2D.Float(x2-radius2,y2-radius2,2*radius2-0.5f,2*radius2-0.5f));
 		
 		double angle = Math.atan2(y-y2, x-x2);
 		
@@ -175,11 +193,24 @@ public class DemoSurface extends JComponent {
 			p.lineTo(Math.round((float)(x+cos1*radius)),   Math.round((float)(y+sin1*radius)));
 			p.closePath();
 
-			g2d.fill(p);
+			fill(p);
 		}
 	}
 
+	protected void repaint(Shape s) {
+		Rectangle r = s.getBounds();
+		r.grow(1, 1);
+		repaint(r);
+	}
 	
+	private void fill(Shape s) {
+		g2d.fill(s);
+		repaint(s);
+	}
+
+
+
+
 	private void createBuffer() {
 		int width = Math.max(1,getWidth());
 		int height= Math.max(1,getHeight());
@@ -214,11 +245,8 @@ public class DemoSurface extends JComponent {
 		gg.setTransform(t);
 		if (onSurface || dragging) {
 			gg.setColor(Color.LIGHT_GRAY);
-			if (lastPressure == 0) {
-				gg.draw(new Ellipse2D.Double(lastX-MAX_RADIUS,lastY-MAX_RADIUS,2*MAX_RADIUS,2*MAX_RADIUS));
-			} else { 
-				gg.draw(new Ellipse2D.Double(lastX-lastPressure,lastY-lastPressure,2*lastPressure,2*lastPressure));
-			}
+			gg.draw(cursorShape);
+
 		}
 	}
 

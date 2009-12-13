@@ -111,7 +111,7 @@ public class DemoInfoPanel extends JPanel {
 						label.setForeground(new Color(0x008000));
 						break;
 					case UNKNOWN:
-						label.setForeground(new Color(0x800000));
+						label.setForeground(new Color(0x808000));
 						break;
 					}
 				}

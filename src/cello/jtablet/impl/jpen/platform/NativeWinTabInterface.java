@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jpen.provider.NativeLibraryLoader;
+import jpen.provider.osx.CocoaAccess;
 import jpen.provider.wintab.WintabAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
@@ -55,24 +56,46 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 		}
 	}
 	private class WinTabCursor {
-		private final int cursorId;
-		private final int[] xRange;
-		private final int[] yRange;
-		private final int[] pressureRange;
-		private final int[] altitudeRange;
-		private final int[] azimuthRange;
-		private final int[] sidePressureRange;
-		private final int[] rotationRange;
+		private final long physicalId;
+		private final String identifier;
+		private final WintabAccess.LevelRange xRange;
+		private final WintabAccess.LevelRange yRange;
+		private final WintabAccess.LevelRange pressureRange;
+		private final WintabAccess.LevelRange altitudeRange;
+		private final WintabAccess.LevelRange azimuthRange;
+		private final WintabAccess.LevelRange sidePressureRange;
+		private final WintabAccess.LevelRange rotationRange;
 		private final TabletDevice device;
-		public WinTabCursor(int cursorId) {
-			this.cursorId = cursorId;
-			xRange				= wa.getLevelRange(WintabAccess.LEVEL_TYPE_X);
-			yRange				= wa.getLevelRange(WintabAccess.LEVEL_TYPE_Y);
-			pressureRange		= wa.getLevelRange(WintabAccess.LEVEL_TYPE_PRESSURE);
-			altitudeRange		= wa.getLevelRange(WintabAccess.LEVEL_TYPE_TILT_ALTITUDE);
-			azimuthRange		= wa.getLevelRange(WintabAccess.LEVEL_TYPE_TILT_AZIMUTH);
-			sidePressureRange	= wa.getLevelRange(WintabAccess.LEVEL_TYPE_SIDE_PRESSURE);
-			rotationRange 		= wa.getLevelRange(WintabAccess.LEVEL_TYPE_ROTATION);
+		
+
+		private Support getSupported(int capabilityMask, int capability) {
+			if (capabilityMask == 0) {
+				return Support.UNKNOWN;
+			}
+			return (capabilityMask & capability) != 0 ? Support.SUPPORTED : Support.NONE;
+		}
+		
+		public WinTabCursor(final int cursorId, final long physicalId, String identifier) {
+			this.physicalId = physicalId;
+			this.identifier = identifier;
+			xRange				= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_X);
+			yRange				= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_Y);
+			pressureRange		= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_PRESSURE);
+			altitudeRange		= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_TILT_ALTITUDE);
+			azimuthRange		= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_TILT_AZIMUTH);
+			sidePressureRange	= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_SIDE_PRESSURE);
+			rotationRange 		= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_ROTATION);
+			
+			final int capabilityMask = WintabAccess.getCapabilityMask(cursorId);
+			
+			final Support supportsButtons 	 = getSupported(capabilityMask, WintabAccess.PK_BUTTONS);
+//			final Support supportsDeviceId  	 = getSupported(capabilityMask, WintabAccess.PK_SERIAL_NUMBER);
+			final Support supportsPressure  	 = getSupported(capabilityMask, WintabAccess.PK_NORMAL_PRESSURE);
+			final Support supportsRotation 	 = (capabilityMask & WintabAccess.PK_ORIENTATION) != 0 ? Support.UNKNOWN : Support.NONE;
+			final Support supportsSidePressure = getSupported(capabilityMask, WintabAccess.PK_TANGENT_PRESSURE);
+			final Support supportsTiltXY 		 = getSupported(capabilityMask, WintabAccess.PK_ORIENTATION);
+
+
 			
 			final TabletDevice.Type type;
 			switch (WintabAccess.getCursorType(cursorId)) {
@@ -90,16 +113,26 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 					type = Type.UNKNOWN;
 					break;
 			}
-						
+					
+			final String name = WintabAccess.getCursorName(cursorId);
+			
 			device = new TabletDevice() {
 				@Override
 				public Type getType() {
 					return type;
 				}
+				@Override
+				public String getName() {
+					return name;
+				}
+				@Override
+				public long getPhysicalId() {
+					return physicalId;
+				}
 
 				@Override
 				public Support supportsButtons() {
-					return null;
+					return supportsButtons;
 				}
 
 				@Override
@@ -109,46 +142,34 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 
 				@Override
 				public Support supportsPressure() {
-					return null;
+					return supportsPressure;
 				}
 
 				@Override
 				public Support supportsRotation() {
 					// TODO Auto-generated method stub
-					return null;
+					return supportsRotation;
 				}
 
 				@Override
 				public Support supportsSidePressure() {
 					// TODO Auto-generated method stub
-					return null;
+					return supportsSidePressure;
 				}
 
 				@Override
 				public Support supportsTilt() {
 					// TODO Auto-generated method stub
-					return null;
+					return supportsTiltXY;
 				}
 			};
-		}
-		private TabletDevice.Support convertToSupport(int range[]) {
-			if (range == null || range.length != 2) {
-				throw new IllegalArgumentException("Unexpected range value");
-			}
-			if (range[0] == range[1]) {
-				return Support.NONE;
-			}
-			if (range[0] > range[1]) {
-				return Support.UNKNOWN;
-			}
-			return Support.SUPPORTED;
 		}
 		public TabletDevice getDevice() {
 			return device;
 		}
 	}
 	
-	private Map<Integer,WinTabCursor> cursors = new HashMap<Integer,WinTabCursor>();
+	private Map<String,WinTabCursor> cursors = new HashMap<String,WinTabCursor>();
 
 	private int modifiers = 0;
 	private static final double PI_over_2=Math.PI/2;
@@ -246,9 +267,9 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 			mouseListener.setEnabled(true);
 		}
 	}
-	private float toFloat(int value, int minMax[]) {
-		int min = minMax[0];
-		int max = minMax[1];
+	private float toFloat(int value, WintabAccess.LevelRange range) {
+		int min = range.min;
+		int max = range.max;
 		return (float)(value - min) / (max - min);
 	}
 
@@ -272,11 +293,14 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 
 	private boolean checkCursor() {
 		int cursorId = wa.getCursor();
-		if (cursor == null || cursorId != cursor.cursorId) {
-			WinTabCursor newCursor = cursors.get(cursorId);
+		long physicalId = WintabAccess.getPhysicalId(cursorId);
+		String identifier = physicalId+"/"+cursorId+"/"+WintabAccess.getCursorName(cursorId);
+		if (cursor == null || !identifier.equals(cursor.identifier)) {
+			WinTabCursor newCursor = cursors.get(identifier);
+			System.out.println("cursor -> "+identifier);
 			if (newCursor == null) {
-				newCursor = new WinTabCursor(cursorId);
-				cursors.put(cursorId, newCursor);
+				newCursor = new WinTabCursor(cursorId, physicalId, identifier);
+				cursors.put(identifier, newCursor);
 			}
 			cursor = newCursor;
 			return true;

@@ -122,7 +122,6 @@ public class MouseListenerInterface implements CursorDevice {
 		}
 
 		private void fireEvent(TabletEvent ev) {
-			System.out.println("mouse input: "+ev);
 			ev.fireEvent(listener);
 		}
 		public void mouseClicked(MouseEvent e) {
