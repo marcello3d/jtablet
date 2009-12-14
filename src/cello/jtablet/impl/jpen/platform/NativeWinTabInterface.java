@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jpen.provider.NativeLibraryLoader;
-import jpen.provider.osx.CocoaAccess;
 import jpen.provider.wintab.WintabAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
@@ -58,13 +57,13 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 	private class WinTabCursor {
 		private final long physicalId;
 		private final String identifier;
-		private final WintabAccess.LevelRange xRange;
-		private final WintabAccess.LevelRange yRange;
-		private final WintabAccess.LevelRange pressureRange;
-		private final WintabAccess.LevelRange altitudeRange;
-		private final WintabAccess.LevelRange azimuthRange;
-		private final WintabAccess.LevelRange sidePressureRange;
-		private final WintabAccess.LevelRange rotationRange;
+		private final LevelRange xRange;
+		private final LevelRange yRange;
+		private final LevelRange pressureRange;
+		private final LevelRange altitudeRange;
+		private final LevelRange azimuthRange;
+		private final LevelRange sidePressureRange;
+		private final LevelRange rotationRange;
 		private final TabletDevice device;
 		
 
@@ -78,13 +77,13 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 		public WinTabCursor(final int cursorId, final long physicalId, String identifier) {
 			this.physicalId = physicalId;
 			this.identifier = identifier;
-			xRange				= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_X);
-			yRange				= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_Y);
-			pressureRange		= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_PRESSURE);
-			altitudeRange		= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_TILT_ALTITUDE);
-			azimuthRange		= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_TILT_AZIMUTH);
-			sidePressureRange	= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_SIDE_PRESSURE);
-			rotationRange 		= wa.getLevelRangeObject(WintabAccess.LEVEL_TYPE_ROTATION);
+			xRange				= getLevelRangeObject(WintabAccess.LEVEL_TYPE_X);
+			yRange				= getLevelRangeObject(WintabAccess.LEVEL_TYPE_Y);
+			pressureRange		= getLevelRangeObject(WintabAccess.LEVEL_TYPE_PRESSURE);
+			altitudeRange		= getLevelRangeObject(WintabAccess.LEVEL_TYPE_TILT_ALTITUDE);
+			azimuthRange		= getLevelRangeObject(WintabAccess.LEVEL_TYPE_TILT_AZIMUTH);
+			sidePressureRange	= getLevelRangeObject(WintabAccess.LEVEL_TYPE_SIDE_PRESSURE);
+			rotationRange 		= getLevelRangeObject(WintabAccess.LEVEL_TYPE_ROTATION);
 			
 			final int capabilityMask = WintabAccess.getCapabilityMask(cursorId);
 			
@@ -95,8 +94,12 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 			final Support supportsSidePressure = getSupported(capabilityMask, WintabAccess.PK_TANGENT_PRESSURE);
 			final Support supportsTiltXY 		 = getSupported(capabilityMask, WintabAccess.PK_ORIENTATION);
 
-
-			
+//			System.out.println("cursor type="+ wa.getRawCursorType(cursorId));
+//			System.out.println("device name="+ wa.getDeviceName());
+//			System.out.println("device caps="+ wa.getDeviceHardwareCapabilities());
+//			System.out.println("context rate="+ wa.getPacketRate());
+//			System.out.println("buttonCount="+WintabAccess.getButtonCount(cursorId));
+//			System.out.println("buttons="+Arrays.toString(WintabAccess.getButtonNames(cursorId)));
 			final TabletDevice.Type type;
 			switch (WintabAccess.getCursorType(cursorId)) {
 				case PENERASER:
@@ -180,6 +183,11 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 	private long lastTime = 0;
 	protected void readPackets() {
 		long when = System.currentTimeMillis();
+		Rectangle r = new Rectangle();
+		for (GraphicsDevice gd : environment.getScreenDevices()){
+			GraphicsConfiguration graphicsConfiguration = gd.getDefaultConfiguration();
+			r.add(graphicsConfiguration.getBounds());
+		}
 		while (wa.nextPacket()) {
 			mouseListener.setEnabled(false);
 			boolean newCursor = checkCursor();
@@ -189,11 +197,6 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 			float x = toFloat(this.x, cursor.xRange);
 			float y = 1 - toFloat(this.y, cursor.yRange);
 
-			Rectangle r = new Rectangle();
-			for (GraphicsDevice gd : environment.getScreenDevices()){
-				GraphicsConfiguration graphicsConfiguration = gd.getDefaultConfiguration();
-				r.add(graphicsConfiguration.getBounds());
-			}
 			x *= r.width;
 			y *= r.height;
 			
@@ -262,12 +265,16 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 			lastTime = when;
 		}
 		if (getLastDevice() != SYSTEM_MOUSE && when - lastTime > 100) {
-			generateDeviceEvents(cursor != null ? cursor.getDevice() : null, when, modifiers, false, x, y);
+			generateDeviceEvents(cursor != null ? cursor.getDevice() : null, when, modifiers, false);
 			cursor = null;
 			mouseListener.setEnabled(true);
 		}
 	}
-	private float toFloat(int value, WintabAccess.LevelRange range) {
+
+	private LevelRange getLevelRangeObject(int type) {
+		return new LevelRange(wa.getLevelRange(type));
+	}
+	private float toFloat(int value, LevelRange range) {
 		int min = range.min;
 		int max = range.max;
 		return (float)(value - min) / (max - min);
@@ -278,9 +285,11 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 
 
 	private GraphicsEnvironment environment;
+	private long deviceTime;
 	
 	
 	private void readValues() {
+		deviceTime		= wa.getTime();
 		x				= wa.getValue(WintabAccess.LEVEL_TYPE_X);
 		y				= wa.getValue(WintabAccess.LEVEL_TYPE_Y);
 		pressure		= wa.getValue(WintabAccess.LEVEL_TYPE_PRESSURE);
@@ -289,6 +298,7 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 		sidePressure	= wa.getValue(WintabAccess.LEVEL_TYPE_SIDE_PRESSURE);
 		rotation		= wa.getValue(WintabAccess.LEVEL_TYPE_ROTATION);
 		buttonMask		= wa.getButtons();
+//		System.out.printf("currentTime=%10d time=%10d x=%6d y=%6d alt=%6d azi=%6d pressure=%6d\n", System.nanoTime()/1000000, deviceTime, x, y, altitude, azimuth, pressure);	
 	}
 
 	private boolean checkCursor() {
@@ -338,4 +348,52 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 		mouseListener.removeTabletListener(c, l);
 		super.removeTabletListener(c, l);
 	}
+
+	/* unit specifiers (from wintab.h) */
+	public static final int TU_NONE			= 0;
+	public static final int TU_INCHES		= 1;
+	public static final int TU_CENTIMETERS	= 2;
+	public static final int TU_CIRCLE		= 3;
+
+	private static enum Unit {
+		NONE,
+		INCHES,
+		CENTIMETERS,
+		CIRCLE
+	};
+	
+	private float fix32ToFloat(int fix32) {
+		return (float)fix32 / (1<<16);
+	}
+//	private double fix32ToDouble(int fix32) {
+//		return (double)fix32 / (1<<16);
+//	}
+
+	private class LevelRange {
+		public final int min;
+		public final int max;
+		public final Unit unit;
+		public final float resolution;
+		public LevelRange(int ranges[]) {
+			min = ranges[0];
+			max = ranges[1];
+			switch (ranges[2]) {
+			case TU_CENTIMETERS:
+				unit = Unit.CENTIMETERS;
+				break;
+			case TU_INCHES:
+				unit = Unit.INCHES;
+				break;
+			case TU_CIRCLE:
+				unit = Unit.CIRCLE;
+				break;
+			case TU_NONE:
+			default:
+				unit = Unit.NONE;
+				break;
+			}
+			resolution = fix32ToFloat(ranges[3]);
+		}
+	}
+
 }
