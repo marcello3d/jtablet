@@ -222,7 +222,7 @@ public class DemoSurface extends JComponent {
 		g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
 		g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 		g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-		drawRoundedLine(40, 40, 10, 200, 200, 80, false);
+//		drawRoundedLine(40, 40, 10, 200, 200, 80, false);
 	}
 	
 	@Override

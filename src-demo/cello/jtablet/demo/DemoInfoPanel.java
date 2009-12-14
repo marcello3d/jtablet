@@ -7,6 +7,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -34,20 +36,21 @@ public class DemoInfoPanel extends JPanel {
 	private JLabel rotationValue = new JLabel("Rotation");
 	private JLabel ppsValue = new JLabel("Rate");
 	private JLabel labels[] = {
+		ppsValue,
 		typeValue,
 		xValue,
 		yValue,
 		pressureValue,
+		sidePressureValue,
 		tiltXValue,
 		tiltYValue,
-		sidePressureValue,
-		rotationValue,
-		ppsValue
+		rotationValue
 	};
+	private Map<JLabel,JLabel> labelPrefixes = new HashMap<JLabel,JLabel>(labels.length);
 	
 	private NumberFormat nf = DecimalFormat.getNumberInstance();
 	{ 
-		nf.setMaximumFractionDigits(4);
+		nf.setMaximumFractionDigits(2);
 		nf.setGroupingUsed(true);
 	}
 	
@@ -68,6 +71,7 @@ public class DemoInfoPanel extends JPanel {
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.fill = GridBagConstraints.NONE;
 			JLabel label2 = new JLabel(label.getText()+":",JLabel.LEFT);
+			labelPrefixes.put(label, label2);
 			add(label2, gbc);
 			
 			gbc.gridx=2;
@@ -97,20 +101,27 @@ public class DemoInfoPanel extends JPanel {
 				setText(yValue,				nf.format(ev.getRealY()),				Support.SUPPORTED);
 				setText(pressureValue,		nf.format(ev.getPressure()),			device.supportsPressure());
 				setText(sidePressureValue,	nf.format(ev.getSidePressure()),		device.supportsSidePressure());
-				setText(tiltXValue,			nf.format(ev.getTiltX())+" rad",		device.supportsTilt());
-				setText(tiltYValue,			nf.format(ev.getTiltY())+" rad",		device.supportsTilt());
-				setText(rotationValue,		nf.format(ev.getRotation())+" rad",		device.supportsRotation());
+				setText(tiltXValue,			nf.format(Math.toDegrees(ev.getTiltX()))+"º",		device.supportsTilt());
+				setText(tiltYValue,			nf.format(Math.toDegrees(ev.getTiltY()))+"º",		device.supportsTilt());
+				setText(rotationValue,		nf.format(Math.toDegrees(ev.getRotation()))+"º",		device.supportsRotation());
 			}
 			private void setText(JLabel label, String value, TabletDevice.Support supported) {
 				if (supported != null) {
+					JLabel prefix = labelPrefixes.get(label);
 					switch (supported) {
 					case NONE:
+						label.setEnabled(false);
+						prefix.setEnabled(false);
 						label.setForeground(new Color(0x800000));
 						break;
 					case SUPPORTED:
+						label.setEnabled(true);
+						prefix.setEnabled(true);
 						label.setForeground(new Color(0x008000));
 						break;
 					case UNKNOWN:
+						label.setEnabled(true);
+						prefix.setEnabled(true);
 						label.setForeground(new Color(0x808000));
 						break;
 					}

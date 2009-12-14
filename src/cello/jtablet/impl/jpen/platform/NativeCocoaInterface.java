@@ -236,11 +236,15 @@ public class NativeCocoaInterface extends RawDataScreenInputInterface {
 			    	break;
 			}
 
-
 			long when = System.currentTimeMillis();
 			int modifiers = getMouseEventModifiers(cocoaModifierFlags);
 			
-
+			// tilt is in range of -1 ~ 1, where 1 is 64 degrees
+			tiltX *= TILT_TO_RADIANS;
+			// Avoid negative zero...
+			if (tiltY != 0) {
+				tiltY = -tiltY * TILT_TO_RADIANS;
+			}
 			generatePointEvents(
 				when, 
 				modifiers, 
