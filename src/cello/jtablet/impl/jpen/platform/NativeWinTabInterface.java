@@ -26,6 +26,9 @@ import cello.jtablet.impl.platform.NativeDeviceException;
 import cello.jtablet.impl.platform.RawDataScreenInputInterface;
 
 
+/**
+ * @author marcello
+ */
 public class NativeWinTabInterface extends RawDataScreenInputInterface implements NativeCursorDevice {
 
 	private MouseListenerInterface mouseListener = new MouseListenerInterface();
@@ -55,7 +58,6 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 		}
 	}
 	private class WinTabCursor {
-		private final long physicalId;
 		private final String identifier;
 		private final LevelRange xRange;
 		private final LevelRange yRange;
@@ -75,7 +77,6 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 		}
 		
 		public WinTabCursor(final int cursorId, final long physicalId, String identifier) {
-			this.physicalId = physicalId;
 			this.identifier = identifier;
 			xRange				= getLevelRangeObject(WintabAccess.LEVEL_TYPE_X);
 			yRange				= getLevelRangeObject(WintabAccess.LEVEL_TYPE_Y);

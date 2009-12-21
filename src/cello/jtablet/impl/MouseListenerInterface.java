@@ -7,6 +7,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cello.jtablet.TabletDevice;
@@ -177,5 +178,10 @@ public class MouseListenerInterface implements CursorDevice {
 			));
 		}
 
+	}
+
+	public void setHints(Map<String, Object> hints) {
+		// TODO Auto-generated method stub
+		
 	}
 }

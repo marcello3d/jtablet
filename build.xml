@@ -1,11 +1,23 @@
-<project name="JTablet2" default="dist" basedir=".">
+<project name="JTablet2" default="jars" basedir=".">
     <description>
         JTablet2
     </description>
+	
   <!-- set global properties for this build -->
 			 
-  <property name="src" location="src"/>
-  <property name="build" location="build"/>
+  <property name="src"					location="src"/>
+  <property name="src.demo"				location="src-demo"/>
+  <property name="src.installer"		location="src-installer"/>
+  <property name="src.jpen"				location="../jpen/src/main/java"/>
+  <property name="src.jpen.resources"	location="../jpen/src/main/resources"/>
+	
+  <property name="build.jtablet"	location="build/jtablet"/>
+  <property name="build.jpen"		location="build/jpen"/>
+  <property name="build.demo"		location="build/demo"/>
+  <property name="build.installer"	location="build/installer"/>
+
+  <property name="docs.api"			location="docs/api"/>
+	
   <property name="dist"  location="dist"/>
   <property name="lib.dir"     value="lib"/>
   
@@ -13,55 +25,130 @@
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
-    <!-- Create the build directory structure used by compile -->
-    <mkdir dir="${build}"/>
-    <mkdir dir="${build}"/>
-    <mkdir dir="${dist}/signed"/>
   </target>
-  
-  
-  <path id="classpath">
-        <fileset dir="lib" includes="**/*.jar"/>
-  </path>
 
-  <target name="compile" depends="init" description="compile the source" >
-    <!-- Compile the java code from ${src} into ${build} -->
+
+  <!-- BUILD JPEN -->
+  <target name="jpen.compile" depends="init" description="compile the source" >
+    <mkdir dir="${build.jpen}"/>
+    <javac 
+		srcdir="${src.jpen}"          
+		includes="**"
+		destdir="${build.jpen}" 
+		source="1.5" 
+		target="1.5"
+		debug="on"/>
+  	<copy todir="${build.jpen}" filtering="true">
+		<fileset dir="${src.jpen.resources}">
+		  <include name="**/*"/>
+		</fileset>
+	</copy>
+  </target>
+  <target name="jpen.jar" depends="jpen.compile">
+	<jar 
+		jarfile="${dist}/lib/jpen2-${DSTAMP}.original.jar"
+		includes="jpen/**"
+    	excludes="jpen/demo/**"
+		level="9"
+		basedir="${build.jpen}">
+	</jar>
+  </target>
+
+
+  <!-- MAIN JTABLET JAR -->
+	
+  <path id="jtablet.classpath">
+		<pathelement location="${build.jpen}"/>
+  </path>
+  <target name="jtablet.compile" depends="init,jpen.compile" description="compile the source" >
+    <mkdir dir="${build.jtablet}"/>
     <javac 
 		srcdir="${src}"          
-		includes="cello/tablet/**"
-		destdir="${build}" 
+		includes="**"
+		destdir="${build.jtablet}" 
 		source="1.5" 
 		target="1.5"
 		debug="on"
-		classpathref="classpath"/>
+		classpathref="jtablet.classpath"/>
   </target>
-  <!--
-  <target name="jpen" depends="init" description="compile the source" >
-	<unzip src="lib/jpen-2.jar"
-	       dest="${build.lp}">
-	    <patternset>
-	        <exclude name="jpen/demo/**"/>
-	    </patternset>
-	</unzip>
-  </target>-->
-  
-  <target name="jtablet2" depends="compile" description="generate the initial jtablet jar" >
-    <!-- Create the distribution directory -->
+  <target name="jtablet.jar" depends="jtablet.compile" description="generate the initial jtablet jar" >
     <mkdir dir="${dist}/lib"/>
-
     <jar 
 		jarfile="${dist}/lib/jtablet2-${DSTAMP}.original.jar"
-		includes="cello/tablet/**"
-		excludes="cello/tablet/installer/**"
-		basedir="${build}">  
-		<manifest>
-		    <attribute name="Main-Class" value="cello.tablet.installer.JTabletInstaller"/>
-		</manifest>
+		includes="cello/**"
+    	level="9"
+		basedir="${build.jtablet}">
 	</jar>
   </target>
+	
+  <!-- demo package -->
+  <path id="demo.classpath">
+        <fileset dir="lib" includes="**/*.jar"/>
+		<pathelement location="${build.jtablet}"/>
+  </path>
+  <target name="demo.compile" depends="init,jtablet.compile" description="compile the source" >
+    <mkdir dir="${build.demo}"/>
+	<javac 
+		srcdir="${src.demo}"          
+		includes="**"
+		destdir="${build.demo}" 
+		source="1.5" 
+		target="1.5"
+		debug="on"
+		classpathref="demo.classpath"/>
+  </target>	
+
+  <target name="demo.jar" depends="demo.compile">
+    <jar 
+		jarfile="${dist}/lib/jtablet2-demo-${DSTAMP}.original.jar"
+		includes="cello/jtablet/demo/**"
+    	level="9"
+    	basedir="${build.demo}">
+        <manifest>
+    	  <attribute name="Main-Class" value="cello.jtablet.demo.DemoApplet.class" />
+          <attribute name="Built-By" value="Marcello"/>
+          <attribute name="Sealed" value="true"/>
+        </manifest>
+	</jar>
+  </target>
+	
+	
+  <!-- INSTALLER -->
+  <path id="classpath.installer">
+        <fileset dir="lib" includes="**/*.jar"/>
+  </path>
+  <target name="installer.compile" depends="init" description="compile the source" >
+    <mkdir dir="${build.installer}"/>
+    <javac 
+		srcdir="${src.installer}"          
+		includes="**"
+		destdir="${build.installer}" 
+		source="1.5" 
+		target="1.5"
+		debug="on"
+		classpathref="classpath.installer"/>
+  </target>
+
+  <target name="installer.jar" depends="installer.compile">
+    <jar 
+		jarfile="${dist}/lib/jtablet2-installer-${DSTAMP}.original.jar"
+		includes="cello/jtablet/installer**"
+    	level="9"
+    	basedir="${build.installer}">
+	</jar>
+  </target>
+	
+	
+  <target name="jars" depends="jpen.jar,jtablet.jar,demo.jar,installer.jar" >
+  </target>
+	
+	
   <target name="genkey">
-    <genkey alias="jtablet-installer" storepass="notsecureatall5936510" 
-		keypass="notsecureatall5936510">
+    <genkey 
+    	alias="jtablet2" 
+    	storepass="notsecureatall5936510" 
+		keypass="notsecureatall5936510"
+    	validity="365">
       <dname>
         <param name="CN" value="JTablet Installer"/>
         <param name="O"  value="Cellosoft"/>
@@ -70,30 +157,54 @@
     </genkey>
   </target>
 
-  
-  <target name="signedjars" depends="jtablet2,installer">
+
+  <target name="jpen.signed" depends="jpen.jar">
   	<signjar 
-		destDir="${dist}/signed" 
-		alias="jtablet-installer" 
+		alias="jtablet2" 
 		storepass="notsecureatall5936510"
-		keypass="notsecureatall5936510">
-	  <path>
-	    <fileset dir="${dist}/" includes="jtablet-installer${DSTAMP}.original.jar" />
-	  </path>
-	  <flattenmapper />
+		keypass="notsecureatall5936510"
+  		lazy="true"
+  		jar="${dist}/lib/jpen2-${DSTAMP}.original.jar"
+  		signedjar="${dist}/jpen2-${DSTAMP}.jar">
 	</signjar>
-
   </target>
 
-  <target name="installer" depends="compile,jtablet2" description="generate the jtablet installer jar" >
-    <jar 
-		jarfile="${dist}/jtablet-installer${DSTAMP}.original.jar"
-		includes="cello/tablet/installer/**"
-		basedir="${build}">
-	</jar>	
+  <target name="jtablet.signed" depends="jtablet.jar">
+  	<signjar 
+		alias="jtablet2" 
+		storepass="notsecureatall5936510"
+		keypass="notsecureatall5936510"
+  		lazy="true"
+  		jar="${dist}/lib/jtablet2-${DSTAMP}.original.jar"
+  		signedjar="${dist}/jtablet2-${DSTAMP}.jar">
+	</signjar>
   </target>
+ 
+  <target name="demo.signed" depends="demo.jar">
+  	<signjar 
+		alias="jtablet2" 
+		storepass="notsecureatall5936510"
+		keypass="notsecureatall5936510"
+  		lazy="true"
+  		jar="${dist}/lib/jtablet2-demo-${DSTAMP}.original.jar"
+  		signedjar="${dist}/jtablet2-demo-${DSTAMP}.jar">
+	</signjar>
+  </target>
+  
+  <target name="installer.signed" depends="installer.jar">
+  	<signjar 
+
+		alias="jtablet2" 
+		storepass="notsecureatall5936510"
+		keypass="notsecureatall5936510"
+  		lazy="true"
+  		jar="${dist}/lib/jtablet2-installer-${DSTAMP}.original.jar"
+  		signedjar="${dist}/jtablet2-installer-${DSTAMP}.jar">
+	</signjar>
+  </target>
+	
+	<!--
   <target name="installer-dist" depends="signedjars">
-    <!-- Create the distribution directory -->
     <mkdir dir="${dist}/installer"/>
 
 	<filter token="buildVersion" value="${DSTAMP}"/>
@@ -105,16 +216,116 @@
 	<copy file="${dist}/signed/jtablet-installer${DSTAMP}.original.jar" tofile="${dist}/installer/jtablet-installer${DSTAMP}.jar" />
 	<copy todir="${dist}/installer" file="lib/javascript.jar" />
   </target>
+-->
+  <target name="jars.signed" depends="jpen.signed,jtablet.signed,demo.signed,installer.signed">
+  </target>
+  
+  <target name="javadocs" depends="jpen.compile">  
+  	<mkdir dir="${docs.api}"/>
+	<javadoc
+        destdir="${docs.api}"
+        author="true"
+        version="true"
+        use="true"
+		classpathref="jtablet.classpath"
+        windowtitle="JTablet 2.0 API">
 
-  <target name="dist" depends="installer-dist"></target>
+		 <packageset dir="${src}" defaultexcludes="yes">
+		   <include name="cello/jtablet/**"/>
+		   <exclude name="cello/jtablet/impl/**"/>
+		 </packageset>
+		<!--
+		 <doctitle><![CDATA[<h1>Test</h1>]]></doctitle>
+		 <bottom><![CDATA[<i>Copyright &#169; 2000 Dummy Corp. All Rights Reserved.</i>]]></bottom>
+		 -->
+		 <link offline="true" href="http://java.sun.com/j2se/1.5.0/docs/api/" packagelistLoc="C:\tmp"/>
+		 <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
+		</javadoc>
+  </target>
+	
+  <target name="jars.demo">
+
+    <jar 
+		jarfile="html/demos/jpen2-ext.jar"
+		includes="jpen/**"
+    	level="9"
+    	basedir="${build.jpen}">
+        <manifest>
+          <attribute name="Built-By" value="Marcello"/>
+          <attribute name="Sealed" value="true"/>
+
+
+        	<attribute name="Extension-Name" value="jpen2"/>
+        	<attribute name="Specification-Vendor" value="jpen"/>
+        	<attribute name="Specification-Version" value="2.0"/>
+        	<attribute name="Implementation-Vendor-Id" value="jpen"/>
+        	<attribute name="Implementation-Vendor" value="jpen"/>
+        	<attribute name="Implementation-Version" value="1.1.3"/>
+
+        </manifest>
+	</jar>
+
+    <jar 
+		jarfile="html/demos/jtablet2-ext.jar"
+		includes="cello/**"
+    	level="9"
+    	basedir="${build.jtablet}">
+        <manifest>
+          <attribute name="Built-By" value="Marcello"/>
+          <attribute name="Sealed" value="true"/>
+
+
+        	<attribute name="Extension-Name" value="cello.jtablet2"/>
+        	<attribute name="Specification-Vendor" value="Cellosoft"/>
+        	<attribute name="Specification-Version" value="2.0"/>
+        	<attribute name="Implementation-Vendor-Id" value="cello"/>
+        	<attribute name="Implementation-Vendor" value="Cellosoft"/>
+        	<attribute name="Implementation-Version" value="2.0"/>
+
+        </manifest>
+	</jar>
+    <jar 
+		jarfile="html/demos/jtablet2-demo-with-ext.jar"
+		includes="cello/jtablet/demo/**"
+    	level="9"
+    	basedir="${build.demo}">
+        <manifest>
+    	  <attribute name="Main-Class" value="cello.jtablet.demo.DemoApplet.class" />
+          <attribute name="Built-By" value="Marcello"/>
+          <attribute name="Sealed" value="true"/>
+
+        	<attribute name="Extension-List" value="jtablet2 jpen2"/>
+        	<attribute name="jtablet2-Extension-Name" value="cello.jtablet2"/>
+        	<attribute name="jtablet2-Specification-Version" value="2.0"/>
+        	<attribute name="jtablet2-Specification-Vendor" value="Cellosoft"/>
+        	<attribute name="jtablet2-Implementation-Version" value="2.0"/>
+        	<attribute name="jtablet2-Implementation-Vendor-Id" value="cello"/>
+        	<attribute name="jtablet2-Implementation-URL" value="jtablet2-ext.jar"/>
+
+        	<attribute name="jpen2-Extension-Name" value="jpen"/>
+        	<attribute name="jpen2-Specification-Version" value="2.0"/>
+        	<attribute name="jpen2-Specification-Vendor" value="jpen"/>
+        	<attribute name="jpen2-Implementation-Version" value="2.0"/>
+        	<attribute name="jpen2-Implementation-Vendor-Id" value="jpen"/>
+        	<attribute name="jpen2-Implementation-URL" value="jpen2-ext.jar"/>
+        </manifest>
+	</jar>
+
+
+  </target>
+	
   
-  
-  <target name="clean"
-        description="clean up" >
-    <!-- Delete the ${build} and ${dist} directory trees -->
-    <delete dir="${build}"/>
+  <target name="clean" description="clean up" >
+    <!-- Delete the ${build.jtablet} and ${dist} directory trees -->
+    <delete dir="${build.jtablet}"/>
+
+    <delete dir="${build.jpen}"/>
+    <delete dir="${build.demo}"/>
+    <delete dir="${build.installer}"/>
+  	<!--
     <delete dir="${dist}/installer"/>
-    <delete file="${dist}/lib/jtablet2-${DSTAMP}.original.jar"/>
+  	<delete file="${dist}/lib/jtablet2-${DSTAMP}.original.jar"/>
     <delete file="${dist}/jtablet2.jar"/>
+    -->
   </target>
 </project>

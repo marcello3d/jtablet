@@ -1,11 +1,12 @@
 package cello.jtablet.impl.jpen;
 
 import java.awt.Component;
+import java.io.IOException;
+import java.util.Map;
 
+import cello.jtablet.TabletInterface;
 import cello.jtablet.events.TabletListener;
 import cello.jtablet.impl.CursorDevice;
-import cello.jtablet.impl.MouseListenerInterface;
-import cello.jtablet.impl.TabletInterface;
 import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
 import cello.jtablet.impl.jpen.platform.NativeWinTabInterface;
 import cello.jtablet.impl.jpen.platform.NativeXInputInterface;
@@ -14,35 +15,47 @@ import cello.jtablet.impl.platform.NativeDeviceException;
 
 public class JPenTabletManager implements TabletInterface {
 
-	private final CursorDevice interfaces[] = {
-		new NativeCocoaInterface(),
-		new NativeWinTabInterface(),
-		new NativeXInputInterface(),
-		new JPenTranslationInterface()
+	private final Class<?> interfaces[] = {
+		NativeCocoaInterface.class,
+		NativeWinTabInterface.class,
+		NativeXInputInterface.class,
+		JPenTranslationInterface.class
 	};
 	private final CursorDevice cursorDevice;
-	private NativeDeviceException exception;
+	private Exception exception;
 	private DriverStatus driverStatus; 
 	
-	public JPenTabletManager() {
+	public JPenTabletManager(Map<String, Object> hints) {
 		String os = System.getProperty("os.name").toLowerCase();
 		
-		CursorDevice chosenDevice = null; 
-		for (CursorDevice cd : interfaces) {
-			if (cd instanceof NativeCursorDevice) {
-				NativeCursorDevice nsd = (NativeCursorDevice)cd;
-				if (nsd.isSystemSupported(os)) {
-					try {
-						nsd.load();
-						chosenDevice = nsd;
-						break;
-					} catch (NativeDeviceException e) {
-						exception = e;					
+		CursorDevice chosenDevice = null;
+		driverStatus = DriverStatus.OS_NOT_SUPPORTED;
+		for (Class<?> cdClazz : interfaces) {
+			try {
+				CursorDevice cd = (CursorDevice)cdClazz.newInstance();
+				cd.setHints(hints);
+				if (cd instanceof NativeCursorDevice) {
+					NativeCursorDevice nsd = (NativeCursorDevice)cd;
+					if (nsd.isSystemSupported(os)) {
+						try {
+							nsd.load();
+							chosenDevice = nsd;
+							driverStatus = DriverStatus.TABLET_FOUND;
+							break;
+						} catch (SecurityException e) {
+							exception = e;
+							driverStatus = DriverStatus.SECURITY_EXCEPTION;
+						} catch (NativeDeviceException e) {
+							exception = e;					
+							driverStatus = DriverStatus.LIBRARY_LOAD_EXCEPTION;
+						}
 					}
+				} else {
+					chosenDevice = cd;
+					break;
 				}
-			} else {
-				chosenDevice = cd;
-				break;
+			} catch (InstantiationException e) {
+			} catch (IllegalAccessException e) {
 			}
 		}
 		this.cursorDevice = chosenDevice;
@@ -50,11 +63,18 @@ public class JPenTabletManager implements TabletInterface {
 
 	public enum DriverStatus {
 		
+		SECURITY_EXCEPTION,
+		LIBRARY_LOAD_EXCEPTION,
+		DEPENDENT_LIBRARY_LOAD_EXCEPTION,
+		OS_NOT_SUPPORTED,
+		NO_TABLET_FOUND,
+		TABLET_FOUND,
+		
 	}
 	public DriverStatus getDriverStatus() {
 		return driverStatus;
 	}
-	public NativeDeviceException getDriverException() {
+	public Exception getDriverException() {
 		return exception;
 	}
 	

@@ -24,12 +24,23 @@ import cello.jtablet.events.TabletListener;
  */
 public abstract class ScreenInputInterface implements CursorDevice {	
 	
+	public static final String HINT_ENABLE_ENTER_EXIT_EVENTS_ON_DRAG = "ScreenInputInterface.enableEnterExitEventsOnDrag";
+	public static final String HINT_SEND_NEW_DEVICE_EVENT_ON_ENTER = "ScreenInputInterface.sendNewDeviceEventOnEnter";
 	private boolean enableEnterExitEventsOnDrag = true;
 	private boolean sendNewDeviceEventOnEnter = true;
 	
 	private final List<TabletListener> screenListeners = new ArrayList<TabletListener>();
 	private final Map<Component,ComponentManager> componentManagers = new ConcurrentHashMap<Component,ComponentManager>();	
 	private final List<ComponentManager> showingComponents = new CopyOnWriteArrayList<ComponentManager>();
+	
+	public void setHints(Map<String, Object> hints) {
+		if (hints.containsKey(HINT_ENABLE_ENTER_EXIT_EVENTS_ON_DRAG)) {
+			enableEnterExitEventsOnDrag = (Boolean)hints.get(HINT_ENABLE_ENTER_EXIT_EVENTS_ON_DRAG);
+		}
+		if (hints.containsKey(HINT_SEND_NEW_DEVICE_EVENT_ON_ENTER)) {
+			sendNewDeviceEventOnEnter = (Boolean)hints.get(HINT_SEND_NEW_DEVICE_EVENT_ON_ENTER);
+		}
+	}
 	
 	private static class ScreenComponent extends Component {
 		

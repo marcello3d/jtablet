@@ -1,0 +1,27 @@
+<html>
+<head>
+	<title>JTablet 2.0 Demo - Java Applet</title>
+	<script type="text/javascript" src="deployJava.js"></script>
+</head>
+<body>
+<h1>JTablet 2.0 Demo - Java Applet</h1>
+<script>
+deployJava.setInstallerType('kernel');
+deployJava.runApplet(
+	{
+		codebase:	'.',
+	    code:		'cello.jtablet.demo.DemoApplet.class',
+	    archive:	'jtablet2-demo.jar,jtablet2.jar,jpen2.signed.jar',
+	    width:		710, 
+	    height:		540
+	}, 
+	{
+	// parameters
+	
+	}, 
+	'1.5'
+);
+</script>
+<noscript>JavaScript is required for this demo.</noscript>
+</body>
+</html>	

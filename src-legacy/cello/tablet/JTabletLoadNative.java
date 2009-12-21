@@ -1,7 +1,7 @@
 /***************************************************************
  *
  * JTablet is an open-source native Tablet library for Java by
- *	Marcello Bastéa-Forte (marcello@cellosoft.com
+ *	Marcello Bastï¿½a-Forte (marcello@cellosoft.com
  *
  *   You are free to modify this code as you wish, but any
  *   useful/significant changes should be contributed back to
@@ -12,7 +12,7 @@
  *
  ***************************************************************/
 
-package cello.tablet.legacy;
+package cello.tablet;
 
 import java.security.*;
 
