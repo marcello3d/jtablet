@@ -24,7 +24,7 @@
 /**
  * Contains classes for working with tablet events.
  * 
- * @see TabletListener 
+ * @see cello.jtablet.event.TabletListener 
  */
 
-package cello.jtablet.events;
+package cello.jtablet.event;

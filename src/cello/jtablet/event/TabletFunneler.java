@@ -21,7 +21,7 @@
  *     distribution.
  */
 
-package cello.jtablet.events;
+package cello.jtablet.event;
 
 /**
  * A convenience class that implements {@link TabletListener} as a funnel to a single abstract method you can implement

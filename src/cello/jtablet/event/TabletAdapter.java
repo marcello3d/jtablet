@@ -21,7 +21,7 @@
  *     distribution.
  */
 
-package cello.jtablet.events;
+package cello.jtablet.event;
 
 import java.awt.event.MouseAdapter;
 
