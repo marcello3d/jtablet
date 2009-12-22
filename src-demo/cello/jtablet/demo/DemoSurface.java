@@ -17,8 +17,8 @@ import javax.swing.JComponent;
 
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletManagerFactory;
-import cello.jtablet.events.TabletAdapter;
-import cello.jtablet.events.TabletEvent;
+import cello.jtablet.event.TabletAdapter;
+import cello.jtablet.event.TabletEvent;
 
 /**
  * Simple demo component that handles tablet input to draw lines 

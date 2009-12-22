@@ -34,9 +34,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cello.jtablet.TabletDevice;
-import cello.jtablet.events.TabletEvent;
-import cello.jtablet.events.TabletListener;
-import cello.jtablet.events.TabletEvent.Type;
+import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletListener;
+import cello.jtablet.event.TabletEvent.Type;
 
 /**
  * @author marcello

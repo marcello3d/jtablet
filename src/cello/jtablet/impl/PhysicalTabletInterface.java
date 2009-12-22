@@ -25,13 +25,13 @@ package cello.jtablet.impl;
 
 import java.util.Map;
 
-import cello.jtablet.TabletInterface;
+import cello.jtablet.TabletManager;
 
 /**
  * @author marcello
  *
  */
-public interface PhysicalTabletInterface extends TabletInterface {
+public interface PhysicalTabletInterface extends TabletManager {
 	/**
 	 * @return true if this device is available
 	 */

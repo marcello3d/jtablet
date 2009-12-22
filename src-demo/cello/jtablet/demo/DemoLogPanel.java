@@ -8,8 +8,8 @@ import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 
 import cello.jtablet.TabletManagerFactory;
-import cello.jtablet.events.TabletEvent;
-import cello.jtablet.events.TabletFunneler;
+import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletFunneler;
 
 public class DemoLogPanel extends JScrollPane {
 

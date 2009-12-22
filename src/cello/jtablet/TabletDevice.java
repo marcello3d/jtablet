@@ -25,7 +25,7 @@ package cello.jtablet;
 
 import java.io.Serializable;
 
-import cello.jtablet.events.TabletEvent;
+import cello.jtablet.event.TabletEvent;
 
 /**
  * Represents a cursor from a physical input device. All {@link TabletEvent}s will reference a 
@@ -112,59 +112,52 @@ public abstract class TabletDevice implements Serializable {
 
 	/**
 	 * Returns this device's type (such as stylus pen tip, stylus eraser, mouse cursor, or other).
-	 * @see Type
 	 * @return the device's type
 	 */
 	public abstract Type getType();
 	
 	/**
 	 * Returns button support of this device.
-	 * @see Support
 	 * @return button support
 	 */
 	public abstract Support supportsButtons();
 	
 	/**
 	 * Returns device ID support of this device.
-	 * @see Support
 	 * @return device ID support
 	 */
 	public abstract Support supportsDeviceID();
 	
 	/**
 	 * Returns pressure sensitivity support of this device.
-	 * @see Support
 	 * @return pressure sensitivity support
 	 */
 	public abstract Support supportsPressure();
 	
 	/**
 	 * Returns tilt orientation support of this device.
-	 * @see Support
 	 * @return tilt (from the vertical axis) support
 	 */
 	public abstract Support supportsTilt();
 	
 	/**
 	 * Returns side pressure support of this device. (E.g. the side wheel on a Wacom airbrush tool.)
-	 * @see Support
 	 * @return side pressure support
 	 */
 	public abstract Support supportsSidePressure();
 	
 	/**
 	 * Returns axis rotation support of this device.
-	 * @see Support
 	 * @return rotation (around the axis of the stylus) support 
 	 */
 	public abstract Support supportsRotation();
 	
 	/**
-	 * Get the device name
+	 * Returns the device's name
 	 * @return the name of this device
 	 */
 	public String getName() {
-		return null;
+		return getType().name();
 	}
 	/**
 	 * Returns the physical device ID. This can be used to uniquely identify a physical stylus on tablets that support 

@@ -42,7 +42,7 @@ import jpen.provider.wintab.WintabAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
-import cello.jtablet.events.TabletListener;
+import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.MouseListenerInterface;
 import cello.jtablet.impl.platform.NativeCursorDevice;
 import cello.jtablet.impl.platform.NativeDeviceException;

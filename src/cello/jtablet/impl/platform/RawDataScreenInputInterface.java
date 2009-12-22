@@ -27,7 +27,7 @@ import java.awt.event.MouseEvent;
 
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Type;
-import cello.jtablet.events.TabletEvent;
+import cello.jtablet.event.TabletEvent;
 import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
 
 public abstract class RawDataScreenInputInterface extends NativeScreenInputInterface {

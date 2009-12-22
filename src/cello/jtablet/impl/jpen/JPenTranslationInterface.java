@@ -33,8 +33,8 @@ import jpen.PenManager;
 import jpen.event.PenAdapter;
 import jpen.owner.ScreenPenOwner;
 import cello.jtablet.TabletDevice;
-import cello.jtablet.events.TabletEvent;
-import cello.jtablet.events.TabletEvent.Type;
+import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletEvent.Type;
 import cello.jtablet.impl.ScreenInputInterface;
 
 /**

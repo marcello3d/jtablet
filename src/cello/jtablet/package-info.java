@@ -23,8 +23,7 @@
 
 
 /**
- * Contains classes for access the tablet and hooking up {@link TabletListener}s.
+ * Contains classes for access the tablet and hooking up {@link cello.jtablet.event.TabletListener}s.
  */
 package cello.jtablet;
-import cello.jtablet.events.TabletListener;
 

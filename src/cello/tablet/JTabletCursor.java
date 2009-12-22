@@ -27,7 +27,7 @@ import java.awt.Toolkit;
 
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
-import cello.jtablet.events.TabletEvent;
+import cello.jtablet.event.TabletEvent;
 
 /**
  * Object representation of a physical cursor on the tablet.

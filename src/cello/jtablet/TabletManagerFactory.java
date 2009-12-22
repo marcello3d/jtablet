@@ -26,28 +26,47 @@ package cello.jtablet;
 import java.util.Collections;
 import java.util.Map;
 
+import cello.jtablet.event.TabletAdapter;
+import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.jpen.JPenTabletManager;
 
 /**
- * Manages tablet implementations.
+ * Provides {@link TabletManager} instances based on the current platform. Example usage:
+ * <pre>
+ *  // Get tablet manager
+ *  {@link TabletManager} manager = TabletManagerFactory.getManager();
+ *  
+ *  // Add tablet listener to component
+ *  manager.{@link TabletManager#addTabletListener(java.awt.Component, cello.jtablet.event.TabletListener) addTabletListener}(component, new {@link TabletAdapter}() {
+ *      public void {@link TabletListener#cursorDragged(TabletEvent) cursorDragged}({@link TabletEvent} event) {
+ *          // Print out tablet drag events as they occur to system output
+ *          System.out.println("dragged " + event);
+ *      }
+ *  });
+ * </pre>
  * 
  * @author marcello
  */
 public class TabletManagerFactory {
 	
-	private static TabletInterface tabletInterface = getManager(Collections.<String,Object>emptyMap());
+	private TabletManagerFactory() {}
+	
+	private static TabletManager tabletManager = getManager(Collections.<String,Object>emptyMap());
 	
 	/**
-	 * @return tablet interface 
+	 * Returns a shared tablet manager with the default settings.
+	 * @return tablet manager 
 	 */
-	public static TabletInterface getManager() {
-		return tabletInterface;
+	public static TabletManager getManager() {
+		return tabletManager;
 	}
 	/**
-	 * @param hints 
-	 * @return tablet interface 
+	 * Creates a new tablet manager with custom settings.
+	 * @param hints a map of hints to 
+	 * @return tabletmanager 
 	 */
-	public static TabletInterface getManager(Map<String,Object> hints) {
+	private static TabletManager getManager(Map<String,Object> hints) {
 		return new JPenTabletManager(hints);
 	}
 }

@@ -26,8 +26,8 @@ package cello.jtablet.impl.jpen;
 import java.awt.Component;
 import java.util.Map;
 
-import cello.jtablet.TabletInterface;
-import cello.jtablet.events.TabletListener;
+import cello.jtablet.TabletManager;
+import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.PhysicalTabletInterface;
 import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
 import cello.jtablet.impl.jpen.platform.NativeWinTabInterface;
@@ -35,7 +35,7 @@ import cello.jtablet.impl.jpen.platform.NativeXInputInterface;
 import cello.jtablet.impl.platform.NativeCursorDevice;
 import cello.jtablet.impl.platform.NativeDeviceException;
 
-public class JPenTabletManager implements TabletInterface {
+public class JPenTabletManager implements TabletManager {
 
 	private final Class<?> interfaces[] = {
 		NativeCocoaInterface.class,

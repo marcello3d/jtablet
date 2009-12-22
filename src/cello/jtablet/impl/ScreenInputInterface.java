@@ -38,8 +38,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.swing.SwingUtilities;
 
 import cello.jtablet.TabletDevice;
-import cello.jtablet.events.TabletEvent;
-import cello.jtablet.events.TabletListener;
+import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletListener;
 
 /**
  * @author marcello

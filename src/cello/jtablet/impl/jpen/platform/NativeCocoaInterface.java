@@ -32,7 +32,7 @@ import jpen.provider.osx.CocoaAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
-import cello.jtablet.events.TabletEvent;
+import cello.jtablet.event.TabletEvent;
 import cello.jtablet.impl.platform.RawDataScreenInputInterface;
 
 /**

@@ -27,14 +27,17 @@ import java.awt.Component;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import cello.jtablet.events.TabletListener;
+import cello.jtablet.event.TabletListener;
 
 /**
+ * Provides methods for setting up listeners to receive events on {@link Component}s.
+ * 
+ * @see TabletListener 
  * @author marcello
  */
-public interface TabletInterface {
+public interface TabletManager {
 	/**
-	 * Adds a TabletListener to the entire screen. This works very much like adding a {@link MouseListener} and 
+	 * Adds a {@link TabletListener} to the entire screen. This works very much like adding a {@link MouseListener} and 
 	 * {@link MouseMotionListener} on the component, meaning:
 	 * <ul>
 	 * 	<li>Events will have coordinates relative to the screen</li>
@@ -75,7 +78,7 @@ public interface TabletInterface {
 	 *  </li>
 	 * </ul>
 	 * @see TabletListener
-	 * @param component the component to listen on
+	 * @param component component to add the listener to
 	 * @param listener the listener to send events to
 	 */
 	public void addTabletListener(Component component, TabletListener listener);
@@ -85,7 +88,7 @@ public interface TabletInterface {
 	 * {@link #addTabletListener(Component,TabletListener)}. It is safe to call this method if the specified listener 
 	 * has not been added to the given component (or already removed).
 	 * 
-	 * @param component the component to remove 
+	 * @param component component to remove the listener from
 	 * @param listener the listener to remove
 	 */
 	public void removeTabletListener(Component component, TabletListener listener);

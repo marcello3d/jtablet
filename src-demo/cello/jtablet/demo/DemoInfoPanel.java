@@ -16,8 +16,8 @@ import javax.swing.JPanel;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletManagerFactory;
 import cello.jtablet.TabletDevice.Support;
-import cello.jtablet.events.TabletEvent;
-import cello.jtablet.events.TabletFunneler;
+import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletFunneler;
 
 /**
  * This panel displays tablet information for  

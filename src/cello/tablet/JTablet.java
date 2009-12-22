@@ -26,9 +26,9 @@ package cello.tablet;
 import java.util.LinkedList;
 
 import cello.jtablet.TabletManagerFactory;
-import cello.jtablet.events.TabletAdapter;
-import cello.jtablet.events.TabletEvent;
-import cello.jtablet.events.TabletListener;
+import cello.jtablet.event.TabletAdapter;
+import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletListener;
 
 /**
  * This class is provided as a compatibility wrapper for old 0.9.x-based JTablet applications/applets.
