@@ -1,0 +1,46 @@
+API Design open questions:
+
+    
+====================================================================================================================
+== Feature support
+
+- JTablet doesn't implement the notion of a physical tablet device. (TabletDevice refers to individual input devices, 
+  such as a mouse or stylus.) 
+  
+  If we wanted to support whole tablet features like touch strips or tablet buttons, we would need some notion of 
+  what tablets are connected and what features they support.
+  
+  Desired? Necessary?
+
+- Currently JTablet2 implements multi-touch gesture support on Mac OS X. While this is nice, I feel the API may be a 
+  little confusing in the context of a tablet API (especially since it never works outside of Mac OS X, and then, even 
+  only on multitouch trackpads).
+  
+  While scrolling makes sense to a certain extend, should rotate, zoom and swipe be part of the core API or separated 
+  out somehow?
+
+====================================================================================================================
+== Naming issues
+
+- Naming for *Listener *Event *Device classes, possibilities (or some combination of the below):
+  - Tablet: TabletListener, TabletEvent, TabletDevice 
+     - pros: strong "brand" with JTablet name, usage is very clear
+     - cons: technically it's not just tablet input, but can be used for mouse input,
+        "TabletDevice" might refer to the entire tablet, not a specific stylus or input device
+      
+  - Cursor: CursorListener, CursorEvent, CursorDevice
+     - pros: method names in the listener are already cursor* (i.e. cursorPressed, cursorReleased, etc.)
+     - cons: not sure if cursor implies the right thing
+  
+  - Input: InputListener, InputEvent, InputDevice
+     - pros: most abstract, 
+     - cons: too abstract? InputEvent already exists in java.awt.event
+     
+- Naming for Support enum:
+  - currently:
+		Support.NONE		This feature is definitely not supported.
+		Support.SUPPORTED	This feature is definitely supported.
+		Support.UNKNOWN		It is unknown whether or not this feature is supported.
+    - but NONE and SUPPORTED aren't parallel 
+		         
+		     

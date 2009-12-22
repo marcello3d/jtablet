@@ -238,8 +238,7 @@
 		 <doctitle><![CDATA[<h1>Test</h1>]]></doctitle>
 		 <bottom><![CDATA[<i>Copyright &#169; 2000 Dummy Corp. All Rights Reserved.</i>]]></bottom>
 		 -->
-		 <link offline="true" href="http://java.sun.com/j2se/1.5.0/docs/api/" packagelistLoc="C:\tmp"/>
-		 <link href="http://developer.java.sun.com/developer/products/xml/docs/api/"/>
+		 <link href="http://java.sun.com/j2se/1.5.0/docs/api/" packagelistloc="java1.5-package-list"/>
 		</javadoc>
   </target>
 	
