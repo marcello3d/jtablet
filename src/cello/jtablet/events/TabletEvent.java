@@ -1,3 +1,26 @@
+/*!
+ * Copyright (c) 2009 Marcello Bastéa-Forte (marcello@cellosoft.com)
+ * 
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ * 
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ * 
+ *     1. The origin of this software must not be misrepresented; you must not
+ *     claim that you wrote the original software. If you use this software
+ *     in a product, an acknowledgment in the product documentation would be
+ *     appreciated but is not required.
+ * 
+ *     2. Altered source versions must be plainly marked as such, and must not be
+ *     misrepresented as being the original software.
+ * 
+ *     3. This notice may not be removed or altered from any source
+ *     distribution.
+ */
+
 package cello.jtablet.events;
 
 import java.awt.Component;
@@ -9,7 +32,11 @@ import cello.jtablet.TabletDevice;
 
 
 /**
- * Stores input event data.
+ * An event that indicates cursor input occurred on the given component. This class extends {@link MouseEvent} and 
+ * provides a similar and extended API for accessing tablet events.
+ * 
+ * <p><b>Implementation Note:</b> currently keyboard modifiers (via {@link #getModifiers()}, {@link #getModifiersEx()}) 
+ * and {@link #isPopupTrigger()} are not properly supported on all platforms.</p>
  * 
  * @author Marcello
  */
@@ -24,8 +51,8 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	private final float tiltX,tiltY;
 	private final float rotation;
 	
-	private final float deltaX,deltaY;
-	private final float zoom;
+	private final float scrollX,scrollY;
+	private final float zoomFactor;
 	
 	
 	private final Type type;
@@ -33,6 +60,8 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 
 	/**
+	 * Constructs a new {@linkplain TabletEvent} with all the trimmings... 
+	 * yourself.
 	 * @param source
 	 * @param type
 	 * @param when
@@ -68,12 +97,12 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.tiltY = tiltY;
 		this.sidePressure = sidePressure;
 		this.rotation = rotation;
-		this.deltaX = deltaX;
-		this.deltaY = deltaY;
-		this.zoom = zoom;
+		this.scrollX = deltaX;
+		this.scrollY = deltaY;
+		this.zoomFactor = zoom;
 	}
 	/**
-	 * Wrap a mouseevent as a TabletEvent
+	 * Wrap a {@link MouseEvent} as a TabletEvent.
 	 * @param e
 	 * @param type 
 	 * @param device 
@@ -89,14 +118,30 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.sidePressure = 0;
 		this.rotation = 0;
 		this.device = device;
-		this.deltaX = 0;
-		this.deltaY = 0;
-		this.zoom = 0;
+		this.scrollX = 0;
+		this.scrollY = 0;
+		this.zoomFactor = 0;
 	} 
 
 	
 
 
+	/**
+	 * Constructs a new {@linkplain TabletEvent} with all the trimmings...
+	 * @param source
+	 * @param type
+	 * @param when
+	 * @param modifiers
+	 * @param device
+	 * @param x
+	 * @param y
+	 * @param pressure
+	 * @param tiltX
+	 * @param tiltY
+	 * @param sidePressure
+	 * @param rotation
+	 * @param button
+	 */
 	public TabletEvent(Component source, Type type, long when, int modifiers, TabletDevice device, 
 			float x, float y, 
 			float pressure, 
@@ -106,10 +151,34 @@ public class TabletEvent extends MouseEvent implements Serializable {
 			int button) {
 		this(source,type,when,modifiers,device,x,y,pressure,tiltX,tiltY,sidePressure,rotation,0,0,0,button);
 	}
+	/**
+	 * Constructs a new {@linkplain TabletEvent} with some of the trimmings...
+	 * @param source
+	 * @param type
+	 * @param when
+	 * @param modifiers
+	 * @param device
+	 * @param x
+	 * @param y
+	 */
 	public TabletEvent(Component source, Type type, long when, int modifiers, TabletDevice device, 
 			float x, float y) {
 		this(source,type,when,modifiers,device,x,y,0,0,0,0,0,0,0,0,NOBUTTON);
 	}
+	/**
+	 * Constructs a new {@linkplain TabletEvent} with some of the trimmings...
+	 * @param source
+	 * @param type
+	 * @param when
+	 * @param modifiers
+	 * @param device
+	 * @param x
+	 * @param y
+	 * @param rotation
+	 * @param deltaX
+	 * @param deltaY
+	 * @param zoom
+	 */
 	public TabletEvent(Component source, Type type, long when, int modifiers, TabletDevice device,
 			float x, float y, 
 			float rotation, 
@@ -117,6 +186,17 @@ public class TabletEvent extends MouseEvent implements Serializable {
 			float zoom) {
 		this(source,type,when,modifiers,device,x,y,0,0,0,0,rotation,deltaX,deltaY,zoom,NOBUTTON);
 	}
+	/**
+	 * Constructs a new {@linkplain TabletEvent} with some of the trimmings...
+	 * @param source
+	 * @param type
+	 * @param when
+	 * @param device
+	 * @param modifiers
+	 * @param x
+	 * @param y
+	 * @param button
+	 */
 	public TabletEvent(Component source, Type type, long when, TabletDevice device, int modifiers, 
 			float x, float y,
 			int button) {
@@ -141,7 +221,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
         	sb.append(",pressure=").append(pressure);
         }
         if (sidePressure != 0) {
-            sb.append(",tanPressure=").append(sidePressure);
+            sb.append(",sidePressure=").append(sidePressure);
         }
         if (tiltX != 0 || tiltY != 0) {
             sb.append(",tilt=").append(tiltX).append(',').append(tiltY);
@@ -149,11 +229,11 @@ public class TabletEvent extends MouseEvent implements Serializable {
         if (rotation != 0) {
         	sb.append(",rotation=").append(rotation);
         }
-        if (deltaX != 0 || deltaY != 0) {
-        	sb.append(",delta=").append(deltaX).append(',').append(deltaY);
+        if (scrollX != 0 || scrollY != 0) {
+        	sb.append(",scroll=").append(scrollX).append(',').append(scrollY);
         }
-        if (zoom != 0) {
-        	sb.append(",zoom=").append(zoom);
+        if (zoomFactor != 0) {
+        	sb.append(",zoom=").append(zoomFactor);
         }
         sb.append("] on ").append(source);
         
@@ -197,6 +277,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 			this.id = id;
 		}
 		/**
+		 * Returns the AWTEvent id associated with this event type.
 		 * @return the id
 		 */
 		public int getId() {
@@ -205,46 +286,50 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 	
 	/**
-	 * @param l
+	 * Triggers this event on the given {@link TabletListener}.
+	 * 
+	 * @param listener the listener to trigger on
 	 */
-	public void fireEvent(TabletListener l) {
+	public void fireEvent(TabletListener listener) {
 		switch (type) {
 		case PRESSED:
-			l.cursorPressed(this);
+			listener.cursorPressed(this);
 			break;
 		case RELEASED:
-			l.cursorReleased(this);
+			listener.cursorReleased(this);
 			break;
 		case ENTERED:
-			l.cursorEntered(this);
+			listener.cursorEntered(this);
 			break;
 		case EXITED:
-			l.cursorExited(this);
+			listener.cursorExited(this);
 			break;
 		case DRAGGED:
-			l.cursorDragged(this);
+			listener.cursorDragged(this);
 			break;
 		case LEVEL_CHANGED:
-			l.levelChanged(this);
+			listener.levelChanged(this);
 			break;
 		case MOVED:
-			l.cursorMoved(this);
+			listener.cursorMoved(this);
 			break;
 		case NEW_DEVICE:
-			l.newDevice(this);
+			listener.newDevice(this);
 			break;
 		case SCROLLED:
-			l.cursorScrolled(this);
+			listener.cursorScrolled(this);
 			break;
 		case ZOOMED:
 		case ROTATED:
 		case SWIPED:
-			l.cursorGestured(this);
+			listener.cursorGestured(this);
 			break;
 		}
 	}
 	
-	/** 
+	/**
+	 * Returns the fractional {@link Point2D} of the mouse/tablet cursor (if available).
+	 * 
 	 * @return the (possibly) fractional point
 	 */
 	public Point2D.Float getPoint2D() {
@@ -253,12 +338,15 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 	
 	/**
+	 * Returns the fractional x position of the mouse/tablet cursor (if available). 
+	 * 
 	 * @return the (possibly) fractional x coordinate
 	 */
 	public float getRealX() {
 		return x;
 	}
 	/**
+	 * Returns the fractional y position of the mouse/tablet cursor (if available).
 	 * @return the (possibly) fractional y coordinate
 	 */
 	public float getRealY() {
@@ -266,13 +354,17 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 
 	/**
-	 * @return the pressure
+	 * @return the pressure from 0 to 1
 	 */
 	public float getPressure() {
 		return pressure;
 	}
 
 	/**
+	 * Returns the tablet device associated with this event. You can determine capabilities available by inspecting the
+	 * device object.
+	 * 
+	 * @see TabletDevice 
 	 * @return the device
 	 */
 	public TabletDevice getDevice() {
@@ -280,7 +372,9 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 
 	/**
-	 * @return the type
+	 * Returns the {@link Type} for this event. 
+	 * @see Type
+	 * @return the event type
 	 */
 	public Type getType() {
 		return type;
@@ -288,7 +382,8 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 
 	/**
-	 * @return tangential pressure from -1 to 1.
+	 * Returns the current tablet side pressure. (E.g. the side wheel on a Wacom airbrush tool.) 
+	 * @return side pressure from 0 to 1.
 	 */
 	public float getSidePressure() {
 		return sidePressure;
@@ -296,7 +391,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 
 	/**
-	 * @return tiltX in radians
+	 * @return tilt X in radians
 	 */
 	public float getTiltX() {
 		return tiltX;
@@ -311,74 +406,100 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 	
 	/**
+	 * Returns either the rotational position of a tablet, or the rotational amount for a {@link Type#ROTATED} gesture 
+	 * event.
 	 * @return rotation in radians
 	 */
 	public float getRotation() {
 		return rotation;
 	}
 
-	public TabletEvent withPoint(Component c, float x, float y) {
-		return new TabletEvent(c, type, getWhen(), getModifiersEx(), 
+	/**
+	 * Returns a copy of this {@linkplain TabletEvent} with the given component and coordinates.
+	 * 
+	 * @see #withPoint(float, float)
+	 * @param component
+	 * @param x x-coordinate
+	 * @param y y-coordinate
+	 * @return a new {@linkplain TabletEvent} with the new component and coordinates
+	 */
+	public TabletEvent withPoint(Component component, float x, float y) {
+		return new TabletEvent(component, type, getWhen(), getModifiersEx(), 
 				device, x, y, pressure,
 				tiltX, tiltY, sidePressure,
-				rotation,this.deltaX,this.deltaY,zoom,
+				rotation,this.scrollX,this.scrollY,zoomFactor,
 				getButton());
 	}
 
+	/**
+	 * Returns a copy of this {@linkplain TabletEvent} with the given coordinates.
+	 * @see #withPoint(Component, float, float)
+	 * @param x x-coordinate
+	 * @param y y-coordinate
+	 * @return a new {@linkplain TabletEvent} with the new coordinates
+	 */
 	public TabletEvent withPoint(float x, float y) {
 		return withPoint(getComponent(), x, y);
 	}
 
 	/**
-	 * Returns a translated version of this TabletEvent
-	 * @param c new component for translated event
-	 * @param deltaX
-	 * @param deltaY
-	 * @return the new TabletEvent
+	 * Returns a copy of this {@linkplain TabletEvent} with translated coordinates.
+	 * 
+	 * @see #translated(float, float)
+	 * @param c component for translated event
+	 * @param deltaX the amount to translate the x-coordinate
+	 * @param deltaY the amount to translate the y-coordinate
+	 * @return a new {@linkplain TabletEvent} with the new component and coordinates
 	 */
 	public TabletEvent translated(Component c, float deltaX, float deltaY) {
 		return withPoint(c, x+deltaX, y+deltaY);
 	}
-	/**
-	 * @param type
-	 * @return a new TabletEvent with the given type
-	 */
-	public TabletEvent withType(Type type) {
-		return new TabletEvent((Component)source, type, getWhen(), getModifiersEx(), 
-				device, x + deltaX, y + deltaY, pressure,
-				tiltX, tiltY, sidePressure,
-				rotation,this.deltaX,this.deltaY,zoom,
-				getButton());
-	}
 
 	/**
-	 * Returns a translated version of this TabletEvent
-	 * @param deltaX
-	 * @param deltaY
-	 * @return the new TabletEvent
+	 * Returns a copy of this {@linkplain TabletEvent} with translated coordinates.
+	 * @see #translated(Component, float, float)
+	 * @param deltaX the amount to translate the x-coordinate
+	 * @param deltaY the amount to translate the y-coordinate
+	 * @return a new {@linkplain TabletEvent} with the new coordinates
 	 */
 	public TabletEvent translated(float deltaX, float deltaY) {
 		return translated(getComponent(), deltaX, deltaY);
 	}
+	/**
+	 * Returns a copy of this {@linkplain TabletEvent} with a new event {@link Type}.
+	 * @param type the new event type
+	 * @return a new {@linkplain TabletEvent} with the given type
+	 */
+	public TabletEvent withType(Type type) {
+		return new TabletEvent((Component)source, type, getWhen(), getModifiersEx(), 
+				device, x + scrollX, y + scrollY, pressure,
+				tiltX, tiltY, sidePressure,
+				rotation,this.scrollX,this.scrollY,zoomFactor,
+				getButton());
+	}
+
 
 	/**
-	 * @return the deltaX
+	 * Returns the amount scrolled in the x direction for a {@link Type#SCROLLED} gesture event.
+	 * @return the amount scrolled in the x direction
 	 */
-	public float getDeltaX() {
-		return deltaX;
+	public float getScrollX() {
+		return scrollX;
 	}
 
 	/**
-	 * @return the deltaY
+	 * Returns the amount scrolled in the y direction for a {@link Type#SCROLLED} gesture event.
+	 * @return the amount scrolled in the y direction
 	 */
-	public float getDeltaY() {
-		return deltaY;
+	public float getScrollY() {
+		return scrollY;
 	}
 
 	/**
+	 * Returns the magnification amount for a {@link Type#ZOOMED} gesture event.
 	 * @return the zoom
 	 */
-	public float getZoom() {
-		return zoom;
+	public float getZoomFactor() {
+		return zoomFactor;
 	}
 }

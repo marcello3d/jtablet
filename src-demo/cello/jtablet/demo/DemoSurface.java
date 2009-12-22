@@ -16,7 +16,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
 
 import cello.jtablet.TabletDevice;
-import cello.jtablet.TabletManager;
+import cello.jtablet.TabletManagerFactory;
 import cello.jtablet.events.TabletAdapter;
 import cello.jtablet.events.TabletEvent;
 
@@ -44,7 +44,7 @@ public class DemoSurface extends JComponent {
 	 */
 	public DemoSurface() {
 		createBuffer();
-		TabletManager.getManager().addTabletListener(this, new TabletAdapter() {
+		TabletManagerFactory.getManager().addTabletListener(this, new TabletAdapter() {
 
 			boolean dragged = false;
 			@Override
@@ -115,7 +115,7 @@ public class DemoSurface extends JComponent {
 			}
 			@Override
 			public void cursorScrolled(TabletEvent ev) {
-				at.translate(ev.getDeltaX()*10, ev.getDeltaY()*10);
+				at.translate(ev.getScrollX()*10, ev.getScrollY()*10);
 				repaint();
 			}
 			
@@ -135,7 +135,7 @@ public class DemoSurface extends JComponent {
 			public void cursorGestured(TabletEvent ev) {
 				switch (ev.getType()) {
 					case ZOOMED:
-						float zoom = 1+ev.getZoom();
+						float zoom = 1+ev.getZoomFactor();
 						at.translate(getWidth()/2, getHeight()/2);
 						at.scale(zoom, zoom);
 						at.translate(zoom*getWidth()/-2, zoom*getHeight()/-2);

@@ -14,7 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import cello.jtablet.TabletDevice;
-import cello.jtablet.TabletManager;
+import cello.jtablet.TabletManagerFactory;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.events.TabletEvent;
 import cello.jtablet.events.TabletFunneler;
@@ -84,7 +84,7 @@ public class DemoInfoPanel extends JPanel {
 			gbc.gridy++;
 		}
 
-		TabletManager.getManager().addTabletListener(targetComponent, new TabletFunneler() {
+		TabletManagerFactory.getManager().addTabletListener(targetComponent, new TabletFunneler() {
 			private int eventCount;
 			private long lastTime = System.currentTimeMillis();
 			protected void handleEvent(TabletEvent ev) {

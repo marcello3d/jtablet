@@ -21,36 +21,33 @@
  *     distribution.
  */
 
-package cello.jtablet.impl.jpen.platform;
+package cello.jtablet;
 
-import jpen.provider.NativeLibraryLoader;
-import cello.jtablet.impl.platform.NativeScreenInputInterface;
+import java.util.Collections;
+import java.util.Map;
 
+import cello.jtablet.impl.jpen.JPenTabletManager;
 
-public class NativeXInputInterface extends NativeScreenInputInterface {
-
-	private static final NativeLibraryLoader LIB_LOADER=new NativeLibraryLoader(new String[]{""},
-			new String[]{"x86_64", "ia64"},
-			Integer.valueOf(jpen.Utils.getModuleProperties().getString("jpen.provider.xinput.nativeVersion")));
-
-	public boolean isSystemSupported(String os) {
-		return os.contains("linux");
+/**
+ * Manages tablet implementations.
+ * 
+ * @author marcello
+ */
+public class TabletManagerFactory {
+	
+	private static TabletInterface tabletInterface = getManager(Collections.<String,Object>emptyMap());
+	
+	/**
+	 * @return tablet interface 
+	 */
+	public static TabletInterface getManager() {
+		return tabletInterface;
 	}
-
-	public boolean isDeviceAvailable() {
-		return false;
-	}
-
-	@Override
-	protected void start() {
-	}
-
-	@Override
-	protected void stop() {
-	}
-
-	@Override
-	protected NativeLibraryLoader getLoader() {
-		return LIB_LOADER;
+	/**
+	 * @param hints 
+	 * @return tablet interface 
+	 */
+	public static TabletInterface getManager(Map<String,Object> hints) {
+		return new JPenTabletManager(hints);
 	}
 }

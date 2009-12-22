@@ -1,12 +1,34 @@
+/*!
+ * Copyright (c) 2009 Marcello Bastéa-Forte (marcello@cellosoft.com)
+ * 
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ * 
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ * 
+ *     1. The origin of this software must not be misrepresented; you must not
+ *     claim that you wrote the original software. If you use this software
+ *     in a product, an acknowledgment in the product documentation would be
+ *     appreciated but is not required.
+ * 
+ *     2. Altered source versions must be plainly marked as such, and must not be
+ *     misrepresented as being the original software.
+ * 
+ *     3. This notice may not be removed or altered from any source
+ *     distribution.
+ */
+
 package cello.jtablet.impl.jpen;
 
 import java.awt.Component;
-import java.io.IOException;
 import java.util.Map;
 
 import cello.jtablet.TabletInterface;
 import cello.jtablet.events.TabletListener;
-import cello.jtablet.impl.CursorDevice;
+import cello.jtablet.impl.PhysicalTabletInterface;
 import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
 import cello.jtablet.impl.jpen.platform.NativeWinTabInterface;
 import cello.jtablet.impl.jpen.platform.NativeXInputInterface;
@@ -21,18 +43,18 @@ public class JPenTabletManager implements TabletInterface {
 		NativeXInputInterface.class,
 		JPenTranslationInterface.class
 	};
-	private final CursorDevice cursorDevice;
+	private final PhysicalTabletInterface cursorDevice;
 	private Exception exception;
 	private DriverStatus driverStatus; 
 	
 	public JPenTabletManager(Map<String, Object> hints) {
 		String os = System.getProperty("os.name").toLowerCase();
 		
-		CursorDevice chosenDevice = null;
+		PhysicalTabletInterface chosenDevice = null;
 		driverStatus = DriverStatus.OS_NOT_SUPPORTED;
 		for (Class<?> cdClazz : interfaces) {
 			try {
-				CursorDevice cd = (CursorDevice)cdClazz.newInstance();
+				PhysicalTabletInterface cd = (PhysicalTabletInterface)cdClazz.newInstance();
 				cd.setHints(hints);
 				if (cd instanceof NativeCursorDevice) {
 					NativeCursorDevice nsd = (NativeCursorDevice)cd;

@@ -1,3 +1,26 @@
+/*!
+ * Copyright (c) 2009 Marcello Bastéa-Forte (marcello@cellosoft.com)
+ * 
+ * This software is provided 'as-is', without any express or implied
+ * warranty. In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ * 
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ * 
+ *     1. The origin of this software must not be misrepresented; you must not
+ *     claim that you wrote the original software. If you use this software
+ *     in a product, an acknowledgment in the product documentation would be
+ *     appreciated but is not required.
+ * 
+ *     2. Altered source versions must be plainly marked as such, and must not be
+ *     misrepresented as being the original software.
+ * 
+ *     3. This notice may not be removed or altered from any source
+ *     distribution.
+ */
+
 package cello.jtablet.impl;
 
 import java.awt.Component;
@@ -18,7 +41,7 @@ import cello.jtablet.events.TabletEvent.Type;
 /**
  * @author marcello
  */
-public class MouseListenerInterface implements CursorDevice {
+public class MouseListenerInterface implements PhysicalTabletInterface {
 
 	private boolean enabled = true;
 	
@@ -34,7 +57,6 @@ public class MouseListenerInterface implements CursorDevice {
 	}
 
 	private final ConcurrentHashMap<TabletListener,MagicListener> listenerMap = new ConcurrentHashMap<TabletListener, MagicListener>();
-	private final TabletDevice mousedevice = new TabletDevice.SystemDevice();
 	
 	public void addTabletListener(Component c, TabletListener l) {
 		synchronized (l) {
@@ -64,10 +86,16 @@ public class MouseListenerInterface implements CursorDevice {
 		
 	}
 
+	/**
+	 * @param enabled
+	 */
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 
+	/**
+	 * @return if this listener is enabled
+	 */
 	public boolean isEnabled() {
 		return enabled;
 	}
@@ -119,7 +147,7 @@ public class MouseListenerInterface implements CursorDevice {
 					type = null;
 					break;
 			}
-			fireEvent(new TabletEvent(e,type,mousedevice));
+			fireEvent(new TabletEvent(e,type,TabletDevice.SYSTEM_MOUSE));
 		}
 
 		private void fireEvent(TabletEvent ev) {
@@ -168,7 +196,7 @@ public class MouseListenerInterface implements CursorDevice {
 				TabletEvent.Type.SCROLLED,
 				e.getWhen(),
 				e.getModifiersEx(),
-				mousedevice,
+				TabletDevice.SYSTEM_MOUSE,
 				e.getX(),
 				e.getY(),
 				0,

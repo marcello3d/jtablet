@@ -7,7 +7,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 
-import cello.jtablet.TabletManager;
+import cello.jtablet.TabletManagerFactory;
 import cello.jtablet.events.TabletEvent;
 import cello.jtablet.events.TabletFunneler;
 
@@ -20,7 +20,7 @@ public class DemoLogPanel extends JScrollPane {
 		setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		setPreferredSize(new Dimension(100,100));
 		
-		TabletManager.getManager().addTabletListener(targetComponent, new TabletFunneler() {
+		TabletManagerFactory.getManager().addTabletListener(targetComponent, new TabletFunneler() {
 			protected void handleEvent(TabletEvent ev) {
 				logMessage(ev.toString());
 			}		
