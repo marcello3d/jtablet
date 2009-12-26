@@ -43,18 +43,18 @@ import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
 import cello.jtablet.event.TabletListener;
-import cello.jtablet.impl.MouseListenerInterface;
-import cello.jtablet.impl.platform.NativeCursorDevice;
-import cello.jtablet.impl.platform.NativeDeviceException;
-import cello.jtablet.impl.platform.RawDataScreenInputInterface;
+import cello.jtablet.impl.MouseTabletManager;
+import cello.jtablet.impl.platform.NativeException;
+import cello.jtablet.impl.platform.NativeScreenTabletManager;
+import cello.jtablet.impl.platform.NativeTabletManager;
 
 
 /**
  * @author marcello
  */
-public class NativeWinTabInterface extends RawDataScreenInputInterface implements NativeCursorDevice {
+public class NativeWinTabInterface extends NativeScreenTabletManager implements NativeTabletManager {
 
-	private MouseListenerInterface mouseListener = new MouseListenerInterface();
+	private MouseTabletManager mouseListener = new MouseTabletManager();
 	private WintabAccess wa;
 	private boolean running = true;
 	private Thread thread = new Thread("JTablet-WinTab") {
@@ -73,11 +73,11 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 		}
 	};
 	
-	public void load() throws NativeDeviceException {
+	public void load() throws NativeException {
 		try {
 			wa = new WintabAccess();
 		} catch (Exception e) {
-			throw new NativeDeviceException(e);
+			throw new NativeException(e);
 		}
 	}
 	private class WinTabCursor {
@@ -85,8 +85,8 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 		private final LevelRange xRange;
 		private final LevelRange yRange;
 		private final LevelRange pressureRange;
-		private final LevelRange altitudeRange;
-		private final LevelRange azimuthRange;
+//		private final LevelRange altitudeRange;
+//		private final LevelRange azimuthRange;
 		private final LevelRange sidePressureRange;
 		private final LevelRange rotationRange;
 		private final TabletDevice device;
@@ -106,8 +106,8 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 			xRange				= getLevelRangeObject(WintabAccess.LEVEL_TYPE_X);
 			yRange				= getLevelRangeObject(WintabAccess.LEVEL_TYPE_Y);
 			pressureRange		= getLevelRangeObject(WintabAccess.LEVEL_TYPE_PRESSURE);
-			altitudeRange		= getLevelRangeObject(WintabAccess.LEVEL_TYPE_TILT_ALTITUDE);
-			azimuthRange		= getLevelRangeObject(WintabAccess.LEVEL_TYPE_TILT_AZIMUTH);
+//			altitudeRange		= getLevelRangeObject(WintabAccess.LEVEL_TYPE_TILT_ALTITUDE);
+//			azimuthRange		= getLevelRangeObject(WintabAccess.LEVEL_TYPE_TILT_AZIMUTH);
 			sidePressureRange	= getLevelRangeObject(WintabAccess.LEVEL_TYPE_SIDE_PRESSURE);
 			rotationRange 		= getLevelRangeObject(WintabAccess.LEVEL_TYPE_ROTATION);
 			
@@ -290,7 +290,7 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 			);
 			lastTime = when;
 		}
-		if (getLastDevice() != SYSTEM_MOUSE && when - lastTime > 100) {
+		if (cursor != null && when - lastTime > 100) {
 			generateDeviceEvents(cursor != null ? cursor.getDevice() : null, when, modifiers, false);
 			cursor = null;
 			mouseListener.setEnabled(true);
@@ -311,11 +311,11 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 
 
 	private GraphicsEnvironment environment;
-	private long deviceTime;
+//	private long deviceTime;
 	
 	
 	private void readValues() {
-		deviceTime		= wa.getTime();
+//		deviceTime		= wa.getTime();
 		x				= wa.getValue(WintabAccess.LEVEL_TYPE_X);
 		y				= wa.getValue(WintabAccess.LEVEL_TYPE_Y);
 		pressure		= wa.getValue(WintabAccess.LEVEL_TYPE_PRESSURE);
@@ -376,21 +376,21 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 	}
 
 	/* unit specifiers (from wintab.h) */
-	public static final int TU_NONE			= 0;
-	public static final int TU_INCHES		= 1;
-	public static final int TU_CENTIMETERS	= 2;
-	public static final int TU_CIRCLE		= 3;
-
-	private static enum Unit {
-		NONE,
-		INCHES,
-		CENTIMETERS,
-		CIRCLE
-	};
-	
-	private float fix32ToFloat(int fix32) {
-		return (float)fix32 / (1<<16);
-	}
+//	public static final int TU_NONE			= 0;
+//	public static final int TU_INCHES		= 1;
+//	public static final int TU_CENTIMETERS	= 2;
+//	public static final int TU_CIRCLE		= 3;
+//
+//	private static enum Unit {
+//		NONE,
+//		INCHES,
+//		CENTIMETERS,
+//		CIRCLE
+//	};
+//	
+//	private float fix32ToFloat(int fix32) {
+//		return (float)fix32 / (1<<16);
+//	}
 //	private double fix32ToDouble(int fix32) {
 //		return (double)fix32 / (1<<16);
 //	}
@@ -398,27 +398,27 @@ public class NativeWinTabInterface extends RawDataScreenInputInterface implement
 	private class LevelRange {
 		public final int min;
 		public final int max;
-		public final Unit unit;
-		public final float resolution;
+//		public final Unit unit;
+//		public final float resolution;
 		public LevelRange(int ranges[]) {
 			min = ranges[0];
 			max = ranges[1];
-			switch (ranges[2]) {
-			case TU_CENTIMETERS:
-				unit = Unit.CENTIMETERS;
-				break;
-			case TU_INCHES:
-				unit = Unit.INCHES;
-				break;
-			case TU_CIRCLE:
-				unit = Unit.CIRCLE;
-				break;
-			case TU_NONE:
-			default:
-				unit = Unit.NONE;
-				break;
-			}
-			resolution = fix32ToFloat(ranges[3]);
+//			switch (ranges[2]) {
+//			case TU_CENTIMETERS:
+//				unit = Unit.CENTIMETERS;
+//				break;
+//			case TU_INCHES:
+//				unit = Unit.INCHES;
+//				break;
+//			case TU_CIRCLE:
+//				unit = Unit.CIRCLE;
+//				break;
+//			case TU_NONE:
+//			default:
+//				unit = Unit.NONE;
+//				break;
+//			}
+//			resolution = fix32ToFloat(ranges[3]);
 		}
 	}
 

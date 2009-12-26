@@ -29,6 +29,7 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -38,17 +39,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import javax.swing.SwingUtilities;
 
 import cello.jtablet.TabletDevice;
+import cello.jtablet.TabletManager;
+import cello.jtablet.TabletDevice.Type;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
+import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
 
 /**
  * @author marcello
  *
  */
-public abstract class ScreenInputInterface implements PhysicalTabletInterface {	
+public abstract class ScreenTabletManager implements TabletManager {	
 	
-	public static final String HINT_ENABLE_ENTER_EXIT_EVENTS_ON_DRAG = "ScreenInputInterface.enableEnterExitEventsOnDrag";
-	public static final String HINT_SEND_NEW_DEVICE_EVENT_ON_ENTER = "ScreenInputInterface.sendNewDeviceEventOnEnter";
 	private boolean enableEnterExitEventsOnDrag = true;
 	private boolean sendNewDeviceEventOnEnter = true;
 	
@@ -56,21 +58,23 @@ public abstract class ScreenInputInterface implements PhysicalTabletInterface {
 	private final Map<Component,ComponentManager> componentManagers = new ConcurrentHashMap<Component,ComponentManager>();	
 	private final List<ComponentManager> showingComponents = new CopyOnWriteArrayList<ComponentManager>();
 	
-	public void setHints(Map<String, Object> hints) {
-		if (hints.containsKey(HINT_ENABLE_ENTER_EXIT_EVENTS_ON_DRAG)) {
-			enableEnterExitEventsOnDrag = (Boolean)hints.get(HINT_ENABLE_ENTER_EXIT_EVENTS_ON_DRAG);
-		}
-		if (hints.containsKey(HINT_SEND_NEW_DEVICE_EVENT_ON_ENTER)) {
-			sendNewDeviceEventOnEnter = (Boolean)hints.get(HINT_SEND_NEW_DEVICE_EVENT_ON_ENTER);
-		}
-	}
+//	public void setHints(TabletManagerFactory.Hints hints) {
+//		if (hints.containsKey(HINT_ENABLE_ENTER_EXIT_EVENTS_ON_DRAG)) {
+//			enableEnterExitEventsOnDrag = (Boolean)hints.get(HINT_ENABLE_ENTER_EXIT_EVENTS_ON_DRAG);
+//		}
+//		if (hints.containsKey(HINT_SEND_NEW_DEVICE_EVENT_ON_ENTER)) {
+//			sendNewDeviceEventOnEnter = (Boolean)hints.get(HINT_SEND_NEW_DEVICE_EVENT_ON_ENTER);
+//		}
+//	}
 	
+	/**
+	 * A fake component used because MouseEvent requires a real component.
+	 */
 	private static class ScreenComponent extends Component {
 		
 		public GraphicsConfiguration getMainScreen() {
 			GraphicsDevice[] gs = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
 			if (gs.length > 0) {
-				
 				return gs[0].getDefaultConfiguration();
 			}
 			return null;
@@ -79,13 +83,15 @@ public abstract class ScreenInputInterface implements PhysicalTabletInterface {
 		public Point getLocationOnScreen() {
 			return new Point(0,0);
 		}
-		
 		@Override
 		public Rectangle bounds() {
 			return getMainScreen().getBounds();
 		}
 		@Override
 		public Rectangle getBounds(Rectangle rv) {
+			if (rv == null) {
+				return bounds();
+			}
 			rv.setBounds(bounds());
 			return rv;
 		}
@@ -93,17 +99,14 @@ public abstract class ScreenInputInterface implements PhysicalTabletInterface {
 		public String toString() {
 			return getClass().getSimpleName();
 		}
-		
 	}
 	protected final static ScreenComponent SCREEN_COMPONENT = new ScreenComponent();
+	protected static final TabletDevice SYSTEM_MOUSE = TabletDevice.SYSTEM_MOUSE;
+	
 	private boolean started = false;
 	
 	protected abstract void start();
 	protected abstract void stop();
-
-	public boolean isDeviceAvailable() {
-		return false;
-	}
 	
 	private void startIfNeeded() {
 		if (!started) {
@@ -111,8 +114,6 @@ public abstract class ScreenInputInterface implements PhysicalTabletInterface {
 			start();
 		}
 	}
-
-
 	private void stopIfNeeded() {
 		if (started && screenListeners.isEmpty() && componentManagers.isEmpty()) {
 			stop();
@@ -128,7 +129,9 @@ public abstract class ScreenInputInterface implements PhysicalTabletInterface {
 			SwingUtilities.invokeLater(r);
 		}
 	}
+	
 	private boolean pressed = false;
+	private final float PRESSED_THRESHOLD = 0;
 	protected void fireScreenTabletEvent(final TabletEvent ev) {
 		invokeOnEventThread(new Runnable() {
 			public void run() {
@@ -190,6 +193,7 @@ public abstract class ScreenInputInterface implements PhysicalTabletInterface {
 			stopIfNeeded();
 		}
 	}
+
 
 	private class ComponentManager {
 		private boolean cursorOver = false;
@@ -285,4 +289,230 @@ public abstract class ScreenInputInterface implements PhysicalTabletInterface {
 
 	}
 
+
+	private TabletDevice lastDevice = SYSTEM_MOUSE;
+	private boolean lastProximity = false;
+	private boolean lastPressed = false;
+	private float lastX = 0;
+	private float lastY = 0;
+	private float lastPressure = 0;
+	private float lastTiltX = 0;
+	private float lastTiltY = 0;
+	private float lastTangentialPressure = 0;
+	private float lastRotation = 0;
+	private int lastButtonMask = 0;
+	
+
+	protected void generateDeviceEvents(TabletDevice device, long when, int keyModifiers, boolean enteringProximity) {
+		generateDeviceEvents(device, when, keyModifiers, enteringProximity, lastX, lastY);
+		
+	}
+	protected void generateDeviceEvents(TabletDevice device, long when, int keyModifiers, boolean enteringProximity, float x, float y) {
+				
+		int modifiers = lastButtonMask | keyModifiers; 
+	
+		if (enteringProximity && !lastDevice.equals(device)) {
+			fireScreenTabletEvent(new TabletEvent(
+				SCREEN_COMPONENT,
+				TabletEvent.Type.NEW_DEVICE,
+				when,
+				modifiers,
+				device, 
+				x,y
+			));
+			lastDevice = device;
+		}
+		
+		if (lastProximity != enteringProximity) {
+			fireScreenTabletEvent(new TabletEvent(
+				SCREEN_COMPONENT,
+				enteringProximity ? TabletEvent.Type.ENTERED : TabletEvent.Type.EXITED,
+				when,
+				modifiers,
+				device,
+				x,y
+			));
+			lastProximity = enteringProximity;
+		}
+		if (!enteringProximity) {
+			lastPressure = 0;
+			lastTiltX = 0;
+			lastTiltY = 0;
+			lastTangentialPressure = 0;
+			lastRotation = 0;
+		}
+		
+		lastX = x;
+		lastY = y;
+	}
+	protected void generatePointEvents(long when, int keyModifiers,
+			float x, float y, float pressure, float tiltX, float tiltY,
+			float sidePressure, float rotation, int button, boolean buttonJustPressed, boolean buttonJustReleased) {
+				
+		int buttonMask = lastButtonMask;
+		if (buttonJustPressed || buttonJustReleased) {
+			int mask = 0;
+			switch (button) {
+				case MouseEvent.BUTTON1:
+			    	mask = MouseEvent.BUTTON1_DOWN_MASK;
+			    	break;
+				case MouseEvent.BUTTON2:
+			    	mask = MouseEvent.BUTTON2_DOWN_MASK;
+			    	break;
+				case MouseEvent.BUTTON3:
+			    	mask = MouseEvent.BUTTON3_DOWN_MASK;
+			    	break;
+			}
+			if (buttonJustPressed) {
+				buttonMask |= mask;
+			} else {
+				buttonMask &= ~mask;
+			}
+		}
+		
+		int modifiers = buttonMask | keyModifiers; 
+		
+		if (!lastProximity && !lastDevice.equals(SYSTEM_MOUSE) && (x!=lastX || y!=lastY)) {			
+			lastDevice = SYSTEM_MOUSE;
+			fireScreenTabletEvent(new TabletEvent(
+					SCREEN_COMPONENT,
+					TabletEvent.Type.NEW_DEVICE,
+					when,
+					modifiers,
+					lastDevice, 
+					x,y
+				));
+		}
+		
+		if (lastDevice.getType()==Type.MOUSE && (buttonMask & MouseEvent.BUTTON1_DOWN_MASK) != 0) {
+			pressure = 1;
+		}
+	
+		boolean pressed = pressure > PRESSED_THRESHOLD;
+		
+		if (buttonJustReleased || buttonJustPressed) {
+			fireScreenTabletEvent(new TabletEvent(
+				SCREEN_COMPONENT,
+				buttonJustPressed ? TabletEvent.Type.PRESSED : TabletEvent.Type.RELEASED,
+				when,
+				modifiers,
+				lastDevice,
+				x,y,
+				pressure,
+				tiltX,tiltY,
+				sidePressure,
+				rotation,
+				button
+			));
+		}
+		if (lastX != x || lastY != y) {
+			fireScreenTabletEvent(new TabletEvent(
+				SCREEN_COMPONENT,
+				buttonMask != 0 ? TabletEvent.Type.DRAGGED : TabletEvent.Type.MOVED,
+				when,
+				modifiers,
+				lastDevice,
+				x,y,
+				pressure,
+				tiltX,tiltY,
+				sidePressure,
+				rotation,
+				button
+			));
+	
+		} else if (pressed == lastPressed && !buttonJustReleased && !buttonJustPressed && (
+				pressure != lastPressure ||
+				tiltX != lastTiltX ||
+				tiltY != lastTiltY ||
+				sidePressure!= lastTangentialPressure ||
+				rotation != lastRotation
+		)) {
+			fireScreenTabletEvent(new TabletEvent(
+				SCREEN_COMPONENT,
+				TabletEvent.Type.LEVEL_CHANGED,
+				when,
+				modifiers,
+				lastDevice,
+				x,y,
+				pressure,
+				tiltX,tiltY,
+				sidePressure,
+				rotation,
+				button
+			));
+		}
+		lastButtonMask = buttonMask;
+		lastPressed = pressed;
+		lastX = x;
+		lastY = y;
+		lastPressure = pressure;
+		lastTiltX = tiltX;
+		lastTiltY = tiltY;
+		lastTangentialPressure = sidePressure;
+		lastRotation = rotation;
+	}
+
+	protected void generateScrollEvent(long when, int keyModifiers,
+			float screenX, float screenY, float deltaX, float deltaY) {
+		int modifiers = lastButtonMask | keyModifiers;
+		fireScreenTabletEvent(new TabletEvent(
+			NativeCocoaInterface.SCREEN_COMPONENT,
+			TabletEvent.Type.SCROLLED,
+			when,
+			modifiers,
+			lastDevice,
+			screenX,screenY,
+			0,
+			deltaX,deltaY,
+			0
+		));
+	}
+
+	protected void generateZoomGestureEvent(long when, int keyModifiers,
+			float screenX, float screenY, float magnificationFactor) {
+		int modifiers = lastButtonMask | keyModifiers;
+		fireScreenTabletEvent(new TabletEvent(
+			NativeCocoaInterface.SCREEN_COMPONENT,
+			TabletEvent.Type.ZOOMED,
+			when,
+			modifiers,
+			lastDevice,
+			screenX,screenY,
+			0,
+			0,0,
+			magnificationFactor
+		));
+	}
+
+	protected void generateRotationGestureEvent(float screenX, float screenY,
+			float rotationRadians, long when, int keyModifiers) {
+		int modifiers = lastButtonMask | keyModifiers;
+		fireScreenTabletEvent(new TabletEvent(
+			NativeCocoaInterface.SCREEN_COMPONENT,
+			TabletEvent.Type.ROTATED,
+			when,
+			modifiers,
+			lastDevice,
+			screenX,screenY,
+			rotationRadians,
+			0,0,
+			0
+		));
+	}
+
+	protected void generateSwipeGestureEvent(long when, int keyModifiers,
+			float screenX, float screenY, float deltaX, float deltaY) {
+		int modifiers = lastButtonMask | keyModifiers;
+		fireScreenTabletEvent(new TabletEvent(
+			NativeCocoaInterface.SCREEN_COMPONENT,
+			TabletEvent.Type.SWIPED,
+			when,
+			modifiers,
+			lastDevice,
+			screenX,screenY,
+			0,
+			deltaX,deltaY,
+			0
+		));
+	}
 }

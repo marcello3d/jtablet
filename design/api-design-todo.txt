@@ -1,23 +1,25 @@
 API Design open questions:
-
     
 ====================================================================================================================
 == Feature support
 
-- JTablet doesn't implement the notion of a physical tablet device. (TabletDevice refers to individual input devices, 
-  such as a mouse or stylus.) 
+- JTablet doesn't implement the notion of a physical tablet device. (TabletDevice refers to individual input 
+  devices, such as a mouse or stylus.) 
   
   If we wanted to support whole tablet features like touch strips or tablet buttons, we would need some notion of 
   what tablets are connected and what features they support.
   
   Desired? Necessary?
 
-- Currently JTablet2 implements multi-touch gesture support on Mac OS X. While this is nice, I feel the API may be a 
-  little confusing in the context of a tablet API (especially since it never works outside of Mac OS X, and then, even 
-  only on multitouch trackpads).
+- Currently JTablet2 implements multi-touch gesture support on Mac OS X. While this is nice, I feel the API may be 
+  a little confusing in the context of a tablet API (especially since it never works outside of Mac OS X, and then, 
+  even only on multitouch trackpads).
   
-  While scrolling makes sense to a certain extend, should rotate, zoom and swipe be part of the core API or separated 
-  out somehow?
+  While scrolling makes sense to a certain extend, should rotate, zoom and swipe be part of the core API or 
+  separated out somehow?
+
+- The whole factory deal… the intention is to add support for driver settings: e.g. ability to override the class 
+  that is used to load the driver, affect behaviors about how events are generated, and set optional features.
 
 ====================================================================================================================
 == Naming issues

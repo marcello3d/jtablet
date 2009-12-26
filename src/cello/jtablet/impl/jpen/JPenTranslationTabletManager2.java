@@ -35,14 +35,14 @@ import jpen.owner.ScreenPenOwner;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletEvent.Type;
-import cello.jtablet.impl.ScreenInputInterface;
+import cello.jtablet.impl.ScreenTabletManager;
 
 /**
  * 
  * @author marcello
  */
 
-public class JPenTranslationInterface extends ScreenInputInterface {
+public class JPenTranslationTabletManager2 extends ScreenTabletManager {
 
 	private PenManager penManager;
 	private JPenListener listener = new JPenListener();
@@ -50,7 +50,7 @@ public class JPenTranslationInterface extends ScreenInputInterface {
 
 	/**
 	 */
-	public JPenTranslationInterface() {
+	public JPenTranslationTabletManager2() {
 	}
 	
 	@Override

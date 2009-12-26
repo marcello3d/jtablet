@@ -32,14 +32,15 @@ import jpen.provider.osx.CocoaAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
-import cello.jtablet.event.TabletEvent;
-import cello.jtablet.impl.platform.RawDataScreenInputInterface;
+import cello.jtablet.impl.platform.NativeScreenTabletManager;
 
 /**
  * @author marcello
  */
-public class NativeCocoaInterface extends RawDataScreenInputInterface {
+public class NativeCocoaInterface extends NativeScreenTabletManager {
 	
+	private static final float DEVICE_DELTA_FACTOR = 0.25f;
+
 	private static final NativeLibraryLoader LIB_LOADER=new NativeLibraryLoader(
 			Integer.valueOf(jpen.Utils.getModuleProperties().getString("jpen.provider.osx.nativeVersion")));
 
@@ -64,21 +65,12 @@ public class NativeCocoaInterface extends RawDataScreenInputInterface {
 				  double eventTimeSeconds,
 				  int cocoaModifierFlags,
 				  float screenX, float screenY,
-				  float deltaX, float deltaY
+				  float deviceDeltaX, float deviceDeltaY
 				) {
 			long when = System.currentTimeMillis();
-			int modifiers = getLastButtonMask() | getMouseEventModifiers(cocoaModifierFlags);
-			fireScreenTabletEvent(new TabletEvent(
-				NativeCocoaInterface.SCREEN_COMPONENT,
-				TabletEvent.Type.SCROLLED,
-				when,
-				modifiers,
-				getLastDevice(),
-				screenX,screenY,
-				0,
-				deltaX,deltaY,
-				0
-			));
+			int keyModifiers = getMouseEventModifiers(cocoaModifierFlags);
+			generateScrollEvent(when, keyModifiers, screenX, screenY, 
+					deviceDeltaX*DEVICE_DELTA_FACTOR, deviceDeltaY*DEVICE_DELTA_FACTOR);
 		}
 		@Override
 		protected void postMagnifyEvent(
@@ -88,18 +80,9 @@ public class NativeCocoaInterface extends RawDataScreenInputInterface {
 				  float magnificationFactor
 				) {
 			long when = System.currentTimeMillis();
-			int modifiers = getLastButtonMask() | getMouseEventModifiers(cocoaModifierFlags);
-			fireScreenTabletEvent(new TabletEvent(
-				NativeCocoaInterface.SCREEN_COMPONENT,
-				TabletEvent.Type.ZOOMED,
-				when,
-				modifiers,
-				getLastDevice(),
-				screenX,screenY,
-				0,
-				0,0,
-				magnificationFactor
-			));
+			int keyModifiers = getMouseEventModifiers(cocoaModifierFlags);
+			generateZoomGestureEvent(when, keyModifiers, screenX, screenY,
+					magnificationFactor);
 		}
 		@Override
 		protected void postSwipeEvent(
@@ -109,18 +92,9 @@ public class NativeCocoaInterface extends RawDataScreenInputInterface {
 				  float deltaX, float deltaY
 				) {
 			long when = System.currentTimeMillis();
-			int modifiers = getLastButtonMask() | getMouseEventModifiers(cocoaModifierFlags);
-			fireScreenTabletEvent(new TabletEvent(
-				NativeCocoaInterface.SCREEN_COMPONENT,
-				TabletEvent.Type.SWIPED,
-				when,
-				modifiers,
-				getLastDevice(),
-				screenX,screenY,
-				0,
-				deltaX,deltaY,
-				0
-			));
+			int keyModifiers = getMouseEventModifiers(cocoaModifierFlags);
+			generateSwipeGestureEvent(when, keyModifiers, screenX, screenY,
+					deltaX,deltaY);
 		}
 		@Override
 		protected void postRotateEvent(
@@ -130,18 +104,9 @@ public class NativeCocoaInterface extends RawDataScreenInputInterface {
 				  float rotationDegrees
 				) {
 			long when = System.currentTimeMillis();
-			int modifiers = getLastButtonMask() | getMouseEventModifiers(cocoaModifierFlags);
-			fireScreenTabletEvent(new TabletEvent(
-				NativeCocoaInterface.SCREEN_COMPONENT,
-				TabletEvent.Type.ROTATED,
-				when,
-				modifiers,
-				getLastDevice(),
-				screenX,screenY,
-				rotationDegrees * RADIANS_PER_DEGREE,
-				0,0,
-				0
-			));
+			int keyModifiers = getMouseEventModifiers(cocoaModifierFlags);
+			generateRotationGestureEvent(screenX, screenY, rotationDegrees*RADIANS_PER_DEGREE,
+					when, keyModifiers);
 		}
 		
 
@@ -390,4 +355,5 @@ public class NativeCocoaInterface extends RawDataScreenInputInterface {
 		super.finalize();
 		ca.stop();
 	}
+
 }

@@ -21,25 +21,29 @@
  *     distribution.
  */
 
-package cello.jtablet.impl;
+package cello.jtablet.impl.platform;
 
-import java.util.Map;
-
-import cello.jtablet.TabletManager;
+import jpen.provider.NativeLibraryLoader;
+import jpen.provider.NativeLibraryLoader.LoadException;
+import cello.jtablet.impl.ScreenTabletManager;
 
 /**
  * @author marcello
  *
  */
-public interface PhysicalTabletInterface extends TabletManager {
-	/**
-	 * @return true if this device is available
-	 */
-	public boolean isDeviceAvailable();
+public abstract class NativeScreenTabletManager extends ScreenTabletManager implements NativeTabletManager {
+
+//	private boolean loaded = false;
 	
-	/**
-	 * Set the hints for this interface
-	 * @param hints
-	 */
-	public void setHints(Map<String, Object> hints);
+	
+	public void load() throws NativeException {
+		try {
+			getLoader().load();
+//			loaded = true;
+		} catch (LoadException ex) {
+			throw new NativeException(ex);
+		}
+	}
+	protected abstract NativeLibraryLoader getLoader();
+	
 }

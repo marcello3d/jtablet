@@ -496,7 +496,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 
 	/**
-	 * Returns the magnification amount for a {@link Type#ZOOMED} gesture event.
+	 * Returns the magnification amount for a {@link Type#ZOOMED} gesture event. 
 	 * @return the zoom
 	 */
 	public float getZoomFactor() {

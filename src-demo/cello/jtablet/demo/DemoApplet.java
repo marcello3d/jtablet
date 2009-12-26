@@ -46,6 +46,8 @@ public class DemoApplet extends JApplet {
 			panel.add(new DemoSurface());
 		}
 		tabbedPane.addTab("16 Components",panel);
+
+		tabbedPane.addTab("Screen Listener",new ScreenTabletListenerLogPanel());
 		
 		
 		contentPane.add(tabbedPane,BorderLayout.CENTER);
@@ -57,7 +59,7 @@ public class DemoApplet extends JApplet {
 		JPanel panel = new JPanel(new BorderLayout());
 		DemoSurface demoSurface = new DemoSurface();
 		panel.add(demoSurface,BorderLayout.CENTER);
-		panel.add(new DemoLogPanel(demoSurface),BorderLayout.SOUTH);
+		panel.add(new TabletListenerLogPanel(demoSurface),BorderLayout.SOUTH);
 		panel.add(new JScrollPane(new DemoInfoPanel(demoSurface)),infoPosition);
 		return panel;
 	}

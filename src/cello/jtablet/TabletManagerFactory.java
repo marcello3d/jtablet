@@ -23,9 +23,6 @@
 
 package cello.jtablet;
 
-import java.util.Collections;
-import java.util.Map;
-
 import cello.jtablet.event.TabletAdapter;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
@@ -52,7 +49,7 @@ public class TabletManagerFactory {
 	
 	private TabletManagerFactory() {}
 	
-	private static TabletManager tabletManager = getManager(Collections.<String,Object>emptyMap());
+	private static TabletManager tabletManager = getManager(Hints.DEFAULTS);
 	
 	/**
 	 * Returns a shared tablet manager with the default settings.
@@ -62,11 +59,28 @@ public class TabletManagerFactory {
 		return tabletManager;
 	}
 	/**
-	 * Creates a new tablet manager with custom settings.
+	 * Creates a new tablet manager with the specified hints. 
+	 * 
 	 * @param hints a map of hints to 
 	 * @return tabletmanager 
 	 */
-	private static TabletManager getManager(Map<String,Object> hints) {
+	private static TabletManager getManager(Hints hints) {
+//		Class<? extends TabletManager> tabletManagerClass = hints.getManagerClass();
 		return new JPenTabletManager(hints);
+	}
+	
+	/**
+	 * Used to specify hints for manager creation (not currently available).
+	 * 
+	 * @author marcello
+	 */
+	public static class Hints {
+		private static final Hints DEFAULTS = new Hints();
+		
+//		private Class<? extends TabletManager> managerClass = JPenTabletManager.class;
+//
+//		public Class<? extends TabletManager> getManagerClass() {
+//			return managerClass;
+//		} 
 	}
 }

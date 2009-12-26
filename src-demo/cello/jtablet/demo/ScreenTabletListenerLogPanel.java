@@ -21,26 +21,25 @@
  *     distribution.
  */
 
-package cello.jtablet.impl.platform;
+package cello.jtablet.demo;
 
-import cello.jtablet.impl.PhysicalTabletInterface;
+import cello.jtablet.TabletManagerFactory;
+import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletFunneler;
 
 /**
- * This interface specifies cursor devices that load native code
- * 
- * @author marcello
+ * Displays a list of events that occur on a given component.
  */
-public interface NativeCursorDevice extends PhysicalTabletInterface {
+public class ScreenTabletListenerLogPanel extends AbstractLogPanel {
 
 	/**
-	 * Loads the actual device
-	 * 
-	 * @throws NativeDeviceException
+	 * Constructs a new DemoLogPanel that will listen for screen events.
 	 */
-	public void load() throws NativeDeviceException;
-	/**
-	 * @param os the os string
-	 * @return true if the given os is supported by this native device
-	 */
-	public boolean isSystemSupported(String os);
+	public ScreenTabletListenerLogPanel() {
+		TabletManagerFactory.getManager().addScreenTabletListener(new TabletFunneler() {
+			protected void handleEvent(TabletEvent ev) {
+				logMessage(ev.toString());
+			}		
+		});
+	}
 }

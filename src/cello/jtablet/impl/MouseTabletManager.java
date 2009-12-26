@@ -30,10 +30,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import cello.jtablet.TabletDevice;
+import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
 import cello.jtablet.event.TabletEvent.Type;
@@ -41,13 +41,9 @@ import cello.jtablet.event.TabletEvent.Type;
 /**
  * @author marcello
  */
-public class MouseListenerInterface implements PhysicalTabletInterface {
+public class MouseTabletManager implements TabletManager {
 
 	private boolean enabled = true;
-	
-	public boolean isDeviceAvailable() {
-		return true;
-	}
 
 	public void addScreenTabletListener(TabletListener l) {
 		throw new UnsupportedOperationException(getClass()+" does not support screen listeners");
@@ -208,8 +204,7 @@ public class MouseListenerInterface implements PhysicalTabletInterface {
 
 	}
 
-	public void setHints(Map<String, Object> hints) {
-		// TODO Auto-generated method stub
-		
-	}
+//	public void setHints(TabletManagerFactory.Hints hints) {
+//		
+//	}
 }

@@ -1,35 +1,22 @@
 package cello.jtablet.demo;
 
-import java.awt.Component;
 import java.awt.Dimension;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 
-import cello.jtablet.TabletManagerFactory;
-import cello.jtablet.event.TabletEvent;
-import cello.jtablet.event.TabletFunneler;
+public class AbstractLogPanel extends JScrollPane {
 
-public class DemoLogPanel extends JScrollPane {
+	protected JTextArea logArea = new JTextArea();
 
-	
-	public DemoLogPanel(Component targetComponent) {
+	public AbstractLogPanel() {
 		setViewportView(logArea);
 		logArea.setEditable(false);
 		setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		setPreferredSize(new Dimension(100,100));
-		
-		TabletManagerFactory.getManager().addTabletListener(targetComponent, new TabletFunneler() {
-			protected void handleEvent(TabletEvent ev) {
-				logMessage(ev.toString());
-			}		
-		});
 	}
-	
-	private JTextArea logArea = new JTextArea();
-	
-	private void logMessage(String s) {
+	protected void logMessage(String s) {
 		logArea.append(s+"\n");
 		logArea.setCaretPosition(logArea.getDocument().getLength());
 		if (logArea.getLineCount()>500) {
@@ -40,4 +27,5 @@ public class DemoLogPanel extends JScrollPane {
 			}
 		}
 	}
+
 }

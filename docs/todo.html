@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>JTablet 2.0 - TODO list</title>
+</head>
+<body>
+<h1>JTablet 2.0</h1>
+<h2>To-do list</h2>
+
+<h3>Bugs</h3>
+<ul>
+  <li>TabletEvent.isPopupTrigger() won't return the correct value</li>
+  <li>Releasing mouse button outside of component doesn't send cursor released event</li>
+  <li><b>Max OS X</b>
+   <ul>
+    <li>Clicking "maximize" button creates a mouse down event but no mouse up event... button state gets screwed up</li>
+    <li><strike>Scroll gesture isn't smooth</strike></li>
+   </ul>
+  </li>
+  <li><b>Windows</b>
+   <ul>
+    <li>Keyboard modifiers are not handled correctly</li>
+    <li>Mouse buttons won't match the buttons if configured differently in the control panel</li>
+   </ul>
+  </li>
+</ul>
+
+<h3>Desired/incomplete features</h3>
+<ul>
+  <li>Linux/XInput wrapper needed</li>
+  <li>Standard mechanism for accessing "raw" tablet buttons independent of system settings</li>
+  <li>Ability to see extra tablet information (tablet name, vendor, etc)</li>
+  <li>Extension/installer/versioning support</li>
+</ul>
+
+<h3>Misc</h3>
+<ul>
+  <li>Website</li>
+  <li>Determine solutions to various API questions:
+   <ul>
+    <li>Naming</li>
+    <li>Relationship of Gesture events</li>
+    <li>How to deal with "hints" or customized functionality</li>
+   </ul>
+  </li>
+</ul>
+
+</body>
+</html>

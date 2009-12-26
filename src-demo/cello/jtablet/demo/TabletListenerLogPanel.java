@@ -21,27 +21,28 @@
  *     distribution.
  */
 
-package cello.jtablet.impl.platform;
+package cello.jtablet.demo;
 
-public class NativeDeviceException extends Exception {
+import java.awt.Component;
 
-	public NativeDeviceException() {
-		// TODO Auto-generated constructor stub
+import cello.jtablet.TabletManagerFactory;
+import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletFunneler;
+
+/**
+ * Displays a list of events that occur on a given component.
+ */
+public class TabletListenerLogPanel extends AbstractLogPanel {
+
+	/**
+	 * Constructs a new DemoLogPanel that will listen for events on a given target {@link Component}.
+	 * @param targetComponent
+	 */
+	public TabletListenerLogPanel(Component targetComponent) {
+		TabletManagerFactory.getManager().addTabletListener(targetComponent, new TabletFunneler() {
+			protected void handleEvent(TabletEvent ev) {
+				logMessage(ev.toString());
+			}		
+		});
 	}
-
-	public NativeDeviceException(String message) {
-		super(message);
-		// TODO Auto-generated constructor stub
-	}
-
-	public NativeDeviceException(Throwable cause) {
-		super(cause);
-		// TODO Auto-generated constructor stub
-	}
-
-	public NativeDeviceException(String message, Throwable cause) {
-		super(message, cause);
-		// TODO Auto-generated constructor stub
-	}
-
 }

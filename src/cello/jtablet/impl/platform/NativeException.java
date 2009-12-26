@@ -23,31 +23,25 @@
 
 package cello.jtablet.impl.platform;
 
-import cello.jtablet.impl.ScreenInputInterface;
-import jpen.provider.NativeLibraryLoader;
-import jpen.provider.NativeLibraryLoader.LoadException;
+public class NativeException extends Exception {
 
-/**
- * @author marcello
- *
- */
-public abstract class NativeScreenInputInterface extends ScreenInputInterface implements NativeCursorDevice {
+	public NativeException() {
+		// TODO Auto-generated constructor stub
+	}
 
-	private boolean loaded = false;
-	
-	
-	public void load() throws NativeDeviceException {
-		try {
-			getLoader().load();
-			loaded = true;
-		} catch (LoadException ex) {
-			throw new NativeDeviceException(ex);
-		}
+	public NativeException(String message) {
+		super(message);
+		// TODO Auto-generated constructor stub
 	}
-	protected abstract NativeLibraryLoader getLoader();
-	
-	@Override
-	public boolean isDeviceAvailable() {
-		return loaded;
+
+	public NativeException(Throwable cause) {
+		super(cause);
+		// TODO Auto-generated constructor stub
 	}
+
+	public NativeException(String message, Throwable cause) {
+		super(message, cause);
+		// TODO Auto-generated constructor stub
+	}
+
 }

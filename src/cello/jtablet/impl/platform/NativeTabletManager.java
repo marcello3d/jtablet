@@ -21,36 +21,26 @@
  *     distribution.
  */
 
-package cello.jtablet.impl.jpen.platform;
+package cello.jtablet.impl.platform;
 
-import jpen.provider.NativeLibraryLoader;
-import cello.jtablet.impl.platform.NativeScreenTabletManager;
+import cello.jtablet.TabletManager;
 
+/**
+ * This interface specifies cursor devices that load native code
+ * 
+ * @author marcello
+ */
+public interface NativeTabletManager extends TabletManager {
 
-public class NativeXInputInterface extends NativeScreenTabletManager {
-
-	private static final NativeLibraryLoader LIB_LOADER=new NativeLibraryLoader(new String[]{""},
-			new String[]{"x86_64", "ia64"},
-			Integer.valueOf(jpen.Utils.getModuleProperties().getString("jpen.provider.xinput.nativeVersion")));
-
-	public boolean isSystemSupported(String os) {
-		return os.contains("linux");
-	}
-
-	public boolean isDeviceAvailable() {
-		return false;
-	}
-
-	@Override
-	protected void start() {
-	}
-
-	@Override
-	protected void stop() {
-	}
-
-	@Override
-	protected NativeLibraryLoader getLoader() {
-		return LIB_LOADER;
-	}
+	/**
+	 * Loads the actual device
+	 * 
+	 * @throws NativeException
+	 */
+	public void load() throws NativeException;
+	/**
+	 * @param os the os string
+	 * @return true if the given os is supported by this native device
+	 */
+	public boolean isSystemSupported(String os);
 }

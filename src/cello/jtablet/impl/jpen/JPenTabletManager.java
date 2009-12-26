@@ -24,40 +24,48 @@
 package cello.jtablet.impl.jpen;
 
 import java.awt.Component;
-import java.util.Map;
 
 import cello.jtablet.TabletManager;
+import cello.jtablet.TabletManagerFactory.Hints;
 import cello.jtablet.event.TabletListener;
-import cello.jtablet.impl.PhysicalTabletInterface;
+import cello.jtablet.impl.MouseTabletManager;
 import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
 import cello.jtablet.impl.jpen.platform.NativeWinTabInterface;
 import cello.jtablet.impl.jpen.platform.NativeXInputInterface;
-import cello.jtablet.impl.platform.NativeCursorDevice;
-import cello.jtablet.impl.platform.NativeDeviceException;
+import cello.jtablet.impl.platform.NativeTabletManager;
+import cello.jtablet.impl.platform.NativeException;
 
+/**
+ * 
+ * @author marcello
+ */
 public class JPenTabletManager implements TabletManager {
 
 	private final Class<?> interfaces[] = {
 		NativeCocoaInterface.class,
 		NativeWinTabInterface.class,
 		NativeXInputInterface.class,
-		JPenTranslationInterface.class
+		MouseTabletManager.class
 	};
-	private final PhysicalTabletInterface cursorDevice;
-	private Exception exception;
+	private final TabletManager tabletManager;
+	private Throwable exception;
 	private DriverStatus driverStatus; 
 	
-	public JPenTabletManager(Map<String, Object> hints) {
+	/**
+	 * 
+	 * @param hints
+	 */
+	public JPenTabletManager(Hints hints) {
 		String os = System.getProperty("os.name").toLowerCase();
 		
-		PhysicalTabletInterface chosenDevice = null;
+		TabletManager chosenDevice = null;
 		driverStatus = DriverStatus.OS_NOT_SUPPORTED;
 		for (Class<?> cdClazz : interfaces) {
 			try {
-				PhysicalTabletInterface cd = (PhysicalTabletInterface)cdClazz.newInstance();
-				cd.setHints(hints);
-				if (cd instanceof NativeCursorDevice) {
-					NativeCursorDevice nsd = (NativeCursorDevice)cd;
+				TabletManager cd = (TabletManager)cdClazz.newInstance();
+//				cd.setHints(hints);
+				if (cd instanceof NativeTabletManager) {
+					NativeTabletManager nsd = (NativeTabletManager)cd;
 					if (nsd.isSystemSupported(os)) {
 						try {
 							nsd.load();
@@ -67,7 +75,10 @@ public class JPenTabletManager implements TabletManager {
 						} catch (SecurityException e) {
 							exception = e;
 							driverStatus = DriverStatus.SECURITY_EXCEPTION;
-						} catch (NativeDeviceException e) {
+						} catch (UnsatisfiedLinkError e) {
+							exception = e;				
+							driverStatus = DriverStatus.LIBRARY_LOAD_EXCEPTION;
+						} catch (NativeException e) {
 							exception = e;					
 							driverStatus = DriverStatus.LIBRARY_LOAD_EXCEPTION;
 						}
@@ -80,7 +91,8 @@ public class JPenTabletManager implements TabletManager {
 			} catch (IllegalAccessException e) {
 			}
 		}
-		this.cursorDevice = chosenDevice;
+		System.out.println("Loaded device:"+chosenDevice);
+		this.tabletManager = chosenDevice;
 	}
 
 	public enum DriverStatus {
@@ -96,22 +108,22 @@ public class JPenTabletManager implements TabletManager {
 	public DriverStatus getDriverStatus() {
 		return driverStatus;
 	}
-	public Exception getDriverException() {
+	public Throwable getDriverThrowable() {
 		return exception;
 	}
 	
 	public void addScreenTabletListener(TabletListener l) {
-		cursorDevice.addScreenTabletListener(l);
+		tabletManager.addScreenTabletListener(l);
 	}
 	public void removeScreenTabletListener(TabletListener l) {
-		cursorDevice.addScreenTabletListener(l);
+		tabletManager.addScreenTabletListener(l);
 	}
 
 	public void addTabletListener(Component c, TabletListener l) {
-		cursorDevice.addTabletListener(c,l);
+		tabletManager.addTabletListener(c,l);
 	}
 	public void removeTabletListener(Component c, TabletListener l) {
-		cursorDevice.removeTabletListener(c,l);
+		tabletManager.removeTabletListener(c,l);
 	}
 	
 }
