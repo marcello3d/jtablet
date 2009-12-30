@@ -91,7 +91,7 @@ public class JPenTabletManager implements TabletManager {
 			} catch (IllegalAccessException e) {
 			}
 		}
-		System.out.println("Loaded device:"+chosenDevice);
+		System.out.println("Loaded TabletManager:"+chosenDevice);
 		this.tabletManager = chosenDevice;
 	}
 

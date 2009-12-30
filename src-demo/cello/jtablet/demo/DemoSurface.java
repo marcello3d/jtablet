@@ -12,8 +12,11 @@ import java.awt.event.InputEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.FlatteningPathIterator;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Path2D;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 
@@ -132,7 +135,6 @@ public class DemoSurface extends JComponent {
 
 
 			private void updateTransform() {
-				System.out.println("at="+at);
 				try {
 					atInv = at.createInverse();
 				} catch (NoninvertibleTransformException e) {
@@ -264,9 +266,43 @@ public class DemoSurface extends JComponent {
 		Area a = new Area(atInv.createTransformedShape(s));
 		synchronized (drawShape) {
 			drawShape.add(a);
+			Area a2 = new Area(simplifyShape(drawShape));
+			drawShape.reset();
+			drawShape.add(a2);
 			drawShape.intersect(canvasArea);
 		}
 		repaint(s);
+	}
+
+
+
+
+	private Shape simplifyShape(Shape drawShape) {
+		PathIterator it = 
+		new FlatteningPathIterator(drawShape.getPathIterator(new AffineTransform()), 2.0, 20);
+		GeneralPath gp = new GeneralPath(it.getWindingRule());
+		float coords[] = new float[6];
+		while (!it.isDone()) {
+			switch (it.currentSegment(coords)) {
+				case PathIterator.SEG_CLOSE:
+					gp.closePath();
+					break;
+				case PathIterator.SEG_CUBICTO:
+					gp.curveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
+					break;
+				case PathIterator.SEG_LINETO:
+					gp.lineTo(coords[0], coords[1]);
+					break;
+				case PathIterator.SEG_MOVETO:
+					gp.moveTo(coords[0], coords[1]);
+					break;
+				case PathIterator.SEG_QUADTO:
+					gp.quadTo(coords[0], coords[1], coords[2], coords[3]);
+					break;
+			}
+			it.next();
+		}
+		return gp;
 	}
 
 

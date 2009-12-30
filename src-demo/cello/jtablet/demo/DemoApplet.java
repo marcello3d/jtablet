@@ -13,6 +13,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 
+import cello.jtablet.TabletManagerFactory;
+
 /**
  * A simple sketching surface applet
  * 
@@ -69,6 +71,7 @@ public class DemoApplet extends JApplet {
 	 * @throws InterruptedException 
 	 */
 	public static void main(String ...args) throws InterruptedException {
+		TabletManagerFactory.getManager();
 		final JFrame frame = new JFrame("JTablet Demo");
 		try {
 			final DemoApplet demo = new DemoApplet();

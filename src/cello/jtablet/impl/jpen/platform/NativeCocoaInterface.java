@@ -32,6 +32,8 @@ import jpen.provider.osx.CocoaAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
+import cello.jtablet.impl.AbstractTabletDevice;
+import cello.jtablet.impl.platform.NativeException;
 import cello.jtablet.impl.platform.NativeScreenTabletManager;
 
 /**
@@ -176,10 +178,8 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 					type = Type.UNKNOWN;
 					break;
 			}
-			return new CocoaTabletDevice(type,uniqueId,supportsButtons,supportsDeviceId,supportsPressure,supportsRotation,supportsSidePressure, supportsTiltXY);
+			return new CocoaDevice(type,Long.toHexString(uniqueId),supportsButtons,supportsDeviceId,supportsPressure,supportsRotation,supportsSidePressure, supportsTiltXY);
 		}
-		
-		
 		
 		
 		@Override
@@ -187,6 +187,7 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 								 double eventTimeSeconds,
 								 int cocoaModifierFlags,
 								 float x, float y,
+								 boolean tabletEvent,
 								 int absoluteX, int absoluteY, int absoluteZ, 
 								 int rawTabletButtonMask,
 								 float pressure,
@@ -194,7 +195,6 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 								 float tiltX, float tiltY,
 								 float tangentialPressure) {
 			
-
 			boolean buttonJustPressed = false, buttonJustReleased = false;
 			int button = MouseEvent.NOBUTTON;
 			switch (type) {
@@ -269,85 +269,30 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 		return os.contains("mac");
 	}
 
+	private static class CocoaDevice extends AbstractTabletDevice {
 
-	private class CocoaTabletDevice extends TabletDevice {
-		private final Type type;
-		private final long uniqueId;
-		private final Support supportsButtons;
-		private final Support supportsDeviceId;
-		private final Support supportsPressure;
-		private final Support supportsRotation;
-		private final Support supportsSidePressure;
-		private final Support supportsTiltXY;
-		
-		
-
-		public CocoaTabletDevice(Type type, long uniqueId,
+		protected CocoaDevice(Type type, String uniqueId,
 				Support supportsButtons, Support supportsDeviceId,
 				Support supportsPressure, Support supportsRotation,
 				Support supportsSidePressure, Support supportsTiltXY) {
-			super();
-			this.type = type;
-			this.uniqueId = uniqueId;
-			this.supportsButtons = supportsButtons;
-			this.supportsDeviceId = supportsDeviceId;
-			this.supportsPressure = supportsPressure;
-			this.supportsRotation = supportsRotation;
-			this.supportsSidePressure = supportsSidePressure;
-			this.supportsTiltXY = supportsTiltXY;
+			super(type, uniqueId, supportsButtons, supportsDeviceId, supportsPressure,
+					supportsRotation, supportsSidePressure, supportsTiltXY);
 		}
-		@Override
-		public String toString() {
-			return "CocoaDevice["+getType()+"-"+getPhysicalId()+"]";
-		}
-		@Override
-		public Type getType() {
-			return type;
-		}
-		@Override
-		public String getPhysicalId() {
-			return Long.toString(uniqueId);
-		}
-
-		@Override
-		public Support supportsButtons() {
-			return supportsButtons;
-		}
-		@Override
-		public Support supportsDeviceID() {
-			return supportsDeviceId;
-		}
-		@Override
-		public Support supportsPressure() {
-			return supportsPressure;
-		}
-		@Override
-		public Support supportsRotation() {
-			return supportsRotation;
-		}
-
-		@Override
-		public Support supportsSidePressure() {
-			return supportsSidePressure;
-		}
-
-		@Override
-		public Support supportsTilt() {
-			return supportsTiltXY;
-		}
-		
+	}
+	@Override
+	public void load() throws NativeException {
+		super.load();
+		ca.start();
 	}
 
 	@Override
 	protected void start() {
-		ca.start();
 		ca.enable();
 	}
 
 	@Override
 	protected void stop() {
 		ca.disable();
-		ca.stop();
 	}
 	
 	@Override
