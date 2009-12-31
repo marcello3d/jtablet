@@ -54,6 +54,8 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	private final float scrollX,scrollY;
 	private final float zoomFactor;
 	
+	private final int rawTabletButtonMask;
+	
 	
 	private final Type type;
 	private final TabletDevice device;
@@ -78,12 +80,13 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param deltaX 
 	 * @param deltaY 
 	 * @param zoom 
+	 * @param rawTabletButtonMask 
 	 */
 	public TabletEvent(Component source, Type type, long when, int modifiers, 
 						TabletDevice device, float x, float y, float pressure,
 						float tiltX, float tiltY, float sidePressure,
 						float rotation, float deltaX, float deltaY, float zoom,
-						int button) {
+						int button, int rawTabletButtonMask) {
 		
 		super(source, type.getId(), when, modifiers,
 				(int)x, (int)y, 0, false, button);
@@ -100,6 +103,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.scrollX = deltaX;
 		this.scrollY = deltaY;
 		this.zoomFactor = zoom;
+		this.rawTabletButtonMask = 0;
 	}
 	/**
 	 * Wrap a {@link MouseEvent} as a TabletEvent.
@@ -121,6 +125,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.scrollX = 0;
 		this.scrollY = 0;
 		this.zoomFactor = 0;
+		this.rawTabletButtonMask = 0;
 	} 
 
 	
@@ -142,14 +147,15 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param rotation
 	 * @param button
 	 */
-	public TabletEvent(Component source, Type type, long when, int modifiers, TabletDevice device, 
+	public TabletEvent(Component source, Type type, long when, int modifiers, int rawTabletButtonMask, 
+			TabletDevice device, 
 			float x, float y, 
 			float pressure, 
 			float tiltX, float tiltY,
 			float sidePressure, 
 			float rotation, 
 			int button) {
-		this(source,type,when,modifiers,device,x,y,pressure,tiltX,tiltY,sidePressure,rotation,0,0,0,button);
+		this(source,type,when,modifiers,device,x,y,pressure,tiltX,tiltY,sidePressure,rotation,0,0,0,button,rawTabletButtonMask);
 	}
 	/**
 	 * Constructs a new {@linkplain TabletEvent} with some of the trimmings...
@@ -161,9 +167,9 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param x
 	 * @param y
 	 */
-	public TabletEvent(Component source, Type type, long when, int modifiers, TabletDevice device, 
-			float x, float y) {
-		this(source,type,when,modifiers,device,x,y,0,0,0,0,0,0,0,0,NOBUTTON);
+	public TabletEvent(Component source, Type type, long when, int modifiers, int rawTabletButtonMask, 
+			TabletDevice device, float x, float y) {
+		this(source,type,when,modifiers,device,x,y,0,0,0,0,0,0,0,0,NOBUTTON,rawTabletButtonMask);
 	}
 	/**
 	 * Constructs a new {@linkplain TabletEvent} with some of the trimmings...
@@ -184,7 +190,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 			float rotation, 
 			float deltaX, float deltaY,
 			float zoom) {
-		this(source,type,when,modifiers,device,x,y,0,0,0,0,rotation,deltaX,deltaY,zoom,NOBUTTON);
+		this(source,type,when,modifiers,device,x,y,0,0,0,0,rotation,deltaX,deltaY,zoom,NOBUTTON,0);
 	}
 	/**
 	 * Constructs a new {@linkplain TabletEvent} with some of the trimmings...
@@ -200,7 +206,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	public TabletEvent(Component source, Type type, long when, TabletDevice device, int modifiers, 
 			float x, float y,
 			int button) {
-		this(source,type,when,modifiers,device,x,y,0,0,0,0,0,0,0,0,button);
+		this(source,type,when,modifiers,device,x,y,0,0,0,0,0,0,0,0,button,0);
 	}
 	@Override
 	public String toString() {
@@ -234,6 +240,9 @@ public class TabletEvent extends MouseEvent implements Serializable {
         }
         if (zoomFactor != 0) {
         	sb.append(",zoom=").append(zoomFactor);
+        }
+        if (rawTabletButtonMask != 0) {
+        	sb.append(",rawTabletButtonMask=").append(Integer.toString(rawTabletButtonMask, 2));
         }
         sb.append("] on ").append(source);
         
@@ -427,8 +436,8 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		return new TabletEvent(component, type, getWhen(), getModifiersEx(), 
 				device, x, y, pressure,
 				tiltX, tiltY, sidePressure,
-				rotation,this.scrollX,this.scrollY,zoomFactor,
-				getButton());
+				rotation,scrollX,scrollY,zoomFactor,
+				getButton(),rawTabletButtonMask);
 	}
 
 	/**
@@ -472,10 +481,10 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 */
 	public TabletEvent withType(Type type) {
 		return new TabletEvent((Component)source, type, getWhen(), getModifiersEx(), 
-				device, x + scrollX, y + scrollY, pressure,
+				device, x, y, pressure,
 				tiltX, tiltY, sidePressure,
-				rotation,this.scrollX,this.scrollY,zoomFactor,
-				getButton());
+				rotation,scrollX,scrollY,zoomFactor,
+				getButton(), rawTabletButtonMask);
 	}
 
 
@@ -501,5 +510,15 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 */
 	public float getZoomFactor() {
 		return zoomFactor;
+	}
+	
+	/**
+	 * Returns the raw tablet button mask independent of any user mapping with regards to "left" or "right." This may 
+	 * return zero for emulated devices.
+	 *  
+	 * @return a bitset given by the tablet driver
+	 */
+	public int getRawTabletButtonMask() {
+		return rawTabletButtonMask;
 	}
 }

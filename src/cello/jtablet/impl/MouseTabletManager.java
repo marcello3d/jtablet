@@ -44,6 +44,7 @@ import cello.jtablet.event.TabletEvent.Type;
 public class MouseTabletManager implements TabletManager {
 
 	private boolean enabled = true;
+	private int lastModifiersEx;
 
 	public void addScreenTabletListener(TabletListener l) {
 		throw new UnsupportedOperationException(getClass()+" does not support screen listeners");
@@ -52,7 +53,9 @@ public class MouseTabletManager implements TabletManager {
 		throw new UnsupportedOperationException(getClass()+" does not support screen listeners");
 	}
 
-	private final ConcurrentHashMap<TabletListener,MagicListener> listenerMap = new ConcurrentHashMap<TabletListener, MagicListener>();
+	// Map tablet listeners to our mouse listener
+	private final ConcurrentHashMap<TabletListener,MagicListener> listenerMap 
+			= new ConcurrentHashMap<TabletListener,MagicListener>();
 	
 	public void addTabletListener(Component c, TabletListener l) {
 		synchronized (l) {
@@ -115,6 +118,7 @@ public class MouseTabletManager implements TabletManager {
 		}
 		
 		private void fireTabletEvent(MouseEvent e) {
+			lastModifiersEx = e.getModifiersEx();
 			if (!enabled) {
 				return;
 			}
@@ -203,6 +207,13 @@ public class MouseTabletManager implements TabletManager {
 		}
 
 	}
+	/**
+	 * @return the last modifiers received by any mouse listener
+	 */
+	public int getLastModifiersEx() {
+		return lastModifiersEx;
+	}
+	
 
 //	public void setHints(TabletManagerFactory.Hints hints) {
 //		

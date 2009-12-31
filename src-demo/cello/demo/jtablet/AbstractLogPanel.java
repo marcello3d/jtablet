@@ -1,4 +1,4 @@
-package cello.jtablet.demo;
+package cello.demo.jtablet;
 
 import java.awt.Dimension;
 

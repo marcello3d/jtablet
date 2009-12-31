@@ -11,15 +11,15 @@
   <property name="src.jpen"				location="../jpen/src/main/java"/>
   <property name="src.jpen.resources"	location="../jpen/src/main/resources"/>
 	
-  <property name="build.jtablet"	location="build/jtablet"/>
-  <property name="build.jpen"		location="build/jpen"/>
-  <property name="build.demo"		location="build/demo"/>
-  <property name="build.installer"	location="build/installer"/>
+  <property name="build.jtablet"		location="build/jtablet"/>
+  <property name="build.jpen"			location="build/jpen"/>
+  <property name="build.demo"			location="build/demo"/>
+  <property name="build.installer"		location="build/installer"/>
 
-  <property name="docs.api"			location="docs/api"/>
+  <property name="docs.api"				location="docs/api"/>
 	
-  <property name="dist"  location="dist"/>
-  <property name="lib.dir"     value="lib"/>
+  <property name="dist"  				location="dist"/>
+  <property name="lib.dir"     			location="lib"/>
   
 
   <target name="init">
@@ -60,6 +60,7 @@
   <path id="jtablet.classpath">
 		<pathelement location="${build.jpen}"/>
   </path>
+	
   <target name="jtablet.compile" depends="init,jpen.compile" description="compile the source" >
     <mkdir dir="${build.jtablet}"/>
     <javac 
@@ -71,6 +72,7 @@
 		debug="on"
 		classpathref="jtablet.classpath"/>
   </target>
+	
   <target name="jtablet.jar" depends="jtablet.compile" description="generate the initial jtablet jar" >
     <mkdir dir="${dist}/lib"/>
     <jar 
@@ -83,7 +85,7 @@
 	
   <!-- demo package -->
   <path id="demo.classpath">
-        <fileset dir="lib" includes="**/*.jar"/>
+        <!-- <fileset dir="lib" includes="**/*.jar"/> -->
 		<pathelement location="${build.jtablet}"/>
   </path>
   <target name="demo.compile" depends="init,jtablet.compile" description="compile the source" >
@@ -101,11 +103,11 @@
   <target name="demo.jar" depends="demo.compile">
     <jar 
 		jarfile="${dist}/lib/jtablet2-demo-${DSTAMP}.original.jar"
-		includes="cello/jtablet/demo/**"
+		includes="cello/**"
     	level="9"
     	basedir="${build.demo}">
         <manifest>
-    	  <attribute name="Main-Class" value="cello.jtablet.demo.DemoApplet.class" />
+    	  <attribute name="Main-Class" value="cello.demo.jtablet.DemoApplet.class" />
           <attribute name="Built-By" value="Marcello"/>
           <attribute name="Sealed" value="true"/>
         </manifest>
@@ -234,15 +236,11 @@
 		   <include name="cello/jtablet/**"/>
 		   <exclude name="cello/jtablet/impl/**"/>
 		 </packageset>
-		<!--
-		 <doctitle><![CDATA[<h1>Test</h1>]]></doctitle>
-		 <bottom><![CDATA[<i>Copyright &#169; 2000 Dummy Corp. All Rights Reserved.</i>]]></bottom>
-		 -->
 		 <link href="http://java.sun.com/j2se/1.5.0/docs/api/" packagelistloc="java1.5-package-list"/>
 		</javadoc>
   </target>
 	
-  <target name="jars.demo">
+  <target name="jars.demo" depends="jpen.compile,jtablet.compile,demo.compile">
 
     <jar 
 		jarfile="html/demos/jpen2-ext.jar"
@@ -263,7 +261,6 @@
 
         </manifest>
 	</jar>
-
     <jar 
 		jarfile="html/demos/jtablet2-ext.jar"
 		includes="cello/**"
@@ -284,34 +281,61 @@
         </manifest>
 	</jar>
     <jar 
-		jarfile="html/demos/jtablet2-demo-with-ext.jar"
-		includes="cello/jtablet/demo/**"
+		jarfile="html/demos/jtablet2-demo.jar"
+		includes="cello/**"
     	level="9"
     	basedir="${build.demo}">
         <manifest>
-    	  <attribute name="Main-Class" value="cello.jtablet.demo.DemoApplet.class" />
-          <attribute name="Built-By" value="Marcello"/>
-          <attribute name="Sealed" value="true"/>
+    	  <attribute name="Main-Class" value="cello.demo.jtablet.DemoApplet.class" />
+          <attribute name="Built-By" value="JTablet 2.0 build script"/>
+        </manifest>
+	</jar>
+    <jar 
+		jarfile="html/demos/jtablet2-demo-with-ext.jar"
+		includes="cello/**"
+    	level="9"
+    	basedir="${build.demo}">
+        <manifest>
+    	  <attribute name="Main-Class" value="cello.demo.jtablet.DemoApplet.class" />
+          <attribute name="Built-By" value="JTablet 2.0 build script"/>
 
         	<attribute name="Extension-List" value="jtablet2 jpen2"/>
         	<attribute name="jtablet2-Extension-Name" value="cello.jtablet2"/>
-        	<attribute name="jtablet2-Specification-Version" value="2.0"/>
+        	<attribute name="jtablet2-Specification-Version" value="1.9"/>
         	<attribute name="jtablet2-Specification-Vendor" value="Cellosoft"/>
-        	<attribute name="jtablet2-Implementation-Version" value="2.0"/>
+        	<attribute name="jtablet2-Implementation-Version" value="1.9"/>
         	<attribute name="jtablet2-Implementation-Vendor-Id" value="cello"/>
-        	<attribute name="jtablet2-Implementation-URL" value="jtablet2-ext.jar"/>
-
+        	<attribute name="jtablet2-Implementation-URL" value="http://sketchstudio.cellosoft.com/jtablet2/ext/jtablet2-ext.signed.jar"/>
+        	
         	<attribute name="jpen2-Extension-Name" value="jpen"/>
         	<attribute name="jpen2-Specification-Version" value="2.0"/>
         	<attribute name="jpen2-Specification-Vendor" value="jpen"/>
         	<attribute name="jpen2-Implementation-Version" value="2.0"/>
         	<attribute name="jpen2-Implementation-Vendor-Id" value="jpen"/>
-        	<attribute name="jpen2-Implementation-URL" value="jpen2-ext.jar"/>
+        	<attribute name="jpen2-Implementation-URL" value="http://sketchstudio.cellosoft.com/jtablet2/ext/jpen2-ext.signed.jar"/>
         </manifest>
 	</jar>
 
 
   </target>
+	  <target name="jars.demo.signed" depends="jars.demo">
+	  	<signjar 
+			alias="jtablet2" 
+			storepass="notsecureatall5936510"
+			keypass="notsecureatall5936510"
+	  		lazy="true"
+	  		jar="html/demos/jtablet2-ext.jar"
+	  		signedjar="html/demos/jtablet2-ext.signed.jar">
+		</signjar>
+	  	<signjar 
+			alias="jtablet2" 
+			storepass="notsecureatall5936510"
+			keypass="notsecureatall5936510"
+	  		lazy="true"
+	  		jar="html/demos/jpen2-ext.jar"
+	  		signedjar="html/demos/jpen2-ext.signed.jar">
+		</signjar>
+	  </target>
 	
   
   <target name="clean" description="clean up" >

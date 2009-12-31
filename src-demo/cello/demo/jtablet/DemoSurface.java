@@ -1,4 +1,4 @@
-package cello.jtablet.demo;
+package cello.demo.jtablet;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -10,13 +10,9 @@ import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.event.InputEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.FlatteningPathIterator;
-import java.awt.geom.GeneralPath;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Path2D;
-import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 
@@ -47,9 +43,9 @@ public class DemoSurface extends JComponent {
 	private boolean onSurface = false;
 	private boolean dragging = false;
 	
-	private Area drawShape = new Area(), canvasArea = new Area();
+//	private Area drawShape = new Area(), canvasArea = new Area();
 	private boolean erasing = false;
-	private Stroke zoomedStroke = BASIC_STROKE;
+//	private Stroke zoomedStroke = BASIC_STROKE;
 
 	Ellipse2D.Double cursorShape;
 	/**
@@ -105,7 +101,6 @@ public class DemoSurface extends JComponent {
 			public void cursorPressed(TabletEvent ev) {
 				lastX = ev.getRealX();
 				lastY = ev.getRealY();
-				drawCurrentShape();
 				lastPressure = ev.getPressure();
 				dragged = false;
 				dragging = true;
@@ -140,11 +135,6 @@ public class DemoSurface extends JComponent {
 				} catch (NoninvertibleTransformException e) {
 					e.printStackTrace();
 				}
-				// To calculate the scale independent of rotation we need Math.sqrt(m00^2 + m01^2)
-				double scaleX = at.getScaleX();
-				double shearX = at.getShearX();
-				double scale = scaleX*scaleX+shearX*shearX;
-				zoomedStroke = new BasicStroke(1/(float)Math.sqrt(scale));
 				repaint();
 			}
 			
@@ -187,21 +177,6 @@ public class DemoSurface extends JComponent {
 			}
 		});
 	}
-
-
-
-
-	protected void drawCurrentShape() {
-		g2d.setColor(erasing ? Color.WHITE : Color.BLACK);
-		Shape repaintShape;
-		synchronized (drawShape) {
-			g2d.fill(drawShape);
-			repaintShape = at.createTransformedShape(drawShape);
-			drawShape.reset();
-		}
-		repaint(repaintShape);
-	}
-
 
 
 
@@ -257,52 +232,26 @@ public class DemoSurface extends JComponent {
 	}
 
 	protected void repaint(Shape s) {
+		repaint(s,1);
+	}
+	protected void repaint(Shape s, int amount) {
 		Rectangle r = s.getBounds();
-		r.grow(1, 1);
+		r.grow(amount, amount);
 		repaint(r);
 	}
 	
 	private void fill(Shape s) {
-		Area a = new Area(atInv.createTransformedShape(s));
-		synchronized (drawShape) {
-			drawShape.add(a);
-			Area a2 = new Area(simplifyShape(drawShape));
-			drawShape.reset();
-			drawShape.add(a2);
-			drawShape.intersect(canvasArea);
-		}
-		repaint(s);
-	}
+		g2d.setColor(erasing ? Color.WHITE : Color.BLACK);
+		Shape repaintShape = atInv.createTransformedShape(s);
+		g2d.fill(repaintShape);
 
+		// To calculate the scale independent of rotation we need Math.sqrt(m00^2 + m01^2)
+		double scaleX = at.getScaleX();
+		double shearX = at.getShearX();
+		double scale = scaleX*scaleX+shearX*shearX;
 
-
-
-	private Shape simplifyShape(Shape drawShape) {
-		PathIterator it = 
-		new FlatteningPathIterator(drawShape.getPathIterator(new AffineTransform()), 2.0, 20);
-		GeneralPath gp = new GeneralPath(it.getWindingRule());
-		float coords[] = new float[6];
-		while (!it.isDone()) {
-			switch (it.currentSegment(coords)) {
-				case PathIterator.SEG_CLOSE:
-					gp.closePath();
-					break;
-				case PathIterator.SEG_CUBICTO:
-					gp.curveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
-					break;
-				case PathIterator.SEG_LINETO:
-					gp.lineTo(coords[0], coords[1]);
-					break;
-				case PathIterator.SEG_MOVETO:
-					gp.moveTo(coords[0], coords[1]);
-					break;
-				case PathIterator.SEG_QUADTO:
-					gp.quadTo(coords[0], coords[1], coords[2], coords[3]);
-					break;
-			}
-			it.next();
-		}
-		return gp;
+		
+		repaint(s,(int)(scale));
 	}
 
 
@@ -315,13 +264,10 @@ public class DemoSurface extends JComponent {
 		int width = Math.max(1,getWidth());
 		int height= Math.max(1,getHeight());
 		bi = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
-		canvasArea = new Area(new Rectangle(0,0,bi.getWidth(),bi.getHeight()));
 		g2d = bi.createGraphics();
 		g2d.setColor(Color.WHITE);
 		g2d.fillRect(0,0, width, height);
 		setSuperSmoothRenderingHints(g2d);
-		drawRoundedLine(40, 40, 100, 200, 200, 100);
-		drawRoundedLine(200, 200, 100, 250, 700, 100);
 	}
 	
 	@Override
@@ -339,19 +285,18 @@ public class DemoSurface extends JComponent {
 		AffineTransform t = gg.getTransform();
 		gg.transform(at);
 		gg.drawImage(bi, 0, 0, null);
-		gg.setColor(erasing ? Color.WHITE : Color.DARK_GRAY);
-		synchronized (drawShape) {
-			gg.fill(drawShape);
-			gg.setColor(Color.RED);
-			gg.setStroke(zoomedStroke);
-			gg.draw(drawShape);
-		}
+//		gg.setColor(erasing ? Color.WHITE : Color.DARK_GRAY);
+//		synchronized (drawShape) {
+//			gg.fill(drawShape);
+//			gg.setColor(Color.RED);
+//			gg.setStroke(zoomedStroke);
+//			gg.draw(drawShape);
+//		}
 		gg.setTransform(t);
 		gg.setStroke(BASIC_STROKE);
 		if (onSurface || dragging) {
 			gg.setColor(Color.LIGHT_GRAY);
 			gg.draw(cursorShape);
-
 		}
 	}
 

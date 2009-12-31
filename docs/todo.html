@@ -10,6 +10,8 @@
 <ul>
   <li>TabletEvent.isPopupTrigger() won't return the correct value</li>
   <li>Releasing mouse button outside of component doesn't send cursor released event</li>
+  <li><strike></strike>Overlapping windows (or multiple applets) can receive simultaneous events</strike></li>
+  <li>Listeners are not freed when a component is disposed/lost</li>
   <li><b>Max OS X</b>
    <ul>
     <li>Clicking "maximize" button creates a mouse down event but no mouse up event... button state gets screwed up</li>

@@ -175,7 +175,7 @@ public class JPenTranslationTabletManager extends ScreenTabletManager {
 				
 			};
 			
-			fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.NEW_DEVICE, ev.getTime(), buttonMask, device, x, y));
+			fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.NEW_DEVICE, ev.getTime(), buttonMask, buttonMask, device, x, y));
 		}
 		@SuppressWarnings("deprecation")
 		@Override
@@ -240,14 +240,14 @@ public class JPenTranslationTabletManager extends ScreenTabletManager {
 			if (moved) {
 				// Dragging?
 				if (pressure > 0) {
-					fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.DRAGGED, ev.getTime(), buttonMask, device, 
+					fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.DRAGGED, ev.getTime(), buttonMask, buttonMask,  device, 
 									x,y, pressure, tiltX,tiltY, sidePressure, rotation, TabletEvent.NOBUTTON));
 				} else {
-					fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.MOVED, ev.getTime(), buttonMask, device,
+					fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.MOVED, ev.getTime(), buttonMask, buttonMask,  device,
 							x,y, pressure, tiltX,tiltY, sidePressure, rotation, TabletEvent.NOBUTTON));
 				}
 			} else if (levelChanged) {
-				fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.LEVEL_CHANGED, ev.getTime(), buttonMask, device,
+				fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.LEVEL_CHANGED, ev.getTime(), buttonMask,buttonMask,  device,
 						x,y,pressure, tiltX,tiltY, sidePressure, rotation, TabletEvent.NOBUTTON));
 			}
 		}

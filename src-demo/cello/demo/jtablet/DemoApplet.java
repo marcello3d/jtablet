@@ -1,12 +1,16 @@
-package cello.jtablet.demo;
+package cello.demo.jtablet;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.NumberFormat;
 
 import javax.swing.JApplet;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -50,6 +54,38 @@ public class DemoApplet extends JApplet {
 		tabbedPane.addTab("16 Components",panel);
 
 		tabbedPane.addTab("Screen Listener",new ScreenTabletListenerLogPanel());
+		panel = new JPanel();
+		
+		JButton button = new JButton("Open in new window");
+		button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.gc();
+				
+				double freeMemory = Runtime.getRuntime().freeMemory() / 1024.0 / 1024.0;
+				double totalMemory = Runtime.getRuntime().totalMemory() / 1024.0 / 1024.0;
+				double usedMemory = totalMemory - freeMemory;
+				double maxMemory = Runtime.getRuntime().maxMemory() / 1024.0 / 1024.0;
+
+				NumberFormat nf = NumberFormat.getNumberInstance();
+				nf.setGroupingUsed(true);
+				nf.setMaximumFractionDigits(0);
+				nf.setMinimumFractionDigits(0);
+				System.out.println("memory: " + 
+					nf.format(usedMemory) + "/" +
+					nf.format(totalMemory) +  
+					"MB used (" +
+					nf.format(maxMemory) + "MB max)" 
+				);
+				JFrame frame = new JFrame("JTablet Demo");
+				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+				frame.setSize(800,550);
+				frame.setLocationByPlatform(true);
+				frame.getContentPane().add(createDrawingGroup(BorderLayout.EAST), BorderLayout.CENTER);
+				frame.setVisible(true);
+			}
+		});
+		panel.add(button);
+		tabbedPane.addTab("Misc",panel);
 		
 		
 		contentPane.add(tabbedPane,BorderLayout.CENTER);
@@ -75,7 +111,7 @@ public class DemoApplet extends JApplet {
 		final JFrame frame = new JFrame("JTablet Demo");
 		try {
 			final DemoApplet demo = new DemoApplet();
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 			frame.setSize(800,550);
 			frame.setLocationByPlatform(true);
 			frame.setContentPane(demo);

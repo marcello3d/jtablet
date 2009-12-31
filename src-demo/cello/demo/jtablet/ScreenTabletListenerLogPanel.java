@@ -21,7 +21,7 @@
  *     distribution.
  */
 
-package cello.jtablet.demo;
+package cello.demo.jtablet;
 
 import cello.jtablet.TabletManagerFactory;
 import cello.jtablet.event.TabletEvent;

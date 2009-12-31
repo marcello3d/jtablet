@@ -27,13 +27,18 @@ import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.WeakHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.SwingUtilities;
@@ -55,7 +60,13 @@ public abstract class ScreenTabletManager implements TabletManager {
 	private boolean sendNewDeviceEventOnEnter = true;
 	
 	private final List<TabletListener> screenListeners = new ArrayList<TabletListener>();
-	private final Map<Component,ComponentManager> componentManagers = new ConcurrentHashMap<Component,ComponentManager>();	
+	
+	// In order to avoid holding onto Component pointers, we only use weak references to the Component 
+	private final Map<Component,ComponentManager> componentManagers 
+			= Collections.synchronizedMap(new WeakHashMap<Component,ComponentManager>());	
+
+    private final ReferenceQueue<Component> queue = new ReferenceQueue<Component>();
+	
 	private final List<ComponentManager> showingComponents = new CopyOnWriteArrayList<ComponentManager>();
 	
 //	public void setHints(TabletManagerFactory.Hints hints) {
@@ -143,21 +154,22 @@ public abstract class ScreenTabletManager implements TabletManager {
 						pressed = false;
 						break;
 				}
-				
 				for (TabletListener l : screenListeners) {
 					ev.fireEvent(l);
-					if (ev.isConsumed()) {
-						return;
-					}
 				}
+				expungeFreedComponents();
 				for (ComponentManager cm : showingComponents) {
 					cm.fireScreenTabletEvent(ev);
-					if (ev.isConsumed()) {
-						break;
-					}
 				}
 			}
 		});
+	}
+
+	private void expungeFreedComponents() {
+		Reference<? extends Component> c;
+		while ((c = queue.poll()) != null) {
+			System.out.println("expunging ... "+c);
+		}
 	}
 
 	public void addScreenTabletListener(TabletListener l) {
@@ -187,11 +199,7 @@ public abstract class ScreenTabletManager implements TabletManager {
 		if (manager == null) {
 			return;
 		}
-		if (!manager.remove(l)) {
-			componentManagers.remove(c);
-			showingComponents.remove(manager);
-			stopIfNeeded();
-		}
+		manager.remove(l);
 	}
 
 
@@ -199,16 +207,26 @@ public abstract class ScreenTabletManager implements TabletManager {
 		private boolean cursorOver = false;
 		private boolean dragging = false;
 		private List<TabletListener> listeners = new ArrayList<TabletListener>();
-		private final Component c;
+		private final WeakReference<Component> c;
 		private TabletDevice lastDevice = null;
 		
 		public ComponentManager(Component c) {
-			this.c = c;
+			this.c = new WeakReference<Component>(c, queue);
 		}
 		
+		private boolean isWindowFocused(Component c) {
+			return SwingUtilities.getWindowAncestor(c) == 
+					KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+		}
 		
 		public void fireScreenTabletEvent(TabletEvent ev) {
-			if (!c.isShowing()) {
+			Component c = this.c.get();
+			// Has this component been garbage collected?
+			if (c == null) {
+				removeSelf();
+				return;
+			}
+			if (!isActive(c)) {
 				return;
 			}
 			
@@ -216,17 +234,13 @@ public abstract class ScreenTabletManager implements TabletManager {
 			Point point = c.getLocationOnScreen();
 			TabletEvent newEv = ev.translated(c, -point.x, -point.y);
 
-
-			switch (ev.getType()) {
-				case PRESSED:
-					dragging = cursorOver;
-					break;
-				case RELEASED:
-					dragging = false;
-					break;
+			if (ev.getType() == TabletEvent.Type.PRESSED) {
+				dragging = cursorOver;
 			}
 			// is this an enter/exit event?
-			boolean nowCursorOver = c.contains(newEv.getPoint());
+			// 		getMousePosition() returns null if the mouse cursor is not directly over the component 
+			boolean nowCursorOver = c.contains(newEv.getPoint()) && (isWindowFocused(c) || 
+																		c.getMousePosition() != null);
 			boolean activeComponent = (cursorOver && !pressed) || dragging;
 			if (cursorOver != nowCursorOver) {
 				TabletEvent enterExitEvent = newEv.withType(nowCursorOver ? 
@@ -259,6 +273,14 @@ public abstract class ScreenTabletManager implements TabletManager {
 				}
 				fireEvent(newEv);
 			}
+			if (ev.getType() == TabletEvent.Type.RELEASED) {
+				dragging = false;
+			}
+		}
+
+
+		private boolean isActive(Component c) {
+			return c.isShowing() && c.isDisplayable();
 		}
 
 		private void fireEvent(TabletEvent event) {
@@ -278,9 +300,20 @@ public abstract class ScreenTabletManager implements TabletManager {
 			listeners.remove(l);
 			
 			if (listeners.isEmpty()) {
-				return false;
+				componentManagers.remove(c.get());
+				afterRemoved();
 			}
 			return true;
+		}
+
+		private void removeSelf() {
+			listeners.clear();
+			afterRemoved();
+		}
+		private void afterRemoved() {
+			showingComponents.remove(this);
+			stopIfNeeded();
+			System.out.println("Removed ComponentManager...");
 		}
 
 		public synchronized void add(TabletListener l) {
@@ -317,6 +350,7 @@ public abstract class ScreenTabletManager implements TabletManager {
 				TabletEvent.Type.NEW_DEVICE,
 				when,
 				modifiers,
+				0,
 				device, 
 				x,y
 			));
@@ -329,6 +363,7 @@ public abstract class ScreenTabletManager implements TabletManager {
 				enteringProximity ? TabletEvent.Type.ENTERED : TabletEvent.Type.EXITED,
 				when,
 				modifiers,
+				0,
 				device,
 				x,y
 			));
@@ -347,7 +382,8 @@ public abstract class ScreenTabletManager implements TabletManager {
 	}
 	protected void generatePointEvents(long when, int keyModifiers,
 			float x, float y, float pressure, float tiltX, float tiltY,
-			float sidePressure, float rotation, int button, boolean buttonJustPressed, boolean buttonJustReleased) {
+			float sidePressure, float rotation, int rawTabletButtonMask,
+			int button, boolean buttonJustPressed, boolean buttonJustReleased) {
 				
 		int buttonMask = lastButtonMask;
 		if (buttonJustPressed || buttonJustReleased) {
@@ -379,6 +415,7 @@ public abstract class ScreenTabletManager implements TabletManager {
 					TabletEvent.Type.NEW_DEVICE,
 					when,
 					modifiers,
+					rawTabletButtonMask,
 					lastDevice, 
 					x,y
 				));
@@ -396,6 +433,7 @@ public abstract class ScreenTabletManager implements TabletManager {
 				buttonJustPressed ? TabletEvent.Type.PRESSED : TabletEvent.Type.RELEASED,
 				when,
 				modifiers,
+				rawTabletButtonMask,
 				lastDevice,
 				x,y,
 				pressure,
@@ -411,6 +449,7 @@ public abstract class ScreenTabletManager implements TabletManager {
 				buttonMask != 0 ? TabletEvent.Type.DRAGGED : TabletEvent.Type.MOVED,
 				when,
 				modifiers,
+				rawTabletButtonMask,
 				lastDevice,
 				x,y,
 				pressure,
@@ -432,6 +471,7 @@ public abstract class ScreenTabletManager implements TabletManager {
 				TabletEvent.Type.LEVEL_CHANGED,
 				when,
 				modifiers,
+				rawTabletButtonMask,
 				lastDevice,
 				x,y,
 				pressure,

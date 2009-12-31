@@ -21,28 +21,9 @@
  *     distribution.
  */
 
-package cello.jtablet.demo;
-
-import java.awt.Component;
-
-import cello.jtablet.TabletManagerFactory;
-import cello.jtablet.event.TabletEvent;
-import cello.jtablet.event.TabletFunneler;
 
 /**
- * Displays a list of events that occur on a given component.
+ * This package should be considered internal and may change at any time.
  */
-public class TabletListenerLogPanel extends AbstractLogPanel {
+package cello.jtablet.impl;
 
-	/**
-	 * Constructs a new DemoLogPanel that will listen for events on a given target {@link Component}.
-	 * @param targetComponent
-	 */
-	public TabletListenerLogPanel(Component targetComponent) {
-		TabletManagerFactory.getManager().addTabletListener(targetComponent, new TabletFunneler() {
-			protected void handleEvent(TabletEvent ev) {
-				logMessage(ev.toString());
-			}		
-		});
-	}
-}

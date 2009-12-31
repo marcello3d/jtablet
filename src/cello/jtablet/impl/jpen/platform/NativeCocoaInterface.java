@@ -241,6 +241,7 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 				tiltX, tiltY, 
 				tangentialPressure, 
 				rotation, 
+				rawTabletButtonMask,
 				button, 
 				buttonJustPressed,
 				buttonJustReleased

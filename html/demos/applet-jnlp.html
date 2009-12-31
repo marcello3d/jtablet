@@ -1,0 +1,28 @@
+<html>
+<head>
+	<title>JTablet 2.0 Demo - Java Applet via JNLP file</title>
+	<script type="text/javascript" src="deployJava.js"></script>
+</head>
+<body>
+<h1>JTablet 2.0 Demo - Java Applet via JNLP file</h1>
+<script>
+deployJava.setInstallerType('kernel');
+deployJava.runApplet(
+	{
+	    code:		'cello.demo.jtablet.DemoApplet.class'
+	    width:		710, 
+	    height:		540
+	}, 
+	{
+	// parameters
+		jnlp_href: 'jtablet2-demo.jnlp'
+	}, 
+	'1.5'
+);
+</script>
+<noscript>JavaScript is required for this demo.</noscript>
+<!--<applet width="300" height="300" code="cello.demo.jtablet.DemoApplet">
+   <param name="jnlp_href" value="jtablet2-demo.jnlp">
+</applet>
+--></body>
+</html>	

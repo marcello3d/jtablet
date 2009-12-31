@@ -33,6 +33,7 @@ import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
@@ -113,12 +114,13 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 			
 			final int capabilityMask = WintabAccess.getCapabilityMask(cursorId);
 			
-			final Support supportsButtons 	 = getSupported(capabilityMask, WintabAccess.PK_BUTTONS);
-//			final Support supportsDeviceId  	 = getSupported(capabilityMask, WintabAccess.PK_SERIAL_NUMBER);
-			final Support supportsPressure  	 = getSupported(capabilityMask, WintabAccess.PK_NORMAL_PRESSURE);
-			final Support supportsRotation 	 = (capabilityMask & WintabAccess.PK_ORIENTATION) != 0 ? Support.UNKNOWN : Support.NONE;
+			final Support supportsButtons 	   = getSupported(capabilityMask, WintabAccess.PK_BUTTONS);
+			final Support supportsDeviceId     = getSupported(capabilityMask, WintabAccess.PK_SERIAL_NUMBER);
+			final Support supportsPressure     = getSupported(capabilityMask, WintabAccess.PK_NORMAL_PRESSURE);
+			final Support supportsRotation 	   = (capabilityMask & WintabAccess.PK_ORIENTATION) != 0 ? 
+													Support.UNKNOWN : Support.NONE;
 			final Support supportsSidePressure = getSupported(capabilityMask, WintabAccess.PK_TANGENT_PRESSURE);
-			final Support supportsTiltXY 		 = getSupported(capabilityMask, WintabAccess.PK_ORIENTATION);
+			final Support supportsTiltXY 	   = getSupported(capabilityMask, WintabAccess.PK_ORIENTATION);
 
 //			System.out.println("cursor type="+ wa.getRawCursorType(cursorId));
 //			System.out.println("device name="+ wa.getDeviceName());
@@ -166,7 +168,7 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 
 				@Override
 				public Support supportsDeviceID() {
-					return null;
+					return supportsDeviceId;
 				}
 
 				@Override
@@ -204,6 +206,11 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 	private static final double PI_over_2=Math.PI/2;
 	private static final double PI_over_2_over_900=PI_over_2/900; // (/10) and (/90)
 	private static final double PI_2 = Math.PI * 2;
+	private static final int KEY_MODIFIERS = InputEvent.ALT_DOWN_MASK |
+											 InputEvent.ALT_GRAPH_DOWN_MASK | 
+											 InputEvent.SHIFT_DOWN_MASK | 
+											 InputEvent.CTRL_DOWN_MASK | 
+											 InputEvent.META_DOWN_MASK;
 	
 	private WinTabCursor cursor = null;
 	private long lastTime = 0;
@@ -251,7 +258,7 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 			}
 			
 
-			int keyModifiers = 0;
+			int keyModifiers = mouseListener.getLastModifiersEx() & KEY_MODIFIERS;
 			
 			if (newCursor) {
 				generateDeviceEvents(cursor.getDevice(), when, modifiers, true, x, y);
@@ -260,22 +267,22 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 			boolean buttonJustReleased = false;
 			boolean buttonJustPressed = false;
 			
-			int difference = buttonMask ^ lastButtonMask;
+			int difference = rawTabletButtonMask ^ lastButtonMask;
 			if (difference != 0) {
 				if ((difference & WintabAccess.BUTTON1_MASK)!=0) {
 					button = MouseEvent.BUTTON1;
-					buttonJustPressed = (buttonMask & WintabAccess.BUTTON1_MASK) != 0;
+					buttonJustPressed = (rawTabletButtonMask & WintabAccess.BUTTON1_MASK) != 0;
 				} else if ((difference & WintabAccess.BUTTON2_MASK)!=0) {
 					button = MouseEvent.BUTTON2;
-					buttonJustPressed = (buttonMask & WintabAccess.BUTTON2_MASK) != 0;
+					buttonJustPressed = (rawTabletButtonMask & WintabAccess.BUTTON2_MASK) != 0;
 				} else if ((difference & WintabAccess.BUTTON3_MASK)!=0) {
 					button = MouseEvent.BUTTON3;
-					buttonJustPressed = (buttonMask & WintabAccess.BUTTON3_MASK) != 0;
+					buttonJustPressed = (rawTabletButtonMask & WintabAccess.BUTTON3_MASK) != 0;
 				}
 				buttonJustReleased = !buttonJustPressed;
 			}
 			
-			lastButtonMask = buttonMask;
+			lastButtonMask = rawTabletButtonMask;
 			
 			generatePointEvents(
 				when, 
@@ -284,6 +291,7 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 				pressure, tiltX, 
 				tiltY, 
 				sidePressure, rotation, 
+				rawTabletButtonMask,
 				button, 
 				buttonJustPressed, 
 				buttonJustReleased
@@ -307,7 +315,7 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 	}
 
 	private int x,y,pressure,altitude,azimuth,sidePressure,rotation;
-	private int buttonMask,lastButtonMask=0;
+	private int rawTabletButtonMask,lastButtonMask=0;
 
 
 	private GraphicsEnvironment environment;
@@ -323,7 +331,7 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 		azimuth			= wa.getValue(WintabAccess.LEVEL_TYPE_TILT_AZIMUTH);
 		sidePressure	= wa.getValue(WintabAccess.LEVEL_TYPE_SIDE_PRESSURE);
 		rotation		= wa.getValue(WintabAccess.LEVEL_TYPE_ROTATION);
-		buttonMask		= wa.getButtons();
+		rawTabletButtonMask	= wa.getButtons();
 //		System.out.printf("currentTime=%10d time=%10d x=%6d y=%6d alt=%6d azi=%6d pressure=%6d\n", System.nanoTime()/1000000, deviceTime, x, y, altitude, azimuth, pressure);	
 	}
 
