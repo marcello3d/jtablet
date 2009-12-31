@@ -382,7 +382,8 @@ public abstract class ScreenTabletManager implements TabletManager {
 	}
 	protected void generatePointEvents(long when, int keyModifiers,
 			float x, float y, float pressure, float tiltX, float tiltY,
-			float sidePressure, float rotation, int rawTabletButtonMask,
+			float sidePressure, float rotation, 
+			int rawTabletButtonMask,
 			int button, boolean buttonJustPressed, boolean buttonJustReleased) {
 				
 		int buttonMask = lastButtonMask;
@@ -426,6 +427,7 @@ public abstract class ScreenTabletManager implements TabletManager {
 		}
 	
 		boolean pressed = pressure > PRESSED_THRESHOLD;
+		
 		
 		if (buttonJustReleased || buttonJustPressed) {
 			fireScreenTabletEvent(new TabletEvent(

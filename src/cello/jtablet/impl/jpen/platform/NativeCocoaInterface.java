@@ -67,12 +67,13 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 				  double eventTimeSeconds,
 				  int cocoaModifierFlags,
 				  float screenX, float screenY,
+				  boolean isDeviceDelta,
 				  float deviceDeltaX, float deviceDeltaY
 				) {
 			long when = System.currentTimeMillis();
 			int keyModifiers = getMouseEventModifiers(cocoaModifierFlags);
-			generateScrollEvent(when, keyModifiers, screenX, screenY, 
-					deviceDeltaX*DEVICE_DELTA_FACTOR, deviceDeltaY*DEVICE_DELTA_FACTOR);
+			float factor = isDeviceDelta ? DEVICE_DELTA_FACTOR : 1;
+			generateScrollEvent(when, keyModifiers, screenX, screenY, deviceDeltaX*factor, deviceDeltaY*factor);
 		}
 		@Override
 		protected void postMagnifyEvent(
@@ -181,6 +182,7 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 			return new CocoaDevice(type,Long.toHexString(uniqueId),supportsButtons,supportsDeviceId,supportsPressure,supportsRotation,supportsSidePressure, supportsTiltXY);
 		}
 		
+		private boolean leftButton, rightButton, otherButton;
 		
 		@Override
 		protected void postEvent(int type,
@@ -197,35 +199,9 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 			
 			boolean buttonJustPressed = false, buttonJustReleased = false;
 			int button = MouseEvent.NOBUTTON;
-			switch (type) {
-			    case NS_EVENT_TYPE_LeftMouseDown:
-			    	buttonJustPressed = true;
-			    	button = MouseEvent.BUTTON1;
-			    	break;       
-			    case NS_EVENT_TYPE_LeftMouseUp:
-			    	buttonJustReleased = true;
-			    	button = MouseEvent.BUTTON1;
-			    	break;
-			    case NS_EVENT_TYPE_RightMouseDown:
-			    	buttonJustPressed = true;
-			    	button = MouseEvent.BUTTON3;
-			    	break;
-			    case NS_EVENT_TYPE_RightMouseUp:
-			    	buttonJustReleased = true;
-			    	button = MouseEvent.BUTTON3;
-			    	break;
-			    case NS_EVENT_TYPE_OtherMouseDown:
-			    	buttonJustPressed = true;
-			    	button = MouseEvent.BUTTON2;
-			    	break;
-			    case NS_EVENT_TYPE_OtherMouseUp:
-			    	buttonJustReleased = true;
-			    	button = MouseEvent.BUTTON2;
-			    	break;
-			}
 
 			long when = System.currentTimeMillis();
-			int modifiers = getMouseEventModifiers(cocoaModifierFlags);
+			int keyModifiers = getMouseEventModifiers(cocoaModifierFlags);
 			
 			// tilt is in range of -1 ~ 1, where 1 is 64 degrees
 			tiltX *= TILT_TO_RADIANS;
@@ -233,9 +209,96 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 			if (tiltY != 0) {
 				tiltY = -tiltY * TILT_TO_RADIANS;
 			}
+
+			switch (type) {
+			    case NS_EVENT_TYPE_LeftMouseDown:
+			    	buttonJustPressed = true;
+			    	button = MouseEvent.BUTTON1;
+			    	leftButton = true;
+			    	break;       
+			    case NS_EVENT_TYPE_LeftMouseUp:
+			    	buttonJustReleased = true;
+			    	button = MouseEvent.BUTTON1;
+			    	leftButton = false;
+			    	break;
+			    case NS_EVENT_TYPE_RightMouseDown:
+			    	buttonJustPressed = true;
+			    	button = MouseEvent.BUTTON3;
+			    	rightButton = true;
+			    	break;
+			    case NS_EVENT_TYPE_RightMouseUp:
+			    	buttonJustReleased = true;
+			    	button = MouseEvent.BUTTON3;
+			    	rightButton = false;
+			    	break;
+			    case NS_EVENT_TYPE_OtherMouseDown:
+			    	buttonJustPressed = true;
+			    	button = MouseEvent.BUTTON2;
+			    	otherButton = true;
+			    	break;
+			    case NS_EVENT_TYPE_OtherMouseUp:
+			    	buttonJustReleased = true;
+			    	button = MouseEvent.BUTTON2;
+			    	otherButton = false;
+			    	break;
+			    case NS_EVENT_TYPE_MouseMoved:
+			    	// For some reason when you click maximize on a window, you get a MouseDown event, but no MouseUp...
+			    	// To work around that issue, if I ever get a mousemoved event when I think a button is pressed, we 
+			    	// can simply generate a fake button up event.
+			    	if (leftButton) {
+			    		generatePointEvents(
+							when, 
+							keyModifiers, 
+							x, y, 
+							pressure, 
+							tiltX, tiltY, 
+							tangentialPressure, 
+							rotation, 
+							rawTabletButtonMask,
+							MouseEvent.BUTTON1, 
+							false,
+							true
+		    			);
+			    		leftButton = false;
+			    	}
+			    	if (rightButton) {
+			    		generatePointEvents(
+							when, 
+							keyModifiers, 
+							x, y, 
+							pressure, 
+							tiltX, tiltY, 
+							tangentialPressure, 
+							rotation, 
+							rawTabletButtonMask,
+							MouseEvent.BUTTON1, 
+							false,
+							true
+		    			);
+			    		rightButton = false;
+			    	}
+			    	if (otherButton) {
+			    		generatePointEvents(
+							when, 
+							keyModifiers, 
+							x, y, 
+							pressure, 
+							tiltX, tiltY, 
+							tangentialPressure, 
+							rotation, 
+							rawTabletButtonMask,
+							MouseEvent.BUTTON1, 
+							false,
+							true
+		    			);
+			    		otherButton = false;
+			    	}
+			    	break;
+			}
+
 			generatePointEvents(
 				when, 
-				modifiers, 
+				keyModifiers, 
 				x, y, 
 				pressure, 
 				tiltX, tiltY, 

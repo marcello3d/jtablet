@@ -103,7 +103,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.scrollX = deltaX;
 		this.scrollY = deltaY;
 		this.zoomFactor = zoom;
-		this.rawTabletButtonMask = 0;
+		this.rawTabletButtonMask = rawTabletButtonMask;
 	}
 	/**
 	 * Wrap a {@link MouseEvent} as a TabletEvent.
@@ -137,6 +137,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param type
 	 * @param when
 	 * @param modifiers
+	 * @param rawTabletButtonMask 
 	 * @param device
 	 * @param x
 	 * @param y
@@ -163,6 +164,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param type
 	 * @param when
 	 * @param modifiers
+	 * @param rawTabletButtonMask 
 	 * @param device
 	 * @param x
 	 * @param y
@@ -242,7 +244,18 @@ public class TabletEvent extends MouseEvent implements Serializable {
         	sb.append(",zoom=").append(zoomFactor);
         }
         if (rawTabletButtonMask != 0) {
-        	sb.append(",rawTabletButtonMask=").append(Integer.toString(rawTabletButtonMask, 2));
+        	sb.append(",rawTabletButtons=");
+        	boolean first = true;
+        	for (int i=0; i<31; i++) {
+        		if ((rawTabletButtonMask&(1<<i)) != 0) {
+        			if (first) {
+        				first = false;
+        			} else {
+        				sb.append(',');
+        			}
+        			sb.append(Integer.toString(i+1));
+        		}
+        	}
         }
         sb.append("] on ").append(source);
         
@@ -520,5 +533,9 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 */
 	public int getRawTabletButtonMask() {
 		return rawTabletButtonMask;
+	}
+	@Override
+	public boolean isPopupTrigger() {
+		throw new UnsupportedOperationException("isPopupTrigger() is not supported by JTablet");
 	}
 }

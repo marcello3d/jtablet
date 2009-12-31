@@ -8,13 +8,13 @@
 
 <h3>Bugs</h3>
 <ul>
-  <li>TabletEvent.isPopupTrigger() won't return the correct value</li>
   <li>Releasing mouse button outside of component doesn't send cursor released event</li>
-  <li><strike></strike>Overlapping windows (or multiple applets) can receive simultaneous events</strike></li>
+  <li><strike>Overlapping windows (or multiple applets) can receive simultaneous events</strike></li>
   <li>Listeners are not freed when a component is disposed/lost</li>
   <li><b>Max OS X</b>
    <ul>
-    <li>Clicking "maximize" button creates a mouse down event but no mouse up event... button state gets screwed up</li>
+    <li><strike>Clicking "maximize" button creates a mouse down event but no mouse up event... button state gets screwed up</strike>
+      <ul><li>Workaround: reset button state when a mouse moved event is received</li></ul></li>
     <li><strike>Scroll gesture isn't smooth</strike></li>
    </ul>
   </li>
@@ -22,6 +22,8 @@
    <ul>
     <li>Keyboard modifiers are not handled correctly</li>
     <li>Mouse buttons won't match the buttons if configured differently in the control panel</li>
+    <li>Relatively positioned tablet inputs (e.g. mouse) report the wrong coordinates (maybe fallback on mouse 
+    position?)</li>
    </ul>
   </li>
 </ul>
@@ -32,6 +34,7 @@
   <li>Standard mechanism for accessing "raw" tablet buttons independent of system settings</li>
   <li>Ability to see extra tablet information (tablet name, vendor, etc)</li>
   <li>Extension/installer/versioning support</li>
+  <li>TabletEvent.isPopupTrigger() won't return the correct value</li>
 </ul>
 
 <h3>Misc</h3>
