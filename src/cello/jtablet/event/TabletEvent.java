@@ -35,8 +35,7 @@ import cello.jtablet.TabletDevice;
  * An event that indicates cursor input occurred on the given component. This class extends {@link MouseEvent} and 
  * provides a similar and extended API for accessing tablet events.
  * 
- * <p><b>Implementation Note:</b> currently keyboard modifiers (via {@link #getModifiers()}, {@link #getModifiersEx()}) 
- * and {@link #isPopupTrigger()} are not properly supported on all platforms.</p>
+ * <p><b>Implementation Note:</b> {@link #isPopupTrigger()} is unsupported.</p>
  * 
  * @author Marcello
  */
@@ -269,27 +268,37 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	public static enum Type {
 		/** button/stylus tip pressed */
 		PRESSED			( MOUSE_PRESSED ),
+		
 		/** button/stylus tip released */
 		RELEASED		( MOUSE_RELEASED ),
+		
 		/** cursor enters proximity and/or component */
 		ENTERED			( MOUSE_ENTERED ),
+		
 		/** cursor exits proximity and/or component*/
 		EXITED			( MOUSE_EXITED ),
+		
 		/** cursor moved */
 		MOVED			( MOUSE_MOVED ),
+		
 		/** cursor dragged */
 		DRAGGED			( MOUSE_DRAGGED ),
-		/** scrolled */
-		SCROLLED		( MOUSE_WHEEL ),
-		/** new device */
-		NEW_DEVICE		( ID_START ),
+		
 		/** level changed */
-		LEVEL_CHANGED	( ID_START+1 ),
-		/** gestured */
+		LEVEL_CHANGED	( ID_START ),
+		
+		/** mouse scroll/gesture */
+		SCROLLED		( ID_START+1 ),
+		
+		// gesture events...
+		
+		/** zoom gesture (Mac OS X multi-touch) */
 		ZOOMED			( ID_START+2 ),
-		/** gestured */
+		
+		/** rotate gesture (Mac OS X multi-touch) */
 		ROTATED			( ID_START+3 ),
-		/** gestured */
+		
+		/** swipe gesture (Mac OS X multi-touch) */
 		SWIPED			( ID_START+4 )
 		;
 		
@@ -335,9 +344,6 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		case MOVED:
 			listener.cursorMoved(this);
 			break;
-		case NEW_DEVICE:
-			listener.newDevice(this);
-			break;
 		case SCROLLED:
 			listener.cursorScrolled(this);
 			break;
@@ -361,21 +367,31 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	
 	/**
 	 * Returns the fractional x position of the mouse/tablet cursor (if available). 
+	 * <p>You can determine if the current device supports fractional points with 
+	 * {@link TabletDevice#getFloatSupport()} via {@link #getDevice()}.
 	 * 
 	 * @return the (possibly) fractional x coordinate
 	 */
-	public float getRealX() {
+	public float getFloatX() {
 		return x;
 	}
 	/**
 	 * Returns the fractional y position of the mouse/tablet cursor (if available).
+	 * <p>You can determine if the current device supports fractional points with 
+	 * {@link TabletDevice#getFloatSupport()} via {@link #getDevice()}.
+	 * 
 	 * @return the (possibly) fractional y coordinate
 	 */
-	public float getRealY() {
+	public float getFloatY() {
 		return y;
 	}
 
 	/**
+	 * Returns the current pressure value of the tablet pressure. 
+	 * 
+	 * <p>You can determine if the current device supports pressure with {@link TabletDevice#getPressureSupport()} via 
+	 * {@link #getDevice()}.
+	 * @see TabletDevice#getPressureSupport()
 	 * @return the pressure from 0 to 1
 	 */
 	public float getPressure() {
@@ -404,7 +420,11 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 
 	/**
-	 * Returns the current tablet side pressure. (E.g. the side wheel on a Wacom airbrush tool.) 
+	 * Returns the current tablet side pressure. (E.g. the side wheel on a Wacom airbrush tool.)  
+	 * 
+	 * <p>You can determine if the current device supports side pressure with 
+	 * {@link TabletDevice#getSidePressureSupport()} via {@link #getDevice()}.
+	 * 
 	 * @return side pressure from 0 to 1.
 	 */
 	public float getSidePressure() {
@@ -413,6 +433,11 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 
 	/**
+	 * Returns the current horizontal tilt angle in radians.
+	 * 
+	 * <p>You can determine if the current device supports side pressure with 
+	 * {@link TabletDevice#getTiltSupport()} via {@link #getDevice()}.
+	 * 
 	 * @return tilt X in radians
 	 */
 	public float getTiltX() {
@@ -421,6 +446,11 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 
 	/**
+	 * Returns the current horizontal tilt angle in radians.
+	 * 
+	 * <p>You can determine if the current device supports side pressure with 
+	 * {@link TabletDevice#getTiltSupport()} via {@link #getDevice()}.
+	 * 
 	 * @return tilt Y in radians
 	 */
 	public float getTiltY() {
@@ -430,11 +460,51 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	/**
 	 * Returns either the rotational position of a tablet, or the rotational amount for a {@link Type#ROTATED} gesture 
 	 * event.
+	 * 
+	 * <p>You can determine if the current device supports side pressure with 
+	 * {@link TabletDevice#getRotationSupport()} via {@link #getDevice()}.
+	 * 
 	 * @return rotation in radians
 	 */
 	public float getRotation() {
 		return rotation;
 	}
+
+	/**
+	 * Returns the raw tablet button mask independent of any user mapping with regards to "left" or "right." This may 
+	 * return zero for emulated devices.
+	 *  
+	 * @return a bitset given by the tablet driver
+	 */
+	public int getRawTabletButtonMask() {
+		return rawTabletButtonMask;
+	}
+
+
+	/**
+	 * Returns the amount scrolled in the x direction for a {@link Type#SCROLLED} gesture event.
+	 * @return the amount scrolled in the x direction
+	 */
+	public float getScrollX() {
+		return scrollX;
+	}
+
+	/**
+	 * Returns the amount scrolled in the y direction for a {@link Type#SCROLLED} gesture event.
+	 * @return the amount scrolled in the y direction
+	 */
+	public float getScrollY() {
+		return scrollY;
+	}
+
+	/**
+	 * Returns the magnification amount for a {@link Type#ZOOMED} gesture event. 
+	 * @return the zoom
+	 */
+	public float getZoomFactor() {
+		return zoomFactor;
+	}
+	
 
 	/**
 	 * Returns a copy of this {@linkplain TabletEvent} with the given component and coordinates.
@@ -500,42 +570,4 @@ public class TabletEvent extends MouseEvent implements Serializable {
 				getButton(), rawTabletButtonMask);
 	}
 
-
-	/**
-	 * Returns the amount scrolled in the x direction for a {@link Type#SCROLLED} gesture event.
-	 * @return the amount scrolled in the x direction
-	 */
-	public float getScrollX() {
-		return scrollX;
-	}
-
-	/**
-	 * Returns the amount scrolled in the y direction for a {@link Type#SCROLLED} gesture event.
-	 * @return the amount scrolled in the y direction
-	 */
-	public float getScrollY() {
-		return scrollY;
-	}
-
-	/**
-	 * Returns the magnification amount for a {@link Type#ZOOMED} gesture event. 
-	 * @return the zoom
-	 */
-	public float getZoomFactor() {
-		return zoomFactor;
-	}
-	
-	/**
-	 * Returns the raw tablet button mask independent of any user mapping with regards to "left" or "right." This may 
-	 * return zero for emulated devices.
-	 *  
-	 * @return a bitset given by the tablet driver
-	 */
-	public int getRawTabletButtonMask() {
-		return rawTabletButtonMask;
-	}
-	@Override
-	public boolean isPopupTrigger() {
-		throw new UnsupportedOperationException("isPopupTrigger() is not supported by JTablet");
-	}
 }

@@ -14,7 +14,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import cello.jtablet.TabletDevice;
-import cello.jtablet.TabletManagerFactory;
+import cello.jtablet.TabletManager;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletFunneler;
@@ -84,7 +84,7 @@ public class DemoInfoPanel extends JPanel {
 			gbc.gridy++;
 		}
 
-		TabletManagerFactory.getManager().addTabletListener(targetComponent, new TabletFunneler() {
+		TabletManager.getDefaultManager().addTabletListener(targetComponent, new TabletFunneler() {
 			private int eventCount;
 			private long lastTime = System.currentTimeMillis();
 			protected void handleEvent(TabletEvent ev) {
@@ -96,25 +96,25 @@ public class DemoInfoPanel extends JPanel {
 					eventCount = 0;
 				}
 				TabletDevice device = ev.getDevice();
-				setText(typeValue, 			device.getType().toString(), 			Support.SUPPORTED);
-				setText(xValue,				nf.format(ev.getRealX()),				Support.SUPPORTED);
-				setText(yValue,				nf.format(ev.getRealY()),				Support.SUPPORTED);
-				setText(pressureValue,		nf.format(ev.getPressure()),			device.supportsPressure());
-				setText(sidePressureValue,	nf.format(ev.getSidePressure()),		device.supportsSidePressure());
-				setText(tiltXValue,			nf.format(Math.toDegrees(ev.getTiltX()))+"º",		device.supportsTilt());
-				setText(tiltYValue,			nf.format(Math.toDegrees(ev.getTiltY()))+"º",		device.supportsTilt());
-				setText(rotationValue,		nf.format(Math.toDegrees(ev.getRotation()))+"º",		device.supportsRotation());
+				setText(typeValue, 			device.getType().toString(), 			Support.YES);
+				setText(xValue,				nf.format(ev.getFloatX()),				Support.YES);
+				setText(yValue,				nf.format(ev.getFloatY()),				Support.YES);
+				setText(pressureValue,		nf.format(ev.getPressure()),			device.getPressureSupport());
+				setText(sidePressureValue,	nf.format(ev.getSidePressure()),		device.getSidePressureSupport());
+				setText(tiltXValue,			nf.format(Math.toDegrees(ev.getTiltX()))+"º",		device.getTiltSupport());
+				setText(tiltYValue,			nf.format(Math.toDegrees(ev.getTiltY()))+"º",		device.getTiltSupport());
+				setText(rotationValue,		nf.format(Math.toDegrees(ev.getRotation()))+"º",		device.getRotationSupport());
 			}
 			private void setText(JLabel label, String value, TabletDevice.Support supported) {
 				if (supported != null) {
 					JLabel prefix = labelPrefixes.get(label);
 					switch (supported) {
-					case NONE:
+					case NO:
 						label.setEnabled(false);
 						prefix.setEnabled(false);
 						label.setForeground(new Color(0x800000));
 						break;
-					case SUPPORTED:
+					case YES:
 						label.setEnabled(true);
 						prefix.setEnabled(true);
 						label.setForeground(new Color(0x008000));

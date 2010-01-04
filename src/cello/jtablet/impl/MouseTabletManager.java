@@ -32,7 +32,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.util.concurrent.ConcurrentHashMap;
 
-import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
@@ -41,7 +40,7 @@ import cello.jtablet.event.TabletEvent.Type;
 /**
  * @author marcello
  */
-public class MouseTabletManager implements TabletManager {
+public class MouseTabletManager extends TabletManager {
 
 	private boolean enabled = true;
 	private int lastModifiersEx;
@@ -147,7 +146,7 @@ public class MouseTabletManager implements TabletManager {
 					type = null;
 					break;
 			}
-			fireEvent(new TabletEvent(e,type,TabletDevice.SYSTEM_MOUSE));
+			fireEvent(new TabletEvent(e,type,SystemDevice.INSTANCE));
 		}
 
 		private void fireEvent(TabletEvent ev) {
@@ -196,7 +195,7 @@ public class MouseTabletManager implements TabletManager {
 				TabletEvent.Type.SCROLLED,
 				e.getWhen(),
 				e.getModifiersEx(),
-				TabletDevice.SYSTEM_MOUSE,
+				SystemDevice.INSTANCE,
 				e.getX(),
 				e.getY(),
 				0,

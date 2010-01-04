@@ -230,7 +230,9 @@
         version="true"
         use="true"
 		classpathref="jtablet.classpath"
-        windowtitle="JTablet 2.0 API">
+		Overview="src/overview.html"
+        windowtitle="JTablet 2.0 API"
+		Header="JTablet 2.0 API">
 
 		 <packageset dir="${src}" defaultexcludes="yes">
 		   <include name="cello/jtablet/**"/>
@@ -291,7 +293,7 @@
         </manifest>
 	</jar>
     <jar 
-		jarfile="html/demos/jtablet2-demo-with-ext.jar"
+		jarfile="html/demos/jtablet2-demo-ext.jar"
 		includes="cello/**"
     	level="9"
     	basedir="${build.demo}">

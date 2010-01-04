@@ -25,15 +25,15 @@ package cello.tablet;
 
 import java.util.LinkedList;
 
-import cello.jtablet.TabletManagerFactory;
-import cello.jtablet.event.TabletAdapter;
+import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletFunneler;
 import cello.jtablet.event.TabletListener;
 
 /**
  * This class is provided as a compatibility wrapper for old 0.9.x-based JTablet applications/applets.
  * 
- * @see cello.jtablet.TabletManagerFactory for the new implementation
+ * @see cello.jtablet.TabletManager for the new implementation
  * 
  * @version 0.9.x 12/18/2009
  * @author Marcello Bastea-Forte
@@ -68,46 +68,22 @@ public class JTablet {
     @Deprecated
     public JTablet(boolean fullControl) throws JTabletException {
 		System.out.println("JTablet loaded");
-    	TabletManagerFactory.getManager().addScreenTabletListener(tabletListener);
+    	TabletManager.getDefaultManager().addScreenTabletListener(tabletListener);
     }
 
 
     /**
      * 
      */
-    private final TabletListener tabletListener = new TabletAdapter() {
-		public void cursorDragged(TabletEvent ev) {
-			handle(ev);
+    private final TabletListener tabletListener = new TabletFunneler() {	
+		@Override
+		protected void handleEvent(TabletEvent ev) {
+			if (pollModeLatest) {
+	    		cursorQueue.clear();
+	    	}
+	    	cursorQueue.add(new JTabletCursor(ev));
 		}
-		public void cursorMoved(TabletEvent ev) {
-			handle(ev);
-		}
-		public void cursorPressed(TabletEvent ev) {
-			handle(ev);
-		}
-		public void cursorReleased(TabletEvent ev) {
-			handle(ev);
-		}
-		public void levelChanged(TabletEvent ev) {
-			handle(ev);
-		}
-		public void newDevice(TabletEvent ev) {
-			handle(ev);
-		}
-		public void cursorEntered(TabletEvent ev) {
-			handle(ev);
-		}
-		public void cursorExited(TabletEvent ev) {
-			handle(ev);
-		}
-    }; 
-
-    protected void handle(TabletEvent ev) {
-    	if (pollModeLatest) {
-    		cursorQueue.clear();
-    	}
-    	cursorQueue.add(new JTabletCursor(ev));
-	}
+    };
 
     /**
      * Checks if JTablet has a cursor. There will be no cursor until poll is
@@ -168,7 +144,7 @@ public class JTablet {
      */
     @Deprecated
     public void close() {
-    	TabletManagerFactory.getManager().removeScreenTabletListener(tabletListener);
+    	TabletManager.getDefaultManager().removeScreenTabletListener(tabletListener);
     }
 
     /**

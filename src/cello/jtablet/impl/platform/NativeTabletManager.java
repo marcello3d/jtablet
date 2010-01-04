@@ -23,14 +23,13 @@
 
 package cello.jtablet.impl.platform;
 
-import cello.jtablet.TabletManager;
 
 /**
  * This interface specifies cursor devices that load native code
  * 
  * @author marcello
  */
-public interface NativeTabletManager extends TabletManager {
+public interface NativeTabletManager {
 
 	/**
 	 * Loads the actual device

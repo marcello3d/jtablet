@@ -23,7 +23,7 @@
 
 package cello.demo.jtablet;
 
-import cello.jtablet.TabletManagerFactory;
+import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletFunneler;
 
@@ -36,7 +36,7 @@ public class ScreenTabletListenerLogPanel extends AbstractLogPanel {
 	 * Constructs a new DemoLogPanel that will listen for screen events.
 	 */
 	public ScreenTabletListenerLogPanel() {
-		TabletManagerFactory.getManager().addScreenTabletListener(new TabletFunneler() {
+		TabletManager.getDefaultManager().addScreenTabletListener(new TabletFunneler() {
 			protected void handleEvent(TabletEvent ev) {
 				logMessage(ev.toString());
 			}		

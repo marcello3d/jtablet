@@ -44,6 +44,7 @@ import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
 import cello.jtablet.event.TabletListener;
+import cello.jtablet.impl.AbstractTabletDevice;
 import cello.jtablet.impl.MouseTabletManager;
 import cello.jtablet.impl.platform.NativeException;
 import cello.jtablet.impl.platform.NativeScreenTabletManager;
@@ -98,7 +99,7 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 			if (capabilityMask == 0) {
 				return Support.UNKNOWN;
 			}
-			return (capabilityMask & capability) != 0 ? Support.SUPPORTED : Support.NONE;
+			return (capabilityMask & capability) != 0 ? Support.YES : Support.NO;
 		}
 		
 		public WinTabCursor(final int cursorId, final int physicalId, String identifier) {
@@ -112,29 +113,24 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 			sidePressureRange	= getLevelRangeObject(WintabAccess.LEVEL_TYPE_SIDE_PRESSURE);
 			rotationRange 		= getLevelRangeObject(WintabAccess.LEVEL_TYPE_ROTATION);
 			
-			final int capabilityMask = WintabAccess.getCapabilityMask(cursorId);
+			int capabilityMask = WintabAccess.getCapabilityMask(cursorId);
 			
-			final Support supportsButtons 	   = getSupported(capabilityMask, WintabAccess.PK_BUTTONS);
-			final Support supportsDeviceId     = getSupported(capabilityMask, WintabAccess.PK_SERIAL_NUMBER);
-			final Support supportsPressure     = getSupported(capabilityMask, WintabAccess.PK_NORMAL_PRESSURE);
-			final Support supportsRotation 	   = (capabilityMask & WintabAccess.PK_ORIENTATION) != 0 ? 
-													Support.UNKNOWN : Support.NONE;
-			final Support supportsSidePressure = getSupported(capabilityMask, WintabAccess.PK_TANGENT_PRESSURE);
-			final Support supportsTiltXY 	   = getSupported(capabilityMask, WintabAccess.PK_ORIENTATION);
+			Support floatSupport 		= Support.YES;
+			Support buttonSupport 	 	= getSupported(capabilityMask, WintabAccess.PK_BUTTONS);
+			Support uniqueIdSupport     = getSupported(capabilityMask, WintabAccess.PK_SERIAL_NUMBER);
+			Support pressureSupport     = getSupported(capabilityMask, WintabAccess.PK_NORMAL_PRESSURE);
+			Support rotationSupport 	= (capabilityMask & WintabAccess.PK_ORIENTATION) != 0 ? 
+													Support.UNKNOWN : Support.NO;
+			Support sidePressureSupport	= getSupported(capabilityMask, WintabAccess.PK_TANGENT_PRESSURE);
+			Support tiltSupport 	   	= getSupported(capabilityMask, WintabAccess.PK_ORIENTATION);
 
-//			System.out.println("cursor type="+ wa.getRawCursorType(cursorId));
-//			System.out.println("device name="+ wa.getDeviceName());
-//			System.out.println("device caps="+ wa.getDeviceHardwareCapabilities());
-//			System.out.println("context rate="+ wa.getPacketRate());
-//			System.out.println("buttonCount="+WintabAccess.getButtonCount(cursorId));
-//			System.out.println("buttons="+Arrays.toString(WintabAccess.getButtonNames(cursorId)));
-			final TabletDevice.Type type;
+			TabletDevice.Type type;
 			switch (WintabAccess.getCursorType(cursorId)) {
 				case PENERASER:
 					type = Type.ERASER;
 					break;
 				case PENTIP:
-					type = Type.STYLUS_TIP;
+					type = Type.STYLUS;
 					break;
 				case PUCK:
 					type = Type.MOUSE;
@@ -147,57 +143,36 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 					
 			final String name = WintabAccess.getCursorName(cursorId);
 			
-			device = new TabletDevice() {
-				@Override
-				public Type getType() {
-					return type;
-				}
-				@Override
-				public String getName() {
-					return name;
-				}
-				@Override
-				public String getPhysicalId() {
-					return Integer.toHexString(cursorType)+"-"+Long.toHexString(physicalId);
-				}
-
-				@Override
-				public Support supportsButtons() {
-					return supportsButtons;
-				}
-
-				@Override
-				public Support supportsDeviceID() {
-					return supportsDeviceId;
-				}
-
-				@Override
-				public Support supportsPressure() {
-					return supportsPressure;
-				}
-
-				@Override
-				public Support supportsRotation() {
-					// TODO Auto-generated method stub
-					return supportsRotation;
-				}
-
-				@Override
-				public Support supportsSidePressure() {
-					// TODO Auto-generated method stub
-					return supportsSidePressure;
-				}
-
-				@Override
-				public Support supportsTilt() {
-					// TODO Auto-generated method stub
-					return supportsTiltXY;
-				}
-			};
+			device = new WinTabDevice(
+				type, 
+				name, 
+				Integer.toHexString(cursorType)+"-"+Long.toHexString(physicalId),
+				floatSupport,
+				buttonSupport,
+				uniqueIdSupport,
+				pressureSupport,
+				rotationSupport,
+				sidePressureSupport,
+				tiltSupport	
+			);
+			
 		}
 		public TabletDevice getDevice() {
 			return device;
 		}
+	}
+	
+	private class WinTabDevice extends AbstractTabletDevice {
+
+		protected WinTabDevice(Type type, String name, String uniqueId,
+				Support floatSupport, Support buttonSupport,
+				Support uniqueIdSupport, Support pressureSupport,
+				Support rotationSupport, Support sidePressureSupport,
+				Support tiltSupport) {
+			super(type, name, uniqueId, floatSupport, buttonSupport, uniqueIdSupport,
+					pressureSupport, rotationSupport, sidePressureSupport, tiltSupport);
+		}
+		
 	}
 	
 	private Map<String,WinTabCursor> cursors = new HashMap<String,WinTabCursor>();

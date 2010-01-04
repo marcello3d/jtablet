@@ -28,18 +28,11 @@ import java.io.Serializable;
 import cello.jtablet.event.TabletEvent;
 
 /**
- * Represents a cursor from a physical input device. All {@link TabletEvent}s will reference a 
- * {@linkplain TabletDevice}.
+ * Represents a physical input device referenced in {@link TabletEvent}s.
  * 
  * @author marcello
  */
 public abstract class TabletDevice implements Serializable {
-
-
-	/**
-	 * Default system mouse input device
-	 */
-	public static final TabletDevice SYSTEM_MOUSE = new SystemDevice();
 
 	protected TabletDevice() {}
 	
@@ -50,7 +43,7 @@ public abstract class TabletDevice implements Serializable {
 		/** a mouse-style device */
 		MOUSE,
 		/** the tip of a stylus */
-		STYLUS_TIP,
+		STYLUS,
 		/** the eraser end of a stylus */
 		ERASER,
 		/** unknown input device */
@@ -59,47 +52,13 @@ public abstract class TabletDevice implements Serializable {
 	
 
 	/**
-	 * A mouse-like tablet device
-	 */
-	private static class SystemDevice extends TabletDevice {
-		@Override
-		public Type getType() {
-			return Type.MOUSE;
-		}
-		@Override 
-		public Support supportsPressure() {
-			return Support.NONE;
-		}
-		@Override
-		public Support supportsTilt() {
-			return Support.NONE;
-		}
-		@Override
-		public Support supportsSidePressure() {
-			return Support.NONE;
-		}
-		@Override
-		public Support supportsRotation() {
-			return Support.NONE;
-		}
-		@Override
-		public Support supportsButtons() {
-			return Support.SUPPORTED;
-		}
-		@Override
-		public Support supportsDeviceID() {
-			return Support.NONE;
-		}
-	}
-	
-	/**
-	 * Support result returned by various supports*() methods
+	 * Support result returned by various getSupport() methods
 	 */
 	public static enum Support {
 		/**
 		 * This feature is definitely not supported.
 		 */
-		NONE,
+		NO,
 		/**
 		 * It is unknown whether or not this feature is supported.
 		 */
@@ -107,7 +66,7 @@ public abstract class TabletDevice implements Serializable {
 		/**
 		 * This feature is definitely supported.
 		 */
-		SUPPORTED
+		YES
 	};
 
 	/**
@@ -115,42 +74,77 @@ public abstract class TabletDevice implements Serializable {
 	 * @return the device's type
 	 */
 	public abstract Type getType();
+
+	/**
+	 * Returns whether this device supports floating point coordinates.
+	 * 
+	 * @see TabletEvent#getFloatX()
+	 * @see TabletEvent#getFloatY()
+	 * @see TabletEvent#getPoint2D()
+	 * @return floating point support
+	 */
+	public Support getFloatSupport() {
+		return Support.UNKNOWN;
+	}
 	
 	/**
-	 * Returns button support of this device.
+	 * Returns whether this device supports buttons.
+	 * 
+	 * @see TabletEvent#getRawTabletButtonMask()
+	 * @see TabletEvent#getModifiersEx()
 	 * @return button support
 	 */
-	public abstract Support supportsButtons();
+	public Support getButtonSupport() {
+		return Support.UNKNOWN;
+	}
 	
 	/**
-	 * Returns device ID support of this device.
-	 * @return device ID support
+	 * Returns whether this device supports unique IDs.
+	 * @see TabletDevice#getUniqueIdSupport()
+	 * @return unique ID support
 	 */
-	public abstract Support supportsDeviceID();
+	public Support getUniqueIdSupport() {
+		return Support.UNKNOWN;
+	}
 	
 	/**
-	 * Returns pressure sensitivity support of this device.
+	 * Returns whether this device supports pressure sensitivity.
+	 * @see TabletEvent#getPressure()
 	 * @return pressure sensitivity support
 	 */
-	public abstract Support supportsPressure();
+	public Support getPressureSupport() {
+		return Support.UNKNOWN;
+	}
 	
 	/**
-	 * Returns tilt orientation support of this device.
+	 * Returns whether this device supports tilt orientation.
+	 * @see TabletEvent#getTiltX()
+	 * @see TabletEvent#getTiltY()
 	 * @return tilt (from the vertical axis) support
 	 */
-	public abstract Support supportsTilt();
+	public Support getTiltSupport() {
+		return Support.UNKNOWN;
+	}
 	
 	/**
-	 * Returns side pressure support of this device. (E.g. the side wheel on a Wacom airbrush tool.)
+	 * Returns whether this device supports side pressure. (E.g. the side wheel on a Wacom airbrush tool.)
+	 * @see TabletEvent#getSidePressure()
 	 * @return side pressure support
 	 */
-	public abstract Support supportsSidePressure();
+	public Support getSidePressureSupport() {
+		return Support.UNKNOWN;
+	}
 	
 	/**
-	 * Returns axis rotation support of this device.
+	 * Returns whether this device supports axis rotation.
+	 * 
+	 * @see TabletEvent#getRotation()
+	 * 
 	 * @return rotation (around the axis of the stylus) support 
 	 */
-	public abstract Support supportsRotation();
+	public Support getRotationSupport() {
+		return Support.UNKNOWN;
+	}
 	
 	/**
 	 * Returns the device's name
@@ -159,14 +153,18 @@ public abstract class TabletDevice implements Serializable {
 	public String getName() {
 		return getType().name();
 	}
+	
 	/**
-	 * Returns the physical device ID. This can be used to uniquely identify a physical stylus on tablets that support 
-	 * it, otherwise a generic id will be returned.
+	 * Returns the unique physical device ID. This can be used to uniquely identify a physical stylus on tablets that 
+	 * support it (see {@link TabletDevice#getUniqueIdSupport()}, otherwise a non-unique id may be returned.
 	 * 
-	 * @return the device ID
+	 * <p>When supported, this id for a pen will be consistent across sessions, and even tablets/computers. 
+	 * 
+	 * @see TabletDevice#getUniqueIdSupport()
+	 * @return the unique id
 	 */
-	public String getPhysicalId() {
-		return "["+getName()+"]";
+	public String getUniqueId() {
+		return getName();
 	}
 	
 	@Override

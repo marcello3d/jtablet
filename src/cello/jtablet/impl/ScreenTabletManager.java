@@ -54,10 +54,9 @@ import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
  * @author marcello
  *
  */
-public abstract class ScreenTabletManager implements TabletManager {	
+public abstract class ScreenTabletManager extends TabletManager {	
 	
 	private boolean enableEnterExitEventsOnDrag = true;
-	private boolean sendNewDeviceEventOnEnter = true;
 	
 	private final List<TabletListener> screenListeners = new ArrayList<TabletListener>();
 	
@@ -112,8 +111,6 @@ public abstract class ScreenTabletManager implements TabletManager {
 		}
 	}
 	protected final static ScreenComponent SCREEN_COMPONENT = new ScreenComponent();
-	protected static final TabletDevice SYSTEM_MOUSE = TabletDevice.SYSTEM_MOUSE;
-	
 	private boolean started = false;
 	
 	protected abstract void start();
@@ -208,8 +205,7 @@ public abstract class ScreenTabletManager implements TabletManager {
 		private boolean dragging = false;
 		private List<TabletListener> listeners = new ArrayList<TabletListener>();
 		private final WeakReference<Component> c;
-		private TabletDevice lastDevice = null;
-		
+
 		public ComponentManager(Component c) {
 			this.c = new WeakReference<Component>(c, queue);
 		}
@@ -248,10 +244,6 @@ public abstract class ScreenTabletManager implements TabletManager {
 																TabletEvent.Type.EXITED);
 				if (nowCursorOver) {
 					// entering proximity with new device?
-					if (sendNewDeviceEventOnEnter && (lastDevice == null || !lastDevice.equals(ev.getDevice()))) {
-						fireEvent(newEv.withType(TabletEvent.Type.NEW_DEVICE));
-						lastDevice = ev.getDevice();
-					}
 					// Send two events, one with the enter event, the second with the mouse move
 					if (enableEnterExitEventsOnDrag || !pressed) {
 						fireEvent(enterExitEvent);
@@ -268,9 +260,6 @@ public abstract class ScreenTabletManager implements TabletManager {
 
 				cursorOver = nowCursorOver;
 			} else if (activeComponent) {
-				if (sendNewDeviceEventOnEnter && ev.getType() == TabletEvent.Type.NEW_DEVICE) {
-					lastDevice = ev.getDevice();
-				}
 				fireEvent(newEv);
 			}
 			if (ev.getType() == TabletEvent.Type.RELEASED) {
@@ -284,10 +273,11 @@ public abstract class ScreenTabletManager implements TabletManager {
 		}
 
 		private void fireEvent(TabletEvent event) {
-			for (TabletListener l : listeners) {
-				event.fireEvent(l);
-				if (event.isConsumed()) {
-					break;
+			Component c = this.c.get();
+			if (c != null) {
+//				c.dispatchEvent(event);
+				for (TabletListener l : listeners) {
+					event.fireEvent(l);
 				}
 			}
 		}
@@ -323,7 +313,7 @@ public abstract class ScreenTabletManager implements TabletManager {
 	}
 
 
-	private TabletDevice lastDevice = SYSTEM_MOUSE;
+	private TabletDevice lastDevice = SystemDevice.INSTANCE;
 	private boolean lastProximity = false;
 	private boolean lastPressed = false;
 	private float lastX = 0;
@@ -344,19 +334,6 @@ public abstract class ScreenTabletManager implements TabletManager {
 				
 		int modifiers = lastButtonMask | keyModifiers; 
 	
-		if (enteringProximity && !lastDevice.equals(device)) {
-			fireScreenTabletEvent(new TabletEvent(
-				SCREEN_COMPONENT,
-				TabletEvent.Type.NEW_DEVICE,
-				when,
-				modifiers,
-				0,
-				device, 
-				x,y
-			));
-			lastDevice = device;
-		}
-		
 		if (lastProximity != enteringProximity) {
 			fireScreenTabletEvent(new TabletEvent(
 				SCREEN_COMPONENT,
@@ -409,17 +386,8 @@ public abstract class ScreenTabletManager implements TabletManager {
 		
 		int modifiers = buttonMask | keyModifiers; 
 		
-		if (!lastProximity && !lastDevice.equals(SYSTEM_MOUSE) && (x!=lastX || y!=lastY)) {			
-			lastDevice = SYSTEM_MOUSE;
-			fireScreenTabletEvent(new TabletEvent(
-					SCREEN_COMPONENT,
-					TabletEvent.Type.NEW_DEVICE,
-					when,
-					modifiers,
-					rawTabletButtonMask,
-					lastDevice, 
-					x,y
-				));
+		if (!lastProximity && !lastDevice.equals(SystemDevice.INSTANCE) && (x!=lastX || y!=lastY)) {			
+			lastDevice = SystemDevice.INSTANCE;
 		}
 		
 		if (lastDevice.getType()==Type.MOUSE && (buttonMask & MouseEvent.BUTTON1_DOWN_MASK) != 0) {

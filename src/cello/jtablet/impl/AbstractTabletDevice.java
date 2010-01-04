@@ -12,68 +12,79 @@ import cello.jtablet.TabletDevice;
  */
 public abstract class AbstractTabletDevice extends TabletDevice {
 	private final Type type;
+	private final String name;
 	private final String uniqueId;
-	private final Support supportsButtons;
-	private final Support supportsDeviceId;
-	private final Support supportsPressure;
-	private final Support supportsRotation;
-	private final Support supportsSidePressure;
-	private final Support supportsTiltXY;
+	private final Support buttonSupport;
+	private final Support uniqueIdSupport;
+	private final Support pressureSupport;
+	private final Support rotationSupport;
+	private final Support sidePressureSupport;
+	private final Support tiltSupport;
+	private final Support floatSupport;
 	
 	
 
-	protected AbstractTabletDevice(Type type, String uniqueId,
-			Support supportsButtons, Support supportsDeviceId,
-			Support supportsPressure, Support supportsRotation,
-			Support supportsSidePressure, Support supportsTiltXY) {
+	protected AbstractTabletDevice(Type type, String name,
+			String uniqueId, Support floatSupport,
+			Support buttonSupport, Support uniqueIdSupport,
+			Support pressureSupport, Support rotationSupport,
+			Support sidePressureSupport, Support tiltSupport) {
 		super();
 		this.type = type;
+		this.name = name;
 		this.uniqueId = uniqueId;
-		this.supportsButtons = supportsButtons;
-		this.supportsDeviceId = supportsDeviceId;
-		this.supportsPressure = supportsPressure;
-		this.supportsRotation = supportsRotation;
-		this.supportsSidePressure = supportsSidePressure;
-		this.supportsTiltXY = supportsTiltXY;
+		this.floatSupport = floatSupport;
+		this.buttonSupport = buttonSupport;
+		this.uniqueIdSupport = uniqueIdSupport;
+		this.pressureSupport = pressureSupport;
+		this.rotationSupport = rotationSupport;
+		this.sidePressureSupport = sidePressureSupport;
+		this.tiltSupport = tiltSupport;
 	}
 	@Override
 	public String toString() {
-		return getClass().getSimpleName()+"["+getType()+"-"+getPhysicalId()+"]";
+		return getClass().getSimpleName()+"["+getType()+"-"+getUniqueId()+"]";
+	}
+	@Override
+	public String getName() {
+		return name != null ? name : super.getName();
 	}
 	@Override
 	public Type getType() {
 		return type;
 	}
 	@Override
-	public String getPhysicalId() {
+	public String getUniqueId() {
 		return uniqueId;
 	}
 
 	@Override
-	public Support supportsButtons() {
-		return supportsButtons;
+	public Support getFloatSupport() {
+		return floatSupport;
 	}
 	@Override
-	public Support supportsDeviceID() {
-		return supportsDeviceId;
+	public Support getButtonSupport() {
+		return buttonSupport;
 	}
 	@Override
-	public Support supportsPressure() {
-		return supportsPressure;
+	public Support getUniqueIdSupport() {
+		return uniqueIdSupport;
 	}
 	@Override
-	public Support supportsRotation() {
-		return supportsRotation;
+	public Support getPressureSupport() {
+		return pressureSupport;
 	}
-
 	@Override
-	public Support supportsSidePressure() {
-		return supportsSidePressure;
+	public Support getRotationSupport() {
+		return rotationSupport;
 	}
-
 	@Override
-	public Support supportsTilt() {
-		return supportsTiltXY;
+	public Support getSidePressureSupport() {
+		return sidePressureSupport;
+	}
+	@Override
+	public Support getTiltSupport() {
+		return tiltSupport;
 	}
 	
 }

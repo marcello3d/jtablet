@@ -28,6 +28,7 @@ import java.awt.event.MouseAdapter;
 /**
  * This class is a convenience class that implements {@link TabletListener} as empty methods. You can use it to only
  * implement methods you care about.
+ * 
  * @see MouseAdapter 
  * @author marcello
  */
@@ -39,7 +40,6 @@ public abstract class TabletAdapter implements TabletListener {
 	public void cursorMoved(TabletEvent ev) {}
 	public void cursorDragged(TabletEvent ev) {}
 	public void levelChanged(TabletEvent ev) {}
-	public void newDevice(TabletEvent ev) {}
 	public void cursorGestured(TabletEvent ev) {}
 	public void cursorScrolled(TabletEvent ev) {}
 }

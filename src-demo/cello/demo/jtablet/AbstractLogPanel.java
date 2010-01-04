@@ -6,10 +6,18 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 
+/**
+ * A simple log display component.
+ * 
+ * @author marcello
+ */
 public class AbstractLogPanel extends JScrollPane {
 
 	protected JTextArea logArea = new JTextArea();
 
+	/**
+	 * Constructs a new abstract log panel
+	 */
 	public AbstractLogPanel() {
 		setViewportView(logArea);
 		logArea.setEditable(false);

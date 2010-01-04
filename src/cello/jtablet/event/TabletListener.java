@@ -53,12 +53,6 @@ import cello.jtablet.TabletManager;
 public interface TabletListener {
 	
 	/**
-	 * Invoked when the {@link TabletDevice} changes
-	 * @param event
-	 */
-	public void newDevice(TabletEvent event);
-	
-	/**
 	 * Invoked when a button is pressed
 	 * @see MouseListener#mousePressed(MouseEvent)
 	 * @param event 

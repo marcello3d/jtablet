@@ -27,15 +27,72 @@ import java.awt.Component;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
+import cello.jtablet.event.TabletAdapter;
+import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
+import cello.jtablet.impl.jpen.JPenTabletManager;
 
 /**
  * Provides methods for setting up listeners to receive events on {@link Component}s.
  * 
+ * Example usage:
+ * <pre>
+ *  // Get tablet manager
+ *  {@link TabletManager} manager = {@link TabletManager}.{@link TabletManager#getDefaultManager()};
+ *  
+ *  // Add tablet listener to component
+ *  manager.{@link TabletManager#addTabletListener(Component, TabletListener) addTabletListener}(component, new {@link TabletAdapter}() {
+ *      public void {@link TabletListener#cursorDragged(TabletEvent) cursorDragged}({@link TabletEvent} event) {
+ *          // Print out tablet drag events as they occur to system output
+ *          System.out.println("dragged " + event);
+ *      }
+ *  });
+ * </pre>
+ * 
  * @see TabletListener 
  * @author marcello
  */
-public interface TabletManager {
+public abstract class TabletManager {
+	
+	protected TabletManager() {
+		
+	}
+	
+	private static TabletManager tabletManager = getManager(Hints.DEFAULTS);
+	
+	/**
+	 * Returns a shared tablet manager with the default settings.
+	 * @return tablet manager 
+	 */
+	public static TabletManager getDefaultManager() {
+		return tabletManager;
+	}
+	/**
+	 * Creates a new tablet manager with the specified hints. 
+	 * 
+	 * @param hints a map of hints to 
+	 * @return tabletmanager 
+	 */
+	private static TabletManager getManager(Hints hints) {
+//		Class<? extends TabletManager> tabletManagerClass = hints.getManagerClass();
+		return new JPenTabletManager();
+	}
+	
+	/**
+	 * Used to specify hints for manager creation (not currently available).
+	 * 
+	 * @author marcello
+	 */
+	private static class Hints {
+		private static final Hints DEFAULTS = new Hints();
+		
+//		private Class<? extends TabletManager> managerClass = JPenTabletManager.class;
+//
+//		public Class<? extends TabletManager> getManagerClass() {
+//			return managerClass;
+//		} 
+	}
+	
 	/**
 	 * Adds a {@link TabletListener} to the entire screen. This works very much like adding a {@link MouseListener} and 
 	 * {@link MouseMotionListener} on the component, meaning:
@@ -50,14 +107,14 @@ public interface TabletManager {
 	 * @see #addTabletListener(Component, TabletListener)
 	 * @param listener the listener to add
 	 */
-	public void addScreenTabletListener(TabletListener listener);
+	public abstract void addScreenTabletListener(TabletListener listener);
 	
 	/**
 	 * Removes a TabletListener previously added with {@link #addScreenTabletListener(TabletListener)}. It is safe to 
 	 * call this method if the specified listener has not been added (or already removed).
 	 * @param listener the listener to remove
 	 */
-	public void removeScreenTabletListener(TabletListener listener);
+	public abstract void removeScreenTabletListener(TabletListener listener);
 	
 	/**
 	 * Adds a TabletListener to a specific Component. This works very much like adding a {@link MouseListener} and 
@@ -81,7 +138,7 @@ public interface TabletManager {
 	 * @param component component to add the listener to
 	 * @param listener the listener to send events to
 	 */
-	public void addTabletListener(Component component, TabletListener listener);
+	public abstract void addTabletListener(Component component, TabletListener listener);
 	
 	/**
 	 * Removes a TabletListener previously added to a specific component with 
@@ -91,5 +148,5 @@ public interface TabletManager {
 	 * @param component component to remove the listener from
 	 * @param listener the listener to remove
 	 */
-	public void removeTabletListener(Component component, TabletListener listener);
+	public abstract void removeTabletListener(Component component, TabletListener listener);
 }

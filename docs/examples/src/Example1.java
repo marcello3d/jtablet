@@ -3,7 +3,7 @@ import java.awt.Label;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import cello.jtablet.TabletManagerFactory;
+import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletAdapter;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
@@ -22,11 +22,11 @@ public class Example1 {
 	// Create a new listener
 	TabletListener tabletListener = new TabletAdapter() {
 		public void cursorMoved(TabletEvent ev) {
-			label.setText("Cursor moved: "+ev.getRealX()+", "+ev.getRealY());
+			label.setText("Cursor moved: "+ev.getFloatX()+", "+ev.getFloatY());
 		}
 
 		public void cursorDragged(TabletEvent ev) {
-			label.setText("Cursor dragged: "+ev.getRealX()+", "+ev.getRealY()+" pressure="+ev.getPressure());
+			label.setText("Cursor dragged: "+ev.getFloatX()+", "+ev.getFloatY()+" pressure="+ev.getPressure());
 		}
 	};
 	
@@ -36,7 +36,7 @@ public class Example1 {
 		frame.add(label);
 		
 		// Add the tablet listener
-		TabletManagerFactory.getManager().addTabletListener(label, tabletListener);
+		TabletManager.getDefaultManager().addTabletListener(label, tabletListener);
 		
 		// Show the frame on the screen
 		frame.setVisible(true);

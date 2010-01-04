@@ -240,7 +240,7 @@ public class JTabletCursor {
 	    		return TYPE_PUCK;
 	    	case ERASER:
 	    		return TYPE_PEN_ERASER;
-	    	case STYLUS_TIP:
+	    	case STYLUS:
 	    		return TYPE_PEN_TIP;
 	    	default:
 	    		return TYPE_UNKNOWN;
@@ -388,9 +388,9 @@ public class JTabletCursor {
     public boolean isDataSupported(int type) {
     	switch (type) {
 	    	case DATA_PRESSURE:
-	    		return event.getDevice().supportsPressure() != Support.NONE;
+	    		return event.getDevice().getPressureSupport() != Support.NO;
 	    	case DATA_TANGENT_PRESSURE:
-	    		return event.getDevice().supportsSidePressure() != Support.NONE;
+	    		return event.getDevice().getSidePressureSupport() != Support.NO;
 	    	case DATA_BUTTONS:
 	    	case DATA_X:
 	    	case DATA_Y:

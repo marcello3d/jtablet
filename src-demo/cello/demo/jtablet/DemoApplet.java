@@ -17,8 +17,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 
-import cello.jtablet.TabletManagerFactory;
-
 /**
  * A simple sketching surface applet
  * 
@@ -53,7 +51,11 @@ public class DemoApplet extends JApplet {
 		}
 		tabbedPane.addTab("16 Components",panel);
 
-		tabbedPane.addTab("Screen Listener",new ScreenTabletListenerLogPanel());
+		try {
+			tabbedPane.addTab("Screen Listener",new ScreenTabletListenerLogPanel());
+		} catch (UnsupportedOperationException ex) {
+			// do nothing
+		}
 		panel = new JPanel();
 		
 		JButton button = new JButton("Open in new window");
@@ -107,7 +109,6 @@ public class DemoApplet extends JApplet {
 	 * @throws InterruptedException 
 	 */
 	public static void main(String ...args) throws InterruptedException {
-		TabletManagerFactory.getManager();
 		final JFrame frame = new JFrame("JTablet Demo");
 		try {
 			final DemoApplet demo = new DemoApplet();

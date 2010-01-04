@@ -29,6 +29,7 @@ import java.util.Map;
 
 import jpen.provider.NativeLibraryLoader;
 import jpen.provider.osx.CocoaAccess;
+import jpen.utils.BuildInfo;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
@@ -44,7 +45,7 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 	private static final float DEVICE_DELTA_FACTOR = 0.25f;
 
 	private static final NativeLibraryLoader LIB_LOADER=new NativeLibraryLoader(
-			Integer.valueOf(jpen.Utils.getModuleProperties().getString("jpen.provider.osx.nativeVersion")));
+			Integer.valueOf(BuildInfo.getProperties().getString("jpen.provider.osx.nativeVersion")));
 
 	@Override
 	protected NativeLibraryLoader getLoader() {
@@ -154,20 +155,21 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 			if (capabilityMask == 0) {
 				return Support.UNKNOWN;
 			}
-			return (capabilityMask & capability) != 0 ? Support.SUPPORTED : Support.NONE;
+			return (capabilityMask & capability) != 0 ? Support.YES : Support.NO;
 		}
 		protected TabletDevice makeDevice(final long uniqueId, int capabilityMask, int pointingDeviceType) {
-			Support supportsButtons 	 = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_BUTTONSMASK);
-			Support supportsDeviceId  	 = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_DEVICEIDMASK);
-			Support supportsPressure  	 = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_PRESSUREMASK);
-			Support supportsRotation 	 = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_ROTATIONMASK);
-			Support supportsSidePressure = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_TANGENTIALPRESSUREMASK);
-			Support supportsTiltXY 		 = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_TILTMASK);
+			Support floatSupport 		= Support.YES;
+			Support buttonSupport 	 	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_BUTTONSMASK);
+			Support uniqueIdSupport  	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_DEVICEIDMASK);
+			Support pressureSupport  	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_PRESSUREMASK);
+			Support rotationSupport 	= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_ROTATIONMASK);
+			Support sidePressureSupport = getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_TANGENTIALPRESSUREMASK);
+			Support tiltSupport 		= getSupported(capabilityMask, CocoaAccess.WACOM_CAPABILITY_TILTMASK);
 
 			TabletDevice.Type type;
 			switch (pointingDeviceType) {
 				case NSPenPointingDevice:
-					type = Type.STYLUS_TIP;
+					type = Type.STYLUS;
 					break;
 				case NSCursorPointingDevice:
 					type = Type.MOUSE;
@@ -179,7 +181,18 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 					type = Type.UNKNOWN;
 					break;
 			}
-			return new CocoaDevice(type,Long.toHexString(uniqueId),supportsButtons,supportsDeviceId,supportsPressure,supportsRotation,supportsSidePressure, supportsTiltXY);
+			return new CocoaDevice(
+				type,
+				type.name(),
+				Long.toHexString(uniqueId),
+				floatSupport,
+				buttonSupport,
+				uniqueIdSupport,
+				pressureSupport,
+				rotationSupport,
+				sidePressureSupport, 
+				tiltSupport
+			);
 		}
 		
 		private boolean leftButton, rightButton, otherButton;
@@ -243,8 +256,8 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 			    	break;
 			    case NS_EVENT_TYPE_MouseMoved:
 			    	// For some reason when you click maximize on a window, you get a MouseDown event, but no MouseUp...
-			    	// To work around that issue, if I ever get a mousemoved event when I think a button is pressed, we 
-			    	// can simply generate a fake button up event.
+			    	// To work around that issue, if I ever get a MouseMoved event but I think a button is pressed, we 
+			    	// can simply generate a fake cursor released event.
 			    	if (leftButton) {
 			    		generatePointEvents(
 							when, 
@@ -334,13 +347,13 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 	}
 
 	private static class CocoaDevice extends AbstractTabletDevice {
-
-		protected CocoaDevice(Type type, String uniqueId,
-				Support supportsButtons, Support supportsDeviceId,
-				Support supportsPressure, Support supportsRotation,
-				Support supportsSidePressure, Support supportsTiltXY) {
-			super(type, uniqueId, supportsButtons, supportsDeviceId, supportsPressure,
-					supportsRotation, supportsSidePressure, supportsTiltXY);
+		protected CocoaDevice(Type type, String name, String uniqueId,
+				Support floatSupport, Support buttonSupport,
+				Support uniqueIdSupport, Support pressureSupport,
+				Support rotationSupport, Support sidePressureSupport,
+				Support tiltSupport) {
+			super(type, name, uniqueId, floatSupport, buttonSupport, uniqueIdSupport,
+					pressureSupport, rotationSupport, sidePressureSupport, tiltSupport);
 		}
 	}
 	@Override

@@ -8,17 +8,15 @@
 <script>
 deployJava.setInstallerType('kernel');
 deployJava.runApplet(
-	{
-		codebase:	'.',
-	    code:		'cello.demo.jtablet.DemoApplet.class',
-	    archive:	'jtablet2-demo-with-ext.jar',
-	    width:		710, 
-	    height:		540
-	}, 
-	{
-	// parameters
-	
-	}, 
+		{
+		    code:		'cello.demo.jtablet.DemoApplet.class'
+		    width:		710, 
+		    height:		540
+		}, 
+		{
+		// parameters
+			jnlp_href: 'jtablet2-demo-with-ext.jnlp'
+		}, 
 	'1.5'
 );
 </script>

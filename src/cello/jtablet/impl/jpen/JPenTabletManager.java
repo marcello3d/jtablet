@@ -26,20 +26,19 @@ package cello.jtablet.impl.jpen;
 import java.awt.Component;
 
 import cello.jtablet.TabletManager;
-import cello.jtablet.TabletManagerFactory.Hints;
 import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.MouseTabletManager;
 import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
 import cello.jtablet.impl.jpen.platform.NativeWinTabInterface;
 import cello.jtablet.impl.jpen.platform.NativeXInputInterface;
-import cello.jtablet.impl.platform.NativeTabletManager;
 import cello.jtablet.impl.platform.NativeException;
+import cello.jtablet.impl.platform.NativeTabletManager;
 
 /**
  * 
  * @author marcello
  */
-public class JPenTabletManager implements TabletManager {
+public class JPenTabletManager extends TabletManager {
 
 	private final Class<?> interfaces[] = {
 		NativeCocoaInterface.class,
@@ -55,21 +54,21 @@ public class JPenTabletManager implements TabletManager {
 	 * 
 	 * @param hints
 	 */
-	public JPenTabletManager(Hints hints) {
+	public JPenTabletManager() {
 		String os = System.getProperty("os.name").toLowerCase();
 		
-		TabletManager chosenDevice = null;
+		TabletManager chosenManager = null;
 		driverStatus = DriverStatus.OS_NOT_SUPPORTED;
 		for (Class<?> cdClazz : interfaces) {
 			try {
-				TabletManager cd = (TabletManager)cdClazz.newInstance();
+				TabletManager manager = (TabletManager)cdClazz.newInstance();
 //				cd.setHints(hints);
-				if (cd instanceof NativeTabletManager) {
-					NativeTabletManager nsd = (NativeTabletManager)cd;
+				if (manager instanceof NativeTabletManager) {
+					NativeTabletManager nsd = (NativeTabletManager)manager;
 					if (nsd.isSystemSupported(os)) {
 						try {
 							nsd.load();
-							chosenDevice = nsd;
+							chosenManager = manager;
 							driverStatus = DriverStatus.TABLET_FOUND;
 							break;
 						} catch (SecurityException e) {
@@ -84,15 +83,15 @@ public class JPenTabletManager implements TabletManager {
 						}
 					}
 				} else {
-					chosenDevice = cd;
+					chosenManager = manager;
 					break;
 				}
 			} catch (InstantiationException e) {
 			} catch (IllegalAccessException e) {
 			}
 		}
-		System.out.println("Loaded TabletManager:"+chosenDevice);
-		this.tabletManager = chosenDevice;
+		System.out.println("Loaded TabletManager:"+chosenManager);
+		this.tabletManager = chosenManager;
 	}
 
 	public enum DriverStatus {

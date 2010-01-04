@@ -25,7 +25,7 @@ package cello.demo.jtablet;
 
 import java.awt.Component;
 
-import cello.jtablet.TabletManagerFactory;
+import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletFunneler;
 
@@ -39,10 +39,27 @@ public class TabletListenerLogPanel extends AbstractLogPanel {
 	 * @param targetComponent
 	 */
 	public TabletListenerLogPanel(Component targetComponent) {
-		TabletManagerFactory.getManager().addTabletListener(targetComponent, new TabletFunneler() {
+		TabletManager.getDefaultManager().addTabletListener(targetComponent, new TabletFunneler() {
 			protected void handleEvent(TabletEvent ev) {
 				logMessage(ev.toString());
 			}		
 		});
+//		targetComponent.addMouseListener(new MouseListener() {
+//			public void mouseClicked(MouseEvent e) {
+//				logMessage(e.toString());
+//			}
+//			public void mouseEntered(MouseEvent e) {
+//				logMessage(e.toString());
+//			}
+//			public void mouseExited(MouseEvent e) {
+//				logMessage(e.toString());
+//			}
+//			public void mousePressed(MouseEvent e) {
+//				logMessage(e.toString());
+//			}
+//			public void mouseReleased(MouseEvent e) {
+//				logMessage(e.toString());
+//			}			
+//		});
 	}
 }

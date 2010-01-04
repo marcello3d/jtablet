@@ -19,7 +19,7 @@ import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
 
 import cello.jtablet.TabletDevice;
-import cello.jtablet.TabletManagerFactory;
+import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletAdapter;
 import cello.jtablet.event.TabletEvent;
 
@@ -53,7 +53,7 @@ public class DemoSurface extends JComponent {
 	 */
 	public DemoSurface() {
 		createBuffer();
-		TabletManagerFactory.getManager().addTabletListener(this, new TabletAdapter() {
+		TabletManager.getDefaultManager().addTabletListener(this, new TabletAdapter() {
 
 			boolean dragged = false;
 			@Override
@@ -67,8 +67,8 @@ public class DemoSurface extends JComponent {
 			public synchronized void cursorDragged(TabletEvent ev) {
 				onSurface = true;
 				dragged = true;
-				float x = ev.getRealX();
-				float y = ev.getRealY();
+				float x = ev.getFloatX();
+				float y = ev.getFloatY();
 				float pressure = ev.getPressure() * MAX_RADIUS;
 				boolean rightClick = (ev.getModifiersEx()&InputEvent.BUTTON3_DOWN_MASK) != 0;
 				if (rightClick && ev.getDevice().getType() == TabletDevice.Type.MOUSE) {
@@ -90,8 +90,8 @@ public class DemoSurface extends JComponent {
 			@Override
 			public void cursorMoved(TabletEvent ev) {
 				onSurface = true;
-				lastX = ev.getRealX();
-				lastY = ev.getRealY();
+				lastX = ev.getFloatX();
+				lastY = ev.getFloatY();
 				lastPressure = ev.getPressure();
 				dragged = false;
 				updateCursor();
@@ -99,8 +99,8 @@ public class DemoSurface extends JComponent {
 
 			@Override
 			public void cursorPressed(TabletEvent ev) {
-				lastX = ev.getRealX();
-				lastY = ev.getRealY();
+				lastX = ev.getFloatX();
+				lastY = ev.getFloatY();
 				lastPressure = ev.getPressure();
 				dragged = false;
 				dragging = true;
@@ -109,8 +109,8 @@ public class DemoSurface extends JComponent {
 			@Override
 			public void cursorReleased(TabletEvent ev) {
 				if (!dragged) {
-					double x = ev.getRealX();
-					double y = ev.getRealY();
+					double x = ev.getFloatX();
+					double y = ev.getFloatY();
 					double radius = MAX_RADIUS;
 					erasing = ev.getDevice().getType() == TabletDevice.Type.ERASER;
 					fill(new Ellipse2D.Double(x-radius,y-radius,2*radius,2*radius));

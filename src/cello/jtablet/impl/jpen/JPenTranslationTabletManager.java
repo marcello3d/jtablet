@@ -36,6 +36,7 @@ import cello.jtablet.TabletDevice;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletEvent.Type;
 import cello.jtablet.impl.ScreenTabletManager;
+import cello.jtablet.impl.SystemDevice;
 
 /**
  * 
@@ -56,7 +57,7 @@ public class JPenTranslationTabletManager extends ScreenTabletManager {
 	@Override
 	protected synchronized void start() {
 		if (penManager == null) {
-			penManager = new PenManager(new ScreenPenOwner());
+			penManager = new PenManager(ScreenPenOwner.getInstance());
 		}
 		penManager.pen.addListener(listener);
 	}
@@ -77,7 +78,7 @@ public class JPenTranslationTabletManager extends ScreenTabletManager {
 	 */
 	protected class JPenListener extends PenAdapter {
 		private float x=0,y=0,pressure=0,sidePressure=0,tiltX=0,tiltY=0,rotation=0;
-		private TabletDevice device = TabletDevice.SYSTEM_MOUSE;
+		private TabletDevice device = SystemDevice.INSTANCE;
 		private int buttonMask = 0;
 
 		@Override
@@ -128,7 +129,7 @@ public class JPenTranslationTabletManager extends ScreenTabletManager {
 					type = TabletDevice.Type.ERASER;
 					break;
 				case STYLUS:
-					type = TabletDevice.Type.STYLUS_TIP;
+					type = TabletDevice.Type.STYLUS;
 					break;
 				default:
 					type = TabletDevice.Type.UNKNOWN;
@@ -144,38 +145,38 @@ public class JPenTranslationTabletManager extends ScreenTabletManager {
 				}
 
 				@Override
-				public Support supportsButtons() {
-					return Support.SUPPORTED;
+				public Support getButtonSupport() {
+					return Support.YES;
 				}
 
 				@Override
-				public Support supportsDeviceID() {
+				public Support getUniqueIdSupport() {
 					return Support.UNKNOWN;
 				}
 
 				@Override
-				public Support supportsPressure() {
+				public Support getPressureSupport() {
 					return Support.UNKNOWN;
 				}
 
 				@Override
-				public Support supportsRotation() {
+				public Support getRotationSupport() {
 					return Support.UNKNOWN;
 				}
 
 				@Override
-				public Support supportsSidePressure() {
+				public Support getSidePressureSupport() {
 					return Support.UNKNOWN;
 				}
 
 				@Override
-				public Support supportsTilt() {
+				public Support getTiltSupport() {
 					return Support.UNKNOWN;
 				}
 				
 			};
 			
-			fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.NEW_DEVICE, ev.getTime(), buttonMask, buttonMask, device, x, y));
+			fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.ENTERED, ev.getTime(), buttonMask, buttonMask, device, x, y));
 		}
 		@SuppressWarnings("deprecation")
 		@Override
