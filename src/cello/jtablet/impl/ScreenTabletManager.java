@@ -143,13 +143,8 @@ public abstract class ScreenTabletManager extends TabletManager {
 	protected void fireScreenTabletEvent(final TabletEvent ev) {
 		invokeOnEventThread(new Runnable() {
 			public void run() {
-				switch (ev.getType()) {
-					case PRESSED:
-						pressed = true;
-						break;
-					case RELEASED:
-						pressed = false;
-						break;
+				if (ev.getType() == TabletEvent.Type.PRESSED) {
+					pressed = true;
 				}
 				for (TabletListener l : screenListeners) {
 					ev.fireEvent(l);
@@ -157,6 +152,9 @@ public abstract class ScreenTabletManager extends TabletManager {
 				expungeFreedComponents();
 				for (ComponentManager cm : showingComponents) {
 					cm.fireScreenTabletEvent(ev);
+				}
+				if (ev.getType() == TabletEvent.Type.RELEASED) {
+					pressed = false;
 				}
 			}
 		});
@@ -243,7 +241,6 @@ public abstract class ScreenTabletManager extends TabletManager {
 																TabletEvent.Type.ENTERED : 
 																TabletEvent.Type.EXITED);
 				if (nowCursorOver) {
-					// entering proximity with new device?
 					// Send two events, one with the enter event, the second with the mouse move
 					if (enableEnterExitEventsOnDrag || !pressed) {
 						fireEvent(enterExitEvent);

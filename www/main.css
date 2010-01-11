@@ -1,0 +1,86 @@
+body {
+	background:  #E9EBFF;
+	color: #000;
+	width: 500pt;
+	margin: 10pt auto;
+	padding: 0;
+}
+body,p,div,th,td {
+	font-family:  Helvetica, Arial, sans-serif;
+	font-size: 10pt;
+}
+a,a:link {
+	color: #006699
+}
+#page {
+	background: #fff;
+	color: #000;
+	border: solid 1px #ccc;
+    box-shadow: 0 0 10pt rgba(0,0,0,0.2);
+	-moz-box-shadow: 0 0 10pt rgba(0,0,0,0.2);
+	-webkit-box-shadow: 0 0 10pt rgba(0,0,0,0.2);
+    -webkit-border-radius: 3pt;
+    -moz-border-radius: 3pt;
+}
+
+#header {
+	padding: 5pt 10pt;
+}
+#header h1 {
+	letter-spacing: 1pt;
+	font-weight: bold;
+	font-size: 20pt;
+	margin: 5pt 0 0;
+	padding: 0;
+}
+#header h1 small {
+	font-size: 10pt;
+}
+.subheader {
+	background: #ccf;
+}
+.subheader h2 {
+	border-left: solid 5pt #99f;
+	font-weight: normal;
+	font-size: 13pt;
+	padding: 5pt;
+	margin: 0;
+}
+.multiheader {
+	display: table;
+	width: 100%;
+}
+.multiheader h2 {
+	display: table-cell;
+	width: 50%;
+	font-weight: bold;
+}
+.multiheader a {
+	color: black;
+	font-weight: normal;
+}
+.contents {
+	padding: 5pt 10pt;
+}
+.contents p {
+	margin: 5pt 0;	
+}
+.contents ul {
+	margin: 5pt 0;
+}
+.contents .imagecaption {
+	float: right;
+	margin: 0;
+	padding: 0;
+}
+ul.download {
+	font-size: 15pt;
+}
+ul.download small {
+	font-size: 10pt;
+}
+#footer {
+	padding: 5pt;
+	clear:both;
+	border-top: solid 2px #036;
+}
