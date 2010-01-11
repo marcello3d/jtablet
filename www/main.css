@@ -24,14 +24,19 @@ a,a:link {
 }
 
 #header {
-	padding: 5pt 10pt;
+	padding: 30pt 0 5pt;
 }
 #header h1 {
 	letter-spacing: 1pt;
 	font-weight: bold;
 	font-size: 20pt;
 	margin: 5pt 0 0;
-	padding: 0;
+	padding: 0;	
+	text-shadow: rgba(0,0,0,0.2) 0 0 5pt;
+}
+#header a {
+	text-decoration: none;
+	color: black;
 }
 #header h1 small {
 	font-size: 10pt;
@@ -46,32 +51,52 @@ a,a:link {
 	padding: 5pt;
 	margin: 0;
 }
+.subheader h2.first,
+.subheader.first h2 {
+	border-left: solid 5pt #99f;
+    -webkit-border-top-left-radius: 3pt;
+    -moz-border-radius-topleft: 3pt;
+}
+.subheader h2.last,
+.subheader.first h2 {
+    -webkit-border-top-right-radius: 3pt;
+    -moz-border-radius-topright: 3pt;
+}
 .multiheader {
 	display: table;
 	width: 100%;
 }
 .multiheader h2 {
+	border-left: 0;
 	display: table-cell;
 	width: 50%;
+}
+.multiheader h2.selected {
 	font-weight: bold;
+	background: #99f;
 }
 .multiheader a {
 	color: black;
-	font-weight: normal;
 }
 .contents {
 	padding: 5pt 10pt;
+}
+.contents h3 {
+	border-top: solid 1px #ccc;
+	padding-top: 10pt;
 }
 .contents p {
 	margin: 5pt 0;	
 }
 .contents ul {
 	margin: 5pt 0;
+	padding: 0 15pt 0;
 }
 .contents .imagecaption {
 	float: right;
 	margin: 0;
-	padding: 0;
+	padding: 5pt 5pt 5pt 10pt;
+	background: white;
 }
 ul.download {
 	font-size: 15pt;
@@ -80,7 +105,6 @@ ul.download small {
 	font-size: 10pt;
 }
 #footer {
-	padding: 5pt;
+	padding: 10pt 5pt 30pt;
 	clear:both;
-	border-top: solid 2px #036;
 }
