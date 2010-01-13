@@ -40,13 +40,13 @@ public abstract class TabletDevice implements Serializable {
 	 * Tablet devices
 	 */
 	public enum Type {
-		/** a mouse-style device */
+		/** A mouse-style device */
 		MOUSE,
-		/** the tip of a stylus */
+		/** The tip on a stylus */
 		STYLUS,
-		/** the eraser end of a stylus */
+		/** The eraser on a stylus */
 		ERASER,
-		/** unknown input device */
+		/** An unknown input device */
 		UNKNOWN
 	};
 	
@@ -56,15 +56,15 @@ public abstract class TabletDevice implements Serializable {
 	 */
 	public static enum Support {
 		/**
-		 * This feature is definitely not supported.
+		 * This feature is not supported
 		 */
 		NO,
 		/**
-		 * It is unknown whether or not this feature is supported.
+		 * It is unknown whether or not this feature is supported
 		 */
 		UNKNOWN,
 		/**
-		 * This feature is definitely supported.
+		 * This feature is supported
 		 */
 		YES
 	};

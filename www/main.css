@@ -43,6 +43,7 @@ a,a:link {
 }
 .subheader {
 	background: #ccf;
+	clear: both;
 }
 .subheader h2 {
 	border-left: solid 5pt #99f;

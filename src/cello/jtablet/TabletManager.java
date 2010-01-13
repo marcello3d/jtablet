@@ -33,9 +33,9 @@ import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.jpen.JPenTabletManager;
 
 /**
- * Provides methods for setting up listeners to receive events on {@link Component}s.
+ * Provides methods for setting up listeners to receive events on {@link Component} objects.
  * 
- * Example usage:
+ * <p>Example usage:
  * <pre>
  *  // Get tablet manager
  *  {@link TabletManager} manager = {@link TabletManager}.{@link TabletManager#getDefaultManager()};

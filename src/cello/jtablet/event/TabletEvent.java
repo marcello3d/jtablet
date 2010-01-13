@@ -263,44 +263,74 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 	private static final int ID_START = RESERVED_ID_MAX + 1200;
 	/**
-	 * Type of input event this is
+	 * This enum is used to specify the possible types of a {@link TabletEvent}.
 	 */
 	public static enum Type {
-		/** button/stylus tip pressed */
+		/** 
+		 * Button or stylus tip pressed.
+		 */
 		PRESSED			( MOUSE_PRESSED ),
 		
-		/** button/stylus tip released */
+		/** 
+		 * Button or stylus tip released.
+		 */
 		RELEASED		( MOUSE_RELEASED ),
 		
-		/** cursor enters proximity and/or component */
+		/** 
+		 * Cursor enters proximity and/or component.
+		 */
 		ENTERED			( MOUSE_ENTERED ),
 		
-		/** cursor exits proximity and/or component*/
+		/** 
+		 * Cursor exits proximity and/or component.
+		 */
 		EXITED			( MOUSE_EXITED ),
 		
-		/** cursor moved */
+		/** 
+		 * Cursor moved with no button pressed. 
+		 */
 		MOVED			( MOUSE_MOVED ),
 		
-		/** cursor dragged */
+		/** 
+		 * Cursor moved with button pressed.
+		 */
 		DRAGGED			( MOUSE_DRAGGED ),
 		
-		/** level changed */
+		/** 
+		 * Level changed. This occurs 
+		 */
 		LEVEL_CHANGED	( ID_START ),
 		
-		/** mouse scroll/gesture */
+		/** 
+		 * Mouse wheel scroll or multi-touch scroll (on Mac OS X).
+		 * @see TabletEvent#getScrollX()
+		 * @see TabletEvent#getScrollY()
+		 */
 		SCROLLED		( ID_START+1 ),
 		
 		// gesture events...
 		
-		/** zoom gesture (Mac OS X multi-touch) */
+		/** 
+		 * Zoom gesture (pinching on a Mac OS X multi-touch device). Use {@link TabletEvent#getZoomFactor()} to get the
+		 * zoom factor amount.
+		 * @see TabletEvent#getZoomFactor() 
+		 */
 		ZOOMED			( ID_START+2 ),
 		
-		/** rotate gesture (Mac OS X multi-touch) */
+		/** 
+		 * Rotate gesture (rotating two fingers on a Mac OS X multi-touch device). Use {@link TabletEvent#getRotation()}
+		 * to get the rotation amount.
+		 * @see TabletEvent#getRotation() 
+		 */
 		ROTATED			( ID_START+3 ),
 		
-		/** swipe gesture (Mac OS X multi-touch) */
-		SWIPED			( ID_START+4 )
-		;
+		/** 
+		 * Swipe gesture (moving three fingers on a Mac OS X multi-touch device). Use {@link TabletEvent#getScrollX()}
+		 * and {@link TabletEvent#getScrollY()} to get the swipe direction.
+		 * @see TabletEvent#getScrollX()
+		 * @see TabletEvent#getScrollY() 
+		 */
+		SWIPED			( ID_START+4 );
 		
 		private final int id;
 		

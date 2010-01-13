@@ -29,7 +29,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletManager;
 
 
@@ -37,89 +36,81 @@ import cello.jtablet.TabletManager;
  * The listener interface for receiving tablet events on a component (similar to {@link MouseListener} and
  * {@link MouseMotionListener}).
  * 
- * <p>You can add listeners using {@link TabletManager#addTabletListener(java.awt.Component, TabletListener)} and
+ * <p>You can add listeners using {@link TabletManager#addTabletListener(Component, TabletListener)} and
  * {@link TabletManager#addScreenTabletListener(TabletListener)}.</p>  
  * 
- * @see TabletEvent
  * @see TabletManager
- * @see TabletManager#addTabletListener(Component, TabletListener)
- * @see TabletManager#addScreenTabletListener(TabletListener)
- * @see TabletDevice
  * @see TabletAdapter
  * @see TabletFunneler
- * @see MouseEvent
  * @author Marcello
  */
 public interface TabletListener {
 	
 	/**
-	 * Invoked when a button is pressed
+	 * Invoked when a button is pressed.
 	 * @see MouseListener#mousePressed(MouseEvent)
-	 * @param event 
+	 * @param event the event details object
 	 */
 	public void cursorPressed(TabletEvent event);
 	
 	/**
-	 * Invoked when a button is released
+	 * Invoked when a button is released.
 	 * @see MouseListener#mouseReleased(MouseEvent)
-	 * @param event
+	 * @param event the event details object
 	 */
 	public void cursorReleased(TabletEvent event);
 	
 	/**
 	 * Invoked either when the cursor enters the given component, either spatially or through proximity.
 	 * @see MouseListener#mouseEntered(MouseEvent) 
-	 * @param event
+	 * @param event the event details object
 	 */
 	public void cursorEntered(TabletEvent event);
 	
 	/**
 	 * Invoked either when the cursor exits the given component, either spatially or through proximity.
 	 * @see MouseListener#mouseExited(MouseEvent) 
-	 * @param event
+	 * @param event the event details object
 	 */
 	public void cursorExited(TabletEvent event);
 	
 	/**
 	 * Invoked when the cursor is moved.
 	 * @see MouseMotionListener#mouseMoved(MouseEvent)
-	 * @param event
+	 * @param event the event details object
 	 */
 	public void cursorMoved(TabletEvent event);
 	
 	/**
 	 * Invoked when the cursor is dragged (pressed+moved).
 	 * @see MouseMotionListener#mouseDragged(MouseEvent)
-	 * @param event
+	 * @param event the event details object
 	 */
 	public void cursorDragged(TabletEvent event);
 	
 	/**
-	 * Invoked when the user scrolls.
+	 * Invoked when the user scrolls with a wheel or multi-touch scroll device.
 	 * @see TabletEvent.Type#SCROLLED
 	 * @see TabletEvent#getScrollX()
 	 * @see TabletEvent#getScrollY()
-	 * @param event
+	 * @param event the event details object
 	 */
 	public void cursorScrolled(TabletEvent event);
 
 	/**
 	 * Invoked when the user executes a gesture.
+	 * 
 	 * @see TabletEvent.Type#SWIPED
 	 * @see TabletEvent.Type#ROTATED
 	 * @see TabletEvent.Type#ZOOMED
-	 * @see TabletEvent#getScrollX()
-	 * @see TabletEvent#getScrollY()
-	 * @see TabletEvent#getRotation()
-	 * @see TabletEvent#getZoomFactor()
-	 * @param event
+	 * @param event the event details object
 	 */
 	public void cursorGestured(TabletEvent event);
 	
 	/**
 	 * Invoked when a level has changed. This will occur if some level (pressure, side pressure, tilt, rotation) changes
 	 * without the actual position changing. 
-	 * @param event
+	 * @param event the event details object
 	 */
 	public void levelChanged(TabletEvent event);
 	
