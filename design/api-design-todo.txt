@@ -18,7 +18,7 @@ API Design open questions:
   While scrolling makes sense to a certain extend, should rotate, zoom and swipe be part of the core API or 
   separated out somehow?
 
-- The whole factory dealÉ the intention is to add support for driver settings: e.g. ability to override the class 
+- The whole factory dealï¿½ the intention is to add support for driver settings: e.g. ability to override the class 
   that is used to load the driver, affect behaviors about how events are generated, and set optional features.
 
 ====================================================================================================================
@@ -45,4 +45,12 @@ API Design open questions:
 		Support.UNKNOWN		It is unknown whether or not this feature is supported.
     - but NONE and SUPPORTED aren't parallel 
 		         
-		     
+====================================================================================================================
+== Alpha release todo
+
+- decide how to deal with extension loading to avoid stepping on jpen's toes
+  - (dynamically load jpen code in a separate jar?)
+- write ant script to package everything up
+- write ant script to install jtablet (or maybe just instructions for now?)
+ - write java class installer?
+- make applet test page

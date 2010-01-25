@@ -5,27 +5,61 @@
 	
   <!-- set global properties for this build -->
 			 
-  <property name="src"					location="src"/>
-  <property name="src.demo"				location="src-demo"/>
-  <property name="src.installer"		location="src-installer"/>
-  <property name="src.jpen"				location="../jpen/src/main/java"/>
-  <property name="src.jpen.resources"	location="../jpen/src/main/resources"/>
-	
-  <property name="build.jtablet"		location="build/jtablet"/>
-  <property name="build.jpen"			location="build/jpen"/>
-  <property name="build.demo"			location="build/demo"/>
-  <property name="build.installer"		location="build/installer"/>
+	  <property name="src"					location="src"/>
+	  <property name="src.demo"				location="src-demo"/>
+	  <property name="src.installer"		location="src-installer"/>
+	  <property name="src.jpen"				location="../jpen/src/main/java"/>
+	  <property name="src.jpen.resources"	location="../jpen/src/main/resources"/>
+		
 
-  <property name="docs.api"				location="docs/api"/>
+	  <property name="build.version.file"	location="build/svn.version"/>
 	
-  <property name="dist"  				location="dist"/>
-  <property name="lib.dir"     			location="lib"/>
-  
+	  <property name="build.jtablet"		location="build/jtablet"/>
+	  <property name="build.jpen"			location="build/jpen"/>
+	  <property name="build.demo"			location="build/demo"/>
+	  <property name="build.installer"		location="build/installer"/>
+	
+	  <property name="docs.api"				location="docs/api"/>
+		
+	  <property name="dist"  				location="dist"/>
+	  <property name="lib.dir"     			location="lib"/>
+
+	  <property name="ext.name"				value="JTablet"/>
+	
+	  <property name="spec.title"			value="JTablet 2"/>
+	  <property name="spec.vendor"			value="Cellosoft"/>
+	  <property name="spec.version"			value="1.2.0"/>
+	
+	  <property name="impl.title"			value="JTablet 2"/>
+	  <property name="impl.vendor"			value="Cellosoft"/>
+	  <property name="impl.vendor.id"		value="cello"/>
+	  <property name="impl.version"			value="1.2.0-alpha"/>
+	
+	<condition property="platform" value="mac">
+		<os family="mac"/>
+	</condition>
+	<condition property="platform" value="windows">
+		<os family="windows"/>
+	</condition>
+	<condition property="platform" value="unix">
+	    <and>
+	      <os family="unix"/>
+	      <not>
+	        <os family="mac"/>
+	      </not>
+	    </and>
+	</condition>
+	
+	
 
   <target name="init">
     <!-- Create the time stamp -->
     <tstamp/>
   </target>
+	
+	<target name="svn.version" description="Sets the buildversion for the current build">
+		<exec executable="svnversion" spawn="false" dir="." outputproperty="svn.version"></exec>
+	</target>
 
 
   <!-- BUILD JPEN -->
@@ -46,7 +80,7 @@
   </target>
   <target name="jpen.jar" depends="jpen.compile">
 	<jar 
-		jarfile="${dist}/lib/jpen2-${DSTAMP}.original.jar"
+		jarfile="${dist}/lib/jpen2-${svn.version}.original.jar"
 		includes="jpen/**"
     	excludes="jpen/demo/**"
 		level="9"
@@ -73,15 +107,33 @@
 		classpathref="jtablet.classpath"/>
   </target>
 	
-  <target name="jtablet.jar" depends="jtablet.compile" description="generate the initial jtablet jar" >
+  <target name="jtablet.jar" depends="svn.version,jtablet.compile" description="generate the initial jtablet jar" >
     <mkdir dir="${dist}/lib"/>
     <jar 
-		jarfile="${dist}/lib/jtablet2-${DSTAMP}.original.jar"
+		jarfile="${dist}/lib/jtablet2-${svn.version}.original.jar"
 		includes="cello/**"
     	level="9"
 		basedir="${build.jtablet}">
+        <manifest>
+          	<attribute name="Built-By" value="Marcello"/>
+        	<attribute name="Extension-Name" 			value="${ext.name}"/>
+            <attribute name="Specification-Title" 		value="${spec.title}"/>
+        	<attribute name="Specification-Vendor" 		value="${spec.vendor}"/>
+    		<attribute name="Specification-Version" 	value="${spec.version}"/>
+			<attribute name="Implementation-Title" 		value="${impl.title}"/>
+    		<attribute name="Implementation-Vendor" 	value="${impl.vendor}"/>
+        	<attribute name="Implementation-Vendor-Id" 	value="${impl.vendor.id}"/>
+    		<attribute name="Implementation-Version" 	value="${impl.version}"/>
+        </manifest>
 	</jar>
   </target>
+	<target name="jtablet.install.mac" depends="jtablet.jar">
+		<mkdir dir="${user.home}/Library/Java/Extensions"/>
+		<copy 
+			file="${dist}/lib/jtablet2-${svn.version}.original.jar" 
+			tofile="${user.home}/Library/Java/Extensions/jtablet.jar"/>
+	</target>
+	
 	
   <!-- demo package -->
   <path id="demo.classpath">
@@ -102,12 +154,12 @@
 
   <target name="demo.jar" depends="demo.compile">
     <jar 
-		jarfile="${dist}/lib/jtablet2-demo-${DSTAMP}.original.jar"
+		jarfile="${dist}/lib/jtablet2-demo-${svn.version}.original.jar"
 		includes="cello/**"
     	level="9"
     	basedir="${build.demo}">
         <manifest>
-    	  <attribute name="Main-Class" value="cello.demo.jtablet.DemoApplet.class" />
+    	  <attribute name="Main-Class" value="cello.demo.jtablet.DemoApplet" />
           <attribute name="Built-By" value="Marcello"/>
           <attribute name="Sealed" value="true"/>
         </manifest>
@@ -133,7 +185,7 @@
 
   <target name="installer.jar" depends="installer.compile">
     <jar 
-		jarfile="${dist}/lib/jtablet2-installer-${DSTAMP}.original.jar"
+		jarfile="${dist}/lib/jtablet2-installer-${svn.version}.original.jar"
 		includes="cello/jtablet/installer**"
     	level="9"
     	basedir="${build.installer}">
@@ -159,6 +211,71 @@
     </genkey>
   </target>
 
+	
+
+	  <target name="exttest" depends="demo.compile">
+	    <jar 
+			jarfile="${dist}/lib/exttest-applet.jar"
+			includes="cello/demo/jtablet/ext/TestApplet.class"
+	    	level="9"
+	    	basedir="${build.demo}">
+	        <manifest>
+	          <attribute name="Built-By" value="Marcello"/>
+	        </manifest>
+		</jar>
+	    <jar 
+			jarfile="${dist}/lib/exttest-other.jar"
+			includes="cello/demo/jtablet/ext/OtherClass.class"
+	    	level="9"
+	    	basedir="${build.demo}">
+	        <manifest>
+	          <attribute name="Built-By" value="Marcello"/>
+	        </manifest>
+		</jar>
+	    <jar 
+			jarfile="${dist}/lib/exttest-ext.jar"
+			includes="cello/demo/jtablet/ext/ExtClass.class"
+	    	level="9"
+	    	basedir="${build.demo}">
+	        <manifest>
+	          <attribute name="Built-By" value="Marcello"/>
+	        	<attribute name="Extension-Name" value="exttest"/>
+	        	<attribute name="Specification-Vendor" value="exttest"/>
+	        	<attribute name="Specification-Version" value="1.0"/>
+	        	<attribute name="Implementation-Vendor-Id" value="exttest"/>
+	        	<attribute name="Implementation-Vendor" value="exttest"/>
+	        	<attribute name="Implementation-Version" value="1.0"/>
+
+	        </manifest>
+		</jar>
+	    <jar 
+			jarfile="${dist}/lib/exttest-unused.jar"
+			includes="cello/demo/jtablet/ext/ExtLoadingClass.class"
+	    	level="9"
+	    	basedir="${build.demo}">
+	        <manifest>
+	          <attribute name="Built-By" value="Marcello"/>
+
+	        	<attribute name="Extension-List" value="exttest"/>
+	        	<attribute name="exttest-Extension-Name" value="exttest"/>
+	        	<attribute name="exttest-Specification-Version" value="1.0"/>
+	        	<attribute name="exttest-Specification-Vendor" value="Cellosoft"/>
+	        	<attribute name="exttest-Implementation-Version" value="1.0"/>
+	        	<attribute name="exttest-Implementation-Vendor-Id" value="cello"/>
+	        	<attribute name="exttest-Implementation-URL" value="http://sketchstudio.cellosoft.com/jtablet2/ext/exttest-ext.signed.jar"/>
+	        	
+	        </manifest>
+		</jar>
+	  	<signjar 
+			alias="jtablet2" 
+			storepass="notsecureatall5936510"
+			keypass="notsecureatall5936510"
+	  		lazy="true"
+	  		jar="${dist}/lib/exttest-ext.jar"
+	  		signedjar="${dist}/lib/exttest-ext.signed.jar">
+		</signjar>
+	  </target>
+	
 
   <target name="jpen.signed" depends="jpen.jar">
   	<signjar 
@@ -166,8 +283,8 @@
 		storepass="notsecureatall5936510"
 		keypass="notsecureatall5936510"
   		lazy="true"
-  		jar="${dist}/lib/jpen2-${DSTAMP}.original.jar"
-  		signedjar="${dist}/jpen2-${DSTAMP}.jar">
+  		jar="${dist}/lib/jpen2-${svn.version}.original.jar"
+  		signedjar="${dist}/jpen2-${svn.version}.jar">
 	</signjar>
   </target>
 
@@ -177,8 +294,8 @@
 		storepass="notsecureatall5936510"
 		keypass="notsecureatall5936510"
   		lazy="true"
-  		jar="${dist}/lib/jtablet2-${DSTAMP}.original.jar"
-  		signedjar="${dist}/jtablet2-${DSTAMP}.jar">
+  		jar="${dist}/lib/jtablet2-${svn.version}.original.jar"
+  		signedjar="${dist}/jtablet2-${svn.version}.jar">
 	</signjar>
   </target>
  
@@ -188,8 +305,8 @@
 		storepass="notsecureatall5936510"
 		keypass="notsecureatall5936510"
   		lazy="true"
-  		jar="${dist}/lib/jtablet2-demo-${DSTAMP}.original.jar"
-  		signedjar="${dist}/jtablet2-demo-${DSTAMP}.jar">
+  		jar="${dist}/lib/jtablet2-demo-${svn.version}.original.jar"
+  		signedjar="${dist}/jtablet2-demo-${svn.version}.jar">
 	</signjar>
   </target>
   
@@ -200,8 +317,8 @@
 		storepass="notsecureatall5936510"
 		keypass="notsecureatall5936510"
   		lazy="true"
-  		jar="${dist}/lib/jtablet2-installer-${DSTAMP}.original.jar"
-  		signedjar="${dist}/jtablet2-installer-${DSTAMP}.jar">
+  		jar="${dist}/lib/jtablet2-installer-${svn.version}.original.jar"
+  		signedjar="${dist}/jtablet2-installer-${svn.version}.jar">
 	</signjar>
   </target>
 	
@@ -209,13 +326,13 @@
   <target name="installer-dist" depends="signedjars">
     <mkdir dir="${dist}/installer"/>
 
-	<filter token="buildVersion" value="${DSTAMP}"/>
+	<filter token="buildVersion" value="${svn.version}"/>
 	<copy todir="${dist}/installer" filtering="true">
 		<fileset dir="html">
 		  <include name="**/*"/>
 		</fileset>
 	</copy>
-	<copy file="${dist}/signed/jtablet-installer${DSTAMP}.original.jar" tofile="${dist}/installer/jtablet-installer${DSTAMP}.jar" />
+	<copy file="${dist}/signed/jtablet-installer${svn.version}.original.jar" tofile="${dist}/installer/jtablet-installer${svn.version}.jar" />
 	<copy todir="${dist}/installer" file="lib/javascript.jar" />
   </target>
 -->
@@ -349,7 +466,7 @@
     <delete dir="${build.installer}"/>
   	<!--
     <delete dir="${dist}/installer"/>
-  	<delete file="${dist}/lib/jtablet2-${DSTAMP}.original.jar"/>
+  	<delete file="${dist}/lib/jtablet2-${svn.version}.original.jar"/>
     <delete file="${dist}/jtablet2.jar"/>
     -->
   </target>

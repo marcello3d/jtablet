@@ -21,94 +21,83 @@
  *     distribution.
  */
 
-package cello.jtablet.impl.jpen;
+package cello.jtablet.impl;
 
 import java.awt.Component;
 
+import cello.jtablet.DriverStatus;
 import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletListener;
-import cello.jtablet.impl.MouseTabletManager;
-import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
-import cello.jtablet.impl.jpen.platform.NativeWinTabInterface;
-import cello.jtablet.impl.jpen.platform.NativeXInputInterface;
-import cello.jtablet.impl.platform.NativeException;
-import cello.jtablet.impl.platform.NativeTabletManager;
+import cello.jtablet.impl.jpen.CocoaTabletManager;
+import cello.jtablet.impl.jpen.WinTabTabletManager;
+import cello.jtablet.impl.jpen.XInputTabletManager;
 
 /**
+ * This class 
  * 
  * @author marcello
  */
-public class JPenTabletManager extends TabletManager {
+public class TabletManagerImpl extends TabletManager {
 
-	private final Class<?> interfaces[] = {
-		NativeCocoaInterface.class,
-		NativeWinTabInterface.class,
-		NativeXInputInterface.class,
-		MouseTabletManager.class
-	};
 	private final TabletManager tabletManager;
-	private Throwable exception;
-	private DriverStatus driverStatus; 
+	private final DriverStatus tabletStatus; 
 	
 	/**
-	 * 
-	 * @param hints
 	 */
-	public JPenTabletManager() {
+	public TabletManagerImpl() {
 		String os = System.getProperty("os.name").toLowerCase();
-		
+		DriverStatus tabletStatus = null;
 		TabletManager chosenManager = null;
-		driverStatus = DriverStatus.OS_NOT_SUPPORTED;
+		Class<?> interfaces[] = {
+//			NativeCocoaInterface.class,
+//			NativeWinTabInterface.class,
+//			NativeXInputInterface.class,
+			ScreenMouseTabletManager.class, // supports screen listeners but requires extra security permissions
+			MouseTabletManager.class
+		};
+		NativeLoader loader = null;
+		try {
+			loader = new NativeLoader();
+		} catch (Throwable t) {
+			tabletStatus = new DriverStatus(DriverStatus.State.UNEXPECTED_EXCEPTION, t);
+		}
 		for (Class<?> cdClazz : interfaces) {
 			try {
 				TabletManager manager = (TabletManager)cdClazz.newInstance();
-//				cd.setHints(hints);
 				if (manager instanceof NativeTabletManager) {
 					NativeTabletManager nsd = (NativeTabletManager)manager;
 					if (nsd.isSystemSupported(os)) {
 						try {
-							nsd.load();
+							nsd.load(loader);
 							chosenManager = manager;
-							driverStatus = DriverStatus.TABLET_FOUND;
+							tabletStatus = new DriverStatus(DriverStatus.State.LOADED);
 							break;
 						} catch (SecurityException e) {
-							exception = e;
-							driverStatus = DriverStatus.SECURITY_EXCEPTION;
+							tabletStatus = new DriverStatus(DriverStatus.State.SECURITY_EXCEPTION, e);
 						} catch (UnsatisfiedLinkError e) {
-							exception = e;				
-							driverStatus = DriverStatus.LIBRARY_LOAD_EXCEPTION;
-						} catch (NativeException e) {
-							exception = e;					
-							driverStatus = DriverStatus.LIBRARY_LOAD_EXCEPTION;
+							tabletStatus = new DriverStatus(DriverStatus.State.NATIVE_EXCEPTION, e);
+						} catch (NativeLoader.Exception e) {
+							tabletStatus = new DriverStatus(DriverStatus.State.NATIVE_EXCEPTION, e);
 						}
 					}
 				} else {
 					chosenManager = manager;
 					break;
 				}
-			} catch (InstantiationException e) {
-			} catch (IllegalAccessException e) {
+			} catch (Throwable t) {
+				tabletStatus = new DriverStatus(DriverStatus.State.UNEXPECTED_EXCEPTION, t);
 			}
 		}
-		System.out.println("Loaded TabletManager:"+chosenManager);
+		if (!(chosenManager instanceof NativeTabletManager)) {
+			tabletStatus = new DriverStatus(DriverStatus.State.UNSUPPORTED_OS);
+		}
+		this.tabletStatus = tabletStatus;
 		this.tabletManager = chosenManager;
 	}
 
-	public enum DriverStatus {
-		
-		SECURITY_EXCEPTION,
-		LIBRARY_LOAD_EXCEPTION,
-		DEPENDENT_LIBRARY_LOAD_EXCEPTION,
-		OS_NOT_SUPPORTED,
-		NO_TABLET_FOUND,
-		TABLET_FOUND,
-		
-	}
+	@Override
 	public DriverStatus getDriverStatus() {
-		return driverStatus;
-	}
-	public Throwable getDriverThrowable() {
-		return exception;
+		return tabletStatus;
 	}
 	
 	public void addScreenTabletListener(TabletListener l) {

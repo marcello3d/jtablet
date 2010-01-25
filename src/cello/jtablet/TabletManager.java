@@ -23,14 +23,19 @@
 
 package cello.jtablet;
 
+import java.awt.AWTEvent;
 import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.Toolkit;
+import java.awt.event.AWTEventListener;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
 import cello.jtablet.event.TabletAdapter;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
-import cello.jtablet.impl.jpen.JPenTabletManager;
+import cello.jtablet.impl.TabletManagerImpl;
 
 /**
  * Provides methods for setting up listeners to receive events on {@link Component} objects.
@@ -55,10 +60,9 @@ import cello.jtablet.impl.jpen.JPenTabletManager;
 public abstract class TabletManager {
 	
 	protected TabletManager() {
-		
 	}
 	
-	private static TabletManager tabletManager = getManager(Hints.DEFAULTS);
+	private static TabletManager tabletManager = new TabletManagerImpl();
 	
 	/**
 	 * Returns a shared tablet manager with the default settings.
@@ -67,32 +71,6 @@ public abstract class TabletManager {
 	public static TabletManager getDefaultManager() {
 		return tabletManager;
 	}
-	/**
-	 * Creates a new tablet manager with the specified hints. 
-	 * 
-	 * @param hints a map of hints to 
-	 * @return tabletmanager 
-	 */
-	private static TabletManager getManager(Hints hints) {
-//		Class<? extends TabletManager> tabletManagerClass = hints.getManagerClass();
-		return new JPenTabletManager();
-	}
-	
-	/**
-	 * Used to specify hints for manager creation (not currently available).
-	 * 
-	 * @author marcello
-	 */
-	private static class Hints {
-		private static final Hints DEFAULTS = new Hints();
-		
-//		private Class<? extends TabletManager> managerClass = JPenTabletManager.class;
-//
-//		public Class<? extends TabletManager> getManagerClass() {
-//			return managerClass;
-//		} 
-	}
-	
 	/**
 	 * Adds a {@link TabletListener} to the entire screen. This works very much like adding a {@link MouseListener} and 
 	 * {@link MouseMotionListener} on the component, meaning:
@@ -149,4 +127,14 @@ public abstract class TabletManager {
 	 * @param listener the listener to remove
 	 */
 	public abstract void removeTabletListener(Component component, TabletListener listener);
+	
+	/**
+	 * Returns the tablet driver status for this tablet manager. This contains exception information if there was a 
+	 * problem instantiating the tablet driver and can be used for debugging driver/native issues.
+	 * 
+	 * @return the current driver status
+	 */
+	public DriverStatus getDriverStatus() {
+		return null;
+	}
 }

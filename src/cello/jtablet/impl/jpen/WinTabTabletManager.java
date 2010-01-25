@@ -21,12 +21,7 @@
  *     distribution.
  */
 
-package cello.jtablet.impl.jpen.platform;
-
-import static java.lang.Math.atan;
-import static java.lang.Math.cos;
-import static java.lang.Math.sin;
-import static java.lang.Math.tan;
+package cello.jtablet.impl.jpen;
 
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
@@ -38,7 +33,6 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-import jpen.provider.NativeLibraryLoader;
 import jpen.provider.wintab.WintabAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
@@ -46,15 +40,15 @@ import cello.jtablet.TabletDevice.Type;
 import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.AbstractTabletDevice;
 import cello.jtablet.impl.MouseTabletManager;
-import cello.jtablet.impl.platform.NativeException;
-import cello.jtablet.impl.platform.NativeScreenTabletManager;
-import cello.jtablet.impl.platform.NativeTabletManager;
+import cello.jtablet.impl.NativeLoader;
+import cello.jtablet.impl.NativeTabletManager;
+import cello.jtablet.impl.ScreenTabletManager;
 
 
 /**
  * @author marcello
  */
-public class NativeWinTabInterface extends NativeScreenTabletManager implements NativeTabletManager {
+public class WinTabTabletManager extends ScreenTabletManager implements NativeTabletManager {
 
 	private MouseTabletManager mouseListener = new MouseTabletManager();
 	private WintabAccess wa;
@@ -75,11 +69,12 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 		}
 	};
 	
-	public void load() throws NativeException {
+	public void load(NativeLoader loader) throws NativeLoader.Exception {
+		loader.load();
 		try {
 			wa = new WintabAccess();
 		} catch (Exception e) {
-			throw new NativeException(e);
+			throw new NativeLoader.Exception(e);
 		}
 	}
 	private class WinTabCursor {
@@ -227,9 +222,9 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 			if (altitude != 900) {
 				double betha = altitude * PI_over_2_over_900;
 				double theta = azimuth * PI_over_2_over_900 - PI_over_2;
-				double tan = tan(betha);
-				tiltX = (float)atan(cos(theta)/tan);
-				tiltY = (float)atan(sin(theta)/tan);
+				double tan = Math.tan(betha);
+				tiltX = (float)Math.atan(Math.cos(theta)/tan);
+				tiltY = (float)Math.atan(Math.sin(theta)/tan);
 			}
 			
 
@@ -343,10 +338,7 @@ public class NativeWinTabInterface extends NativeScreenTabletManager implements 
 	protected void stop() {
 		wa.setEnabled(false);
 	}
-	@Override
-	protected NativeLibraryLoader getLoader() {
-		return null;
-	}
+
 	@Override
 	public void addTabletListener(Component c, TabletListener l) {
 		mouseListener.addTabletListener(c, l);

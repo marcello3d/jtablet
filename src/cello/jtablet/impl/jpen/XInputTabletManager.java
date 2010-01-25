@@ -21,25 +21,24 @@
  *     distribution.
  */
 
-package cello.jtablet.impl.jpen.platform;
+package cello.jtablet.impl.jpen;
 
-import jpen.provider.NativeLibraryLoader;
-import jpen.utils.BuildInfo;
-import cello.jtablet.impl.platform.NativeScreenTabletManager;
+import cello.jtablet.impl.NativeLoader;
+import cello.jtablet.impl.NativeTabletManager;
+import cello.jtablet.impl.ScreenTabletManager;
 
 
 /**
  * Currently unimplemented shell intended to implement a Linux version of JTablet.
  * @author marcello
  */
-public class NativeXInputInterface extends NativeScreenTabletManager {
-
-	private static final NativeLibraryLoader LIB_LOADER=new NativeLibraryLoader(new String[]{""},
-			new String[]{"x86_64", "ia64"},
-			Integer.valueOf(BuildInfo.getProperties().getString("jpen.provider.xinput.nativeVersion")));
+public class XInputTabletManager extends ScreenTabletManager implements NativeTabletManager {
+	public void load(NativeLoader loader) throws NativeLoader.Exception {
+//		loader.load();
+	}
 
 	public boolean isSystemSupported(String os) {
-		return os.contains("linux");
+		return false;
 	}
 
 	@Override
@@ -48,10 +47,5 @@ public class NativeXInputInterface extends NativeScreenTabletManager {
 
 	@Override
 	protected void stop() {
-	}
-
-	@Override
-	protected NativeLibraryLoader getLoader() {
-		return LIB_LOADER;
 	}
 }

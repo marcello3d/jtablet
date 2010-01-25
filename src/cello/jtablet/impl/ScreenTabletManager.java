@@ -30,6 +30,9 @@ import java.awt.GraphicsEnvironment;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseEvent;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
@@ -48,15 +51,13 @@ import cello.jtablet.TabletManager;
 import cello.jtablet.TabletDevice.Type;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
-import cello.jtablet.impl.jpen.platform.NativeCocoaInterface;
+import cello.jtablet.impl.jpen.CocoaTabletManager;
 
 /**
  * @author marcello
  *
  */
 public abstract class ScreenTabletManager extends TabletManager {	
-	
-	private boolean enableEnterExitEventsOnDrag = true;
 	
 	private final List<TabletListener> screenListeners = new ArrayList<TabletListener>();
 	
@@ -68,21 +69,13 @@ public abstract class ScreenTabletManager extends TabletManager {
 	
 	private final List<ComponentManager> showingComponents = new CopyOnWriteArrayList<ComponentManager>();
 	
-//	public void setHints(TabletManagerFactory.Hints hints) {
-//		if (hints.containsKey(HINT_ENABLE_ENTER_EXIT_EVENTS_ON_DRAG)) {
-//			enableEnterExitEventsOnDrag = (Boolean)hints.get(HINT_ENABLE_ENTER_EXIT_EVENTS_ON_DRAG);
-//		}
-//		if (hints.containsKey(HINT_SEND_NEW_DEVICE_EVENT_ON_ENTER)) {
-//			sendNewDeviceEventOnEnter = (Boolean)hints.get(HINT_SEND_NEW_DEVICE_EVENT_ON_ENTER);
-//		}
-//	}
 	
 	/**
 	 * A fake component used because MouseEvent requires a real component.
 	 */
 	private static class ScreenComponent extends Component {
-		
-		public GraphicsConfiguration getMainScreen() {
+		private static final Point POINT = new Point(0,0);
+		private GraphicsConfiguration getMainScreen() {
 			GraphicsDevice[] gs = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
 			if (gs.length > 0) {
 				return gs[0].getDefaultConfiguration();
@@ -91,7 +84,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 		}
 		@Override
 		public Point getLocationOnScreen() {
-			return new Point(0,0);
+			return POINT;
 		}
 		@Override
 		public Rectangle bounds() {
@@ -111,6 +104,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 		}
 	}
 	protected final static ScreenComponent SCREEN_COMPONENT = new ScreenComponent();
+	
 	private boolean started = false;
 	
 	protected abstract void start();
@@ -182,7 +176,6 @@ public abstract class ScreenTabletManager extends TabletManager {
 			if (manager == null) {
 				manager = new ComponentManager(c);
 				componentManagers.put(c, manager);
-				showingComponents.add(manager);
 			}
 			manager.add(l);
 			startIfNeeded();
@@ -203,9 +196,23 @@ public abstract class ScreenTabletManager extends TabletManager {
 		private boolean dragging = false;
 		private List<TabletListener> listeners = new ArrayList<TabletListener>();
 		private final WeakReference<Component> c;
+//		private final ComponentListener componentListener = new ComponentAdapter() {
+//			@Override
+//			public void componentShown(ComponentEvent e) {
+//				showingComponents.add(ComponentManager.this);
+//			}
+//			@Override
+//			public void componentHidden(ComponentEvent e) {
+//				showingComponents.remove(ComponentManager.this);
+//			}
+//		};
 
 		public ComponentManager(Component c) {
 			this.c = new WeakReference<Component>(c, queue);
+//			if (c.isShowing()) {
+				showingComponents.add(this);
+//			}
+//			c.addComponentListener(componentListener);
 		}
 		
 		private boolean isWindowFocused(Component c) {
@@ -241,10 +248,8 @@ public abstract class ScreenTabletManager extends TabletManager {
 																TabletEvent.Type.ENTERED : 
 																TabletEvent.Type.EXITED);
 				if (nowCursorOver) {
-					// Send two events, one with the enter event, the second with the mouse move
-					if (enableEnterExitEventsOnDrag || !pressed) {
-						fireEvent(enterExitEvent);
-					}
+					// Send two events, one with the enter/exit event, the second with the mouse move
+					fireEvent(enterExitEvent);
 
 					if (activeComponent) {
 						fireEvent(newEv);
@@ -463,7 +468,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 			float screenX, float screenY, float deltaX, float deltaY) {
 		int modifiers = lastButtonMask | keyModifiers;
 		fireScreenTabletEvent(new TabletEvent(
-			NativeCocoaInterface.SCREEN_COMPONENT,
+			CocoaTabletManager.SCREEN_COMPONENT,
 			TabletEvent.Type.SCROLLED,
 			when,
 			modifiers,
@@ -479,7 +484,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 			float screenX, float screenY, float magnificationFactor) {
 		int modifiers = lastButtonMask | keyModifiers;
 		fireScreenTabletEvent(new TabletEvent(
-			NativeCocoaInterface.SCREEN_COMPONENT,
+			CocoaTabletManager.SCREEN_COMPONENT,
 			TabletEvent.Type.ZOOMED,
 			when,
 			modifiers,
@@ -495,7 +500,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 			float rotationRadians, long when, int keyModifiers) {
 		int modifiers = lastButtonMask | keyModifiers;
 		fireScreenTabletEvent(new TabletEvent(
-			NativeCocoaInterface.SCREEN_COMPONENT,
+			CocoaTabletManager.SCREEN_COMPONENT,
 			TabletEvent.Type.ROTATED,
 			when,
 			modifiers,
@@ -511,7 +516,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 			float screenX, float screenY, float deltaX, float deltaY) {
 		int modifiers = lastButtonMask | keyModifiers;
 		fireScreenTabletEvent(new TabletEvent(
-			NativeCocoaInterface.SCREEN_COMPONENT,
+			CocoaTabletManager.SCREEN_COMPONENT,
 			TabletEvent.Type.SWIPED,
 			when,
 			modifiers,

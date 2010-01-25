@@ -21,29 +21,27 @@
  *     distribution.
  */
 
-package cello.jtablet.impl.platform;
+package cello.jtablet.impl;
 
-import jpen.provider.NativeLibraryLoader;
-import jpen.provider.NativeLibraryLoader.LoadException;
-import cello.jtablet.impl.ScreenTabletManager;
+
 
 /**
+ * This interface specifies cursor devices that load native code
+ * 
  * @author marcello
- *
  */
-public abstract class NativeScreenTabletManager extends ScreenTabletManager implements NativeTabletManager {
+public interface NativeTabletManager {
 
-//	private boolean loaded = false;
+	/**
+	 * Loads the actual device
+	 * @param loader 
+	 * @throws NativeLoader.Exception 
+	 */
+	public void load(NativeLoader loader) throws NativeLoader.Exception;
 	
-	
-	public void load() throws NativeException {
-		try {
-			getLoader().load();
-//			loaded = true;
-		} catch (LoadException ex) {
-			throw new NativeException(ex);
-		}
-	}
-	protected abstract NativeLibraryLoader getLoader();
-	
+	/**
+	 * @param os the os string
+	 * @return true if the given os is supported by this native device
+	 */
+	public boolean isSystemSupported(String os);
 }

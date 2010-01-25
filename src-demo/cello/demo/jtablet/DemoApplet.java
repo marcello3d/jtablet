@@ -7,7 +7,6 @@ import java.awt.Container;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.NumberFormat;
 
 import javax.swing.JApplet;
 import javax.swing.JButton;
@@ -16,6 +15,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+
+import cello.jtablet.installer.ExtensionChecker;
 
 /**
  * A simple sketching surface applet
@@ -26,6 +27,8 @@ public class DemoApplet extends JApplet {
 	
 	
 	public void init() {
+		
+		System.out.println("Installed JTablet version: " + ExtensionChecker.getInstalledVersion());
 		
 		Container contentPane = getContentPane();
 		contentPane.setLayout(new BorderLayout());
@@ -61,23 +64,23 @@ public class DemoApplet extends JApplet {
 		JButton button = new JButton("Open in new window");
 		button.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.gc();
-				
-				double freeMemory = Runtime.getRuntime().freeMemory() / 1024.0 / 1024.0;
-				double totalMemory = Runtime.getRuntime().totalMemory() / 1024.0 / 1024.0;
-				double usedMemory = totalMemory - freeMemory;
-				double maxMemory = Runtime.getRuntime().maxMemory() / 1024.0 / 1024.0;
-
-				NumberFormat nf = NumberFormat.getNumberInstance();
-				nf.setGroupingUsed(true);
-				nf.setMaximumFractionDigits(0);
-				nf.setMinimumFractionDigits(0);
-				System.out.println("memory: " + 
-					nf.format(usedMemory) + "/" +
-					nf.format(totalMemory) +  
-					"MB used (" +
-					nf.format(maxMemory) + "MB max)" 
-				);
+//				System.gc();
+//				
+//				double freeMemory = Runtime.getRuntime().freeMemory() / 1024.0 / 1024.0;
+//				double totalMemory = Runtime.getRuntime().totalMemory() / 1024.0 / 1024.0;
+//				double usedMemory = totalMemory - freeMemory;
+//				double maxMemory = Runtime.getRuntime().maxMemory() / 1024.0 / 1024.0;
+//
+//				NumberFormat nf = NumberFormat.getNumberInstance();
+//				nf.setGroupingUsed(true);
+//				nf.setMaximumFractionDigits(0);
+//				nf.setMinimumFractionDigits(0);
+//				System.out.println("memory: " + 
+//					nf.format(usedMemory) + "/" +
+//					nf.format(totalMemory) +  
+//					"MB used (" +
+//					nf.format(maxMemory) + "MB max)" 
+//				);
 				JFrame frame = new JFrame("JTablet Demo");
 				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 				frame.setSize(800,550);

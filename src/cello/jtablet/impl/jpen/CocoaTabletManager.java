@@ -21,35 +21,31 @@
  *     distribution.
  */
 
-package cello.jtablet.impl.jpen.platform;
+package cello.jtablet.impl.jpen;
 
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-import jpen.provider.NativeLibraryLoader;
 import jpen.provider.osx.CocoaAccess;
-import jpen.utils.BuildInfo;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
 import cello.jtablet.impl.AbstractTabletDevice;
-import cello.jtablet.impl.platform.NativeException;
-import cello.jtablet.impl.platform.NativeScreenTabletManager;
+import cello.jtablet.impl.NativeLoader;
+import cello.jtablet.impl.NativeTabletManager;
+import cello.jtablet.impl.ScreenTabletManager;
 
 /**
  * @author marcello
  */
-public class NativeCocoaInterface extends NativeScreenTabletManager {
+public class CocoaTabletManager extends ScreenTabletManager implements NativeTabletManager {
 	
 	private static final float DEVICE_DELTA_FACTOR = 0.25f;
 
-	private static final NativeLibraryLoader LIB_LOADER=new NativeLibraryLoader(
-			Integer.valueOf(BuildInfo.getProperties().getString("jpen.provider.osx.nativeVersion")));
-
-	@Override
-	protected NativeLibraryLoader getLoader() {
-		return LIB_LOADER;
+	public void load(NativeLoader loader) throws NativeLoader.Exception {
+		loader.load();
+		ca.start();
 	}
 
 	private final Map<String,TabletDevice> devices = new HashMap<String,TabletDevice>();
@@ -355,11 +351,6 @@ public class NativeCocoaInterface extends NativeScreenTabletManager {
 			super(type, name, uniqueId, floatSupport, buttonSupport, uniqueIdSupport,
 					pressureSupport, rotationSupport, sidePressureSupport, tiltSupport);
 		}
-	}
-	@Override
-	public void load() throws NativeException {
-		super.load();
-		ca.start();
 	}
 
 	@Override

@@ -35,6 +35,8 @@ import cello.jtablet.TabletDevice;
  * An event that indicates cursor input occurred on the given component. This class extends {@link MouseEvent} and 
  * provides a similar and extended API for accessing tablet events.
  * 
+ * <p>You likely will not be constructing this class yourself.
+ * 
  * <p><b>Implementation Note:</b> {@link #isPopupTrigger()} is unsupported.</p>
  * 
  * @author Marcello
@@ -104,6 +106,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.zoomFactor = zoom;
 		this.rawTabletButtonMask = rawTabletButtonMask;
 	}
+	
 	/**
 	 * Wrap a {@link MouseEvent} as a TabletEvent.
 	 * @param e
@@ -127,7 +130,30 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.rawTabletButtonMask = 0;
 	} 
 
-	
+
+	/**
+	 * Wrap a {@link MouseEvent} as a TabletEvent.
+	 * @param e
+	 * @param type 
+	 * @param device 
+	 */
+	public TabletEvent(MouseEvent e, Type type, TabletDevice device, Component c, float x, float y) {
+		super(c, e.getID(), e.getWhen(), e.getModifiersEx(), (int)x, (int)y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
+		this.x = x;
+		this.y = y;
+		this.type = type;
+		this.pressure = (e.getModifiersEx() & BUTTON1_DOWN_MASK) != 0 ? 1.0f : 0;
+		this.tiltX = 0;
+		this.tiltY = 0;
+		this.sidePressure = 0;
+		this.rotation = 0;
+		this.device = device;
+		this.scrollX = 0;
+		this.scrollY = 0;
+		this.zoomFactor = 0;
+		this.rawTabletButtonMask = 0;
+	} 
+
 
 
 	/**
@@ -213,7 +239,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 
-		sb.append(getClass().getSimpleName());
+		sb.append(getClass().getName());
 		sb.append("[");
 		sb.append("").append(type);
 		sb.append(",when=").append(getWhen());
@@ -598,6 +624,45 @@ public class TabletEvent extends MouseEvent implements Serializable {
 				tiltX, tiltY, sidePressure,
 				rotation,scrollX,scrollY,zoomFactor,
 				getButton(), rawTabletButtonMask);
+	}
+
+	/**
+	 * Returns a copy of this {@linkplain TabletEvent} with the given component and coordinates.
+	 * 
+	 * @see #withPoint(float, float)
+	 * @param newComponent
+	 * @param newX x-coordinate
+	 * @param newY y-coordinate
+	 * @return a new {@linkplain TabletEvent} with the new component and coordinates
+	 */
+	public TabletEvent(TabletEvent original, Component newComponent, float newX, float newY) {
+	this(newComponent, original.type, original.getWhen(), original.getModifiersEx(), 
+				original.device, newX, newY, original.pressure,
+				original.tiltX, original.tiltY, original.sidePressure,
+				original.rotation,original.scrollX,original.scrollY,original.zoomFactor,
+				original.getButton(), original.rawTabletButtonMask);
+	}
+
+	/**
+	 * Returns a copy of this {@linkplain TabletEvent} with the given coordinates.
+	 * @see #withPoint(Component, float, float)
+	 * @param newX x-coordinate
+	 * @param newY y-coordinate
+	 * @return a new {@linkplain TabletEvent} with the new coordinates
+	 */
+	public TabletEvent(TabletEvent original, float newX, float newY) {
+		this(original, original.getComponent(), newX, newY);
+	}
+	/**
+	 * Returns a copy of this {@linkplain TabletEvent} with a new event {@link Type}.
+	 * @param newType the new event type
+	 */
+	public TabletEvent(TabletEvent original, Type newType) {
+		this(original.getComponent(), newType, original.getWhen(), original.getModifiersEx(), 
+				original.device, original.x, original.y, original.pressure,
+				original.tiltX, original.tiltY, original.sidePressure,
+				original.rotation,original.scrollX,original.scrollY,original.zoomFactor,
+				original.getButton(), original.rawTabletButtonMask);
 	}
 
 }
