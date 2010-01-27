@@ -77,6 +77,7 @@ public class ScreenMouseTabletManager extends ScreenTabletManager {
 				break;
 			case MouseEvent.MOUSE_CLICKED:
 			default:
+				System.out.println("id = "+e.getID());
 				type = null;
 				break;
 		}

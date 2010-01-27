@@ -52,13 +52,14 @@
 	
 	
 
-  <target name="init">
+  <target name="init" depends="svn.version">
     <!-- Create the time stamp -->
     <tstamp/>
   </target>
 	
 	<target name="svn.version" description="Sets the buildversion for the current build">
-		<exec executable="svnversion" spawn="false" dir="." outputproperty="svn.version"></exec>
+		<!--<exec executable="svnversion" spawn="false" dir="." outputproperty="svn.version"></exec>-->
+		<property name="svn.version" value="dev"/>
 	</target>
 
 
@@ -112,6 +113,7 @@
     <jar 
 		jarfile="${dist}/lib/jtablet2-${svn.version}.original.jar"
 		includes="cello/**"
+    	excludes="cello/jtablet/impl/jpen/**"
     	level="9"
 		basedir="${build.jtablet}">
         <manifest>
@@ -124,16 +126,51 @@
     		<attribute name="Implementation-Vendor" 	value="${impl.vendor}"/>
         	<attribute name="Implementation-Vendor-Id" 	value="${impl.vendor.id}"/>
     		<attribute name="Implementation-Version" 	value="${impl.version}"/>
+        	<section name="cello/jtablet/impl/">
+        		<attribute name="Sealed" value="true"/>
+        	</section>
+        </manifest>
+	</jar>
+    <jar 
+		jarfile="${dist}/lib/jtablet2-jpen-${svn.version}.original.jar"
+		includes="cello/jtablet/impl/jpen/**"
+    	level="9"
+		basedir="${build.jtablet}">
+        <manifest>
+          	<attribute name="Built-By" value="Marcello"/>
+        	<attribute name="Extension-Name" 			value="${ext.name}"/>
+            <attribute name="Specification-Title" 		value="${spec.title}"/>
+        	<attribute name="Specification-Vendor" 		value="${spec.vendor}"/>
+    		<attribute name="Specification-Version" 	value="${spec.version}"/>
+			<attribute name="Implementation-Title" 		value="${impl.title}"/>
+    		<attribute name="Implementation-Vendor" 	value="${impl.vendor}"/>
+        	<attribute name="Implementation-Vendor-Id" 	value="${impl.vendor.id}"/>
+    		<attribute name="Implementation-Version" 	value="${impl.version}"/>
+        	<section name="cello/jtablet/impl/jpen">
+        		<attribute name="Sealed" value="true"/>
+        	</section>
         </manifest>
 	</jar>
   </target>
-	<target name="jtablet.install.mac" depends="jtablet.jar">
+	
+	<target name="jtablet.install" depends="jtablet.jar,jpen.jar">
+		<mkdir dir="${user.home}/.jtablet"/>
+		<copy 
+			file="${dist}/lib/jtablet2-jpen-${svn.version}.original.jar" 
+			tofile="${user.home}/.jtablet/jtablet-jpen.jar"/>
+		<copy 
+			file="${dist}/lib/jpen2-${svn.version}.original.jar" 
+			tofile="${user.home}/.jtablet/jpen.jar"/>
+		
+	</target>
+	
+	<target name="jtablet.install.mac" depends="jtablet.jar,jtablet.install">
 		<mkdir dir="${user.home}/Library/Java/Extensions"/>
 		<copy 
 			file="${dist}/lib/jtablet2-${svn.version}.original.jar" 
 			tofile="${user.home}/Library/Java/Extensions/jtablet.jar"/>
 	</target>
-	
+
 	
   <!-- demo package -->
   <path id="demo.classpath">
@@ -164,6 +201,11 @@
           <attribute name="Sealed" value="true"/>
         </manifest>
 	</jar>
+  </target>
+  <target name="demo.run" depends="demo.jar">
+    <java           
+    	fork="true"
+  		jar="${dist}/lib/jtablet2-demo-${svn.version}.original.jar"/>
   </target>
 	
 	

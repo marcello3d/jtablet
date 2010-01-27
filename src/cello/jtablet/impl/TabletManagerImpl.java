@@ -28,9 +28,6 @@ import java.awt.Component;
 import cello.jtablet.DriverStatus;
 import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletListener;
-import cello.jtablet.impl.jpen.CocoaTabletManager;
-import cello.jtablet.impl.jpen.WinTabTabletManager;
-import cello.jtablet.impl.jpen.XInputTabletManager;
 
 /**
  * This class 
@@ -46,20 +43,34 @@ public class TabletManagerImpl extends TabletManager {
 	 */
 	public TabletManagerImpl() {
 		String os = System.getProperty("os.name").toLowerCase();
-		DriverStatus tabletStatus = null;
+		DriverStatus tabletStatus = new DriverStatus(DriverStatus.State.UNSUPPORTED_OS);;
 		TabletManager chosenManager = null;
-		Class<?> interfaces[] = {
-//			NativeCocoaInterface.class,
-//			NativeWinTabInterface.class,
-//			NativeXInputInterface.class,
-			ScreenMouseTabletManager.class, // supports screen listeners but requires extra security permissions
-			MouseTabletManager.class
-		};
+		
 		NativeLoader loader = null;
 		try {
 			loader = new NativeLoader();
 		} catch (Throwable t) {
+			t.printStackTrace();
 			tabletStatus = new DriverStatus(DriverStatus.State.UNEXPECTED_EXCEPTION, t);
+		}
+		
+		
+		Class<?> interfaces[] = {
+			ScreenMouseTabletManager.class, // supports screen listeners but requires extra security permissions
+			MouseTabletManager.class
+		};
+		if (loader != null) {
+			try {
+				interfaces = new Class<?>[] {
+					loader.loadClass("CocoaTabletManager"),
+					loader.loadClass("WinTabTabletManager"),
+					loader.loadClass("XInputTabletManager"),
+					ScreenMouseTabletManager.class, // supports screen listeners but requires extra security permissions
+					MouseTabletManager.class
+				};
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 		for (Class<?> cdClazz : interfaces) {
 			try {
@@ -87,9 +98,6 @@ public class TabletManagerImpl extends TabletManager {
 			} catch (Throwable t) {
 				tabletStatus = new DriverStatus(DriverStatus.State.UNEXPECTED_EXCEPTION, t);
 			}
-		}
-		if (!(chosenManager instanceof NativeTabletManager)) {
-			tabletStatus = new DriverStatus(DriverStatus.State.UNSUPPORTED_OS);
 		}
 		this.tabletStatus = tabletStatus;
 		this.tabletManager = chosenManager;

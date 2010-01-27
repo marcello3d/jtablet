@@ -16,7 +16,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 
-import cello.jtablet.installer.ExtensionChecker;
+import cello.jtablet.installer.ExtensionLoader;
 
 /**
  * A simple sketching surface applet
@@ -28,7 +28,7 @@ public class DemoApplet extends JApplet {
 	
 	public void init() {
 		
-		System.out.println("Installed JTablet version: " + ExtensionChecker.getInstalledVersion());
+		System.out.println("Installed JTablet version: " + ExtensionLoader.getInstalledVersion());
 		
 		Container contentPane = getContentPane();
 		contentPane.setLayout(new BorderLayout());

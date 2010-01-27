@@ -17,7 +17,7 @@ public class SystemDevice extends TabletDevice {
 	
 	@Override
 	public Type getType() {
-		return Type.MOUSE;
+		return Type.UNKNOWN;
 	}
 	@Override 
 	public Support getPressureSupport() {

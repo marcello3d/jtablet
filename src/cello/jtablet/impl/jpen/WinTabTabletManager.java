@@ -70,7 +70,7 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 	};
 	
 	public void load(NativeLoader loader) throws NativeLoader.Exception {
-		loader.load();
+		loader.getLibraryPath();
 		try {
 			wa = new WintabAccess();
 		} catch (Exception e) {

@@ -15,7 +15,7 @@ import javax.swing.SwingUtilities;
  * This class provides a mechanism for checking the installation status of 
  * @author marcello
  */
-public class ExtensionChecker {
+public class ExtensionLoader {
 
 	private static final String INSTALL_URL = "https://secure.cellosoft.com/jtablet/install";
 	private static final Pattern VERSION_NUMBER = Pattern.compile("([0-9]+)\\.([0-9]+)(?:\\.([0-9]+))?");
@@ -30,7 +30,7 @@ public class ExtensionChecker {
 //		if (loader instanceof URLClassLoader) {
 //			System.out.println("urls = "+Arrays.toString(((URLClassLoader)loader).getURLs()));
 //		}
-		Package p = ExtensionChecker.class.getPackage();
+		Package p = ExtensionLoader.class.getPackage();
 		if (p == null) {
 			return null;
 		}
@@ -156,7 +156,7 @@ public class ExtensionChecker {
 	
 
 	/**
-	 * Describes the current install state as returned by {@link ExtensionChecker#getInstallStatus(String)}.
+	 * Describes the current install state as returned by {@link ExtensionLoader#getInstallStatus(String)}.
 	 * 
 	 * @author marcello
 	 */

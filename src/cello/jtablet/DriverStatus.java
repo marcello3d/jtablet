@@ -64,6 +64,10 @@ public class DriverStatus {
 	public DriverStatus(State state, Throwable throwable) {
 		this.state = state;
 		this.throwable = throwable;
+		if (throwable != null) {
+			throwable.printStackTrace();
+			
+		}
 	}
 	
 	/**
@@ -81,6 +85,10 @@ public class DriverStatus {
 	 */
 	public Throwable getThrowable() {
 		return throwable;
+	}
+	@Override
+	public String toString() {
+		return getClass().getName()+"[state="+state+",throwable="+throwable+"]";
 	}
 
 }
