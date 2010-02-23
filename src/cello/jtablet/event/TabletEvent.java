@@ -378,6 +378,9 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param listener the listener to trigger on
 	 */
 	public void fireEvent(TabletListener listener) {
+		if (type == null) {
+			return;
+		}
 		switch (type) {
 		case PRESSED:
 			listener.cursorPressed(this);

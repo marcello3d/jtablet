@@ -358,6 +358,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 		
 		lastX = x;
 		lastY = y;
+		lastDevice = device;
 	}
 	protected void generatePointEvents(long when, int keyModifiers,
 			float x, float y, float pressure, float tiltX, float tiltY,

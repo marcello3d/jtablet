@@ -24,10 +24,15 @@
 package cello.jtablet.impl;
 
 import java.awt.Component;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import cello.jtablet.DriverStatus;
 import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletListener;
+import cello.jtablet.impl.jpen.CocoaTabletManager;
+import cello.jtablet.impl.jpen.WinTabTabletManager;
+import cello.jtablet.impl.jpen.XInputTabletManager;
 
 /**
  * This class 
@@ -46,13 +51,16 @@ public class TabletManagerImpl extends TabletManager {
 		DriverStatus tabletStatus = new DriverStatus(DriverStatus.State.UNSUPPORTED_OS);;
 		TabletManager chosenManager = null;
 		
-		NativeLoader loader = null;
+		final NativeLoader loader;
+		NativeLoader tempLoader;
 		try {
-			loader = new NativeLoader();
+			tempLoader = new NativeLoader();
 		} catch (Throwable t) {
 			t.printStackTrace();
 			tabletStatus = new DriverStatus(DriverStatus.State.UNEXPECTED_EXCEPTION, t);
+			tempLoader = null;
 		}
+		loader = tempLoader;
 		
 		
 		Class<?> interfaces[] = {
@@ -60,26 +68,35 @@ public class TabletManagerImpl extends TabletManager {
 			MouseTabletManager.class
 		};
 		if (loader != null) {
-			try {
-				interfaces = new Class<?>[] {
-					loader.loadClass("CocoaTabletManager"),
-					loader.loadClass("WinTabTabletManager"),
-					loader.loadClass("XInputTabletManager"),
-					ScreenMouseTabletManager.class, // supports screen listeners but requires extra security permissions
-					MouseTabletManager.class
-				};
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			}
+			interfaces = new Class<?>[] {
+				WinTabTabletManager.class,
+				CocoaTabletManager.class,
+				XInputTabletManager.class,
+				ScreenMouseTabletManager.class, // supports screen listeners but requires extra security permissions
+				MouseTabletManager.class
+			};
 		}
 		for (Class<?> cdClazz : interfaces) {
 			try {
 				TabletManager manager = (TabletManager)cdClazz.newInstance();
 				if (manager instanceof NativeTabletManager) {
-					NativeTabletManager nsd = (NativeTabletManager)manager;
+					final NativeTabletManager nsd = (NativeTabletManager)manager;
 					if (nsd.isSystemSupported(os)) {
 						try {
-							nsd.load(loader);
+
+							NativeLoaderException e = AccessController.doPrivileged(new PrivilegedAction<NativeLoaderException>() {
+					            public NativeLoaderException run() {
+					            	try {
+										nsd.load(loader);
+									} catch (NativeLoaderException e) {
+										return e;
+									}
+					            	return null;
+					            }
+					        });
+							if (e != null) {
+								throw e;
+							}
 							chosenManager = manager;
 							tabletStatus = new DriverStatus(DriverStatus.State.LOADED);
 							break;
@@ -87,7 +104,7 @@ public class TabletManagerImpl extends TabletManager {
 							tabletStatus = new DriverStatus(DriverStatus.State.SECURITY_EXCEPTION, e);
 						} catch (UnsatisfiedLinkError e) {
 							tabletStatus = new DriverStatus(DriverStatus.State.NATIVE_EXCEPTION, e);
-						} catch (NativeLoader.Exception e) {
+						} catch (NativeLoaderException e) {
 							tabletStatus = new DriverStatus(DriverStatus.State.NATIVE_EXCEPTION, e);
 						}
 					}

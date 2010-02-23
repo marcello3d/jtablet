@@ -101,9 +101,10 @@ public class DemoInfoPanel extends JPanel {
 				setText(yValue,				nf.format(ev.getFloatY()),				Support.YES);
 				setText(pressureValue,		nf.format(ev.getPressure()),			device.getPressureSupport());
 				setText(sidePressureValue,	nf.format(ev.getSidePressure()),		device.getSidePressureSupport());
-				setText(tiltXValue,			nf.format(Math.toDegrees(ev.getTiltX()))+"º",		device.getTiltSupport());
-				setText(tiltYValue,			nf.format(Math.toDegrees(ev.getTiltY()))+"º",		device.getTiltSupport());
-				setText(rotationValue,		nf.format(Math.toDegrees(ev.getRotation()))+"º",		device.getRotationSupport());
+				char degree = (char)186;
+				setText(tiltXValue,			nf.format(Math.toDegrees(ev.getTiltX()))+degree,		device.getTiltSupport());
+				setText(tiltYValue,			nf.format(Math.toDegrees(ev.getTiltY()))+degree,		device.getTiltSupport());
+				setText(rotationValue,		nf.format(Math.toDegrees(ev.getRotation()))+degree,		device.getRotationSupport());
 			}
 			private void setText(JLabel label, String value, TabletDevice.Support supported) {
 				if (supported != null) {

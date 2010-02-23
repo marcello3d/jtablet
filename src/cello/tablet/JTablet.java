@@ -24,6 +24,7 @@
 package cello.tablet;
 
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletEvent;
@@ -46,7 +47,7 @@ public class JTablet {
 
     private boolean pollModeLatest = true;
     
-    private final LinkedList<JTabletCursor> cursorQueue = new LinkedList<JTabletCursor>();
+    private final ConcurrentLinkedQueue<JTabletCursor> cursorQueue = new ConcurrentLinkedQueue<JTabletCursor>();
     
 
     /**
@@ -124,12 +125,12 @@ public class JTablet {
      * @param b 
      */
     @Deprecated
-    public void setPollModeLatest(boolean b) {
+    public synchronized void setPollModeLatest(boolean b) {
         pollModeLatest = b;
     	if (pollModeLatest && !cursorQueue.isEmpty()) {
-    		JTabletCursor last = cursorQueue.getLast();
-    		cursorQueue.clear();
-    		cursorQueue.add(last);
+    		while (cursorQueue.size()>1) {
+    			cursorQueue.remove();
+    		}
     	}
     }
 
@@ -183,11 +184,11 @@ public class JTablet {
      * @exception JTabletException if there was an error reading the tablet
      */
     @Deprecated
-    public boolean poll() throws JTabletException {
+    public synchronized boolean poll() throws JTabletException {
         if (cursorQueue.isEmpty()) {
             return false;
         }
-        currentCursor = cursorQueue.removeFirst();
+        currentCursor = cursorQueue.poll();
         return true;
     }
 

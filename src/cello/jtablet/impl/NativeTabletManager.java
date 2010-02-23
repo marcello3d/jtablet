@@ -35,9 +35,9 @@ public interface NativeTabletManager {
 	/**
 	 * Loads the actual device
 	 * @param loader 
-	 * @throws NativeLoader.Exception 
+	 * @throws NativeLoaderException 
 	 */
-	public void load(NativeLoader loader) throws NativeLoader.Exception;
+	public void load(NativeLoader loader) throws NativeLoaderException;
 	
 	/**
 	 * @param os the os string

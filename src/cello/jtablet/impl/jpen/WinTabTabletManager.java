@@ -33,7 +33,7 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-import jpen.provider.wintab.WintabAccess;
+import cello.jtablet.impl.jpen.provider.wintab.WintabAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
@@ -41,6 +41,7 @@ import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.AbstractTabletDevice;
 import cello.jtablet.impl.MouseTabletManager;
 import cello.jtablet.impl.NativeLoader;
+import cello.jtablet.impl.NativeLoaderException;
 import cello.jtablet.impl.NativeTabletManager;
 import cello.jtablet.impl.ScreenTabletManager;
 
@@ -69,12 +70,12 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 		}
 	};
 	
-	public void load(NativeLoader loader) throws NativeLoader.Exception {
+	public void load(NativeLoader loader) throws NativeLoaderException {
 		loader.getLibraryPath();
 		try {
 			wa = new WintabAccess();
 		} catch (Exception e) {
-			throw new NativeLoader.Exception(e);
+			throw new NativeLoaderException(e);
 		}
 	}
 	private class WinTabCursor {

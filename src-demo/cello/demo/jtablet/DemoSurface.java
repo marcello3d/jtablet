@@ -71,7 +71,7 @@ public class DemoSurface extends JComponent {
 				float y = ev.getFloatY();
 				float pressure = ev.getPressure() * MAX_RADIUS;
 				boolean rightClick = (ev.getModifiersEx()&InputEvent.BUTTON3_DOWN_MASK) != 0;
-				if (rightClick && ev.getDevice().getType() == TabletDevice.Type.MOUSE) {
+				if (ev.getDevice().getPressureSupport() != TabletDevice.Support.YES) {
 					pressure = MAX_RADIUS;
 				}
 				if (lastPressure>0) {

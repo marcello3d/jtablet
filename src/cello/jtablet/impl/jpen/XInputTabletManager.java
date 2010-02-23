@@ -33,7 +33,7 @@ import cello.jtablet.impl.ScreenTabletManager;
  * @author marcello
  */
 public class XInputTabletManager extends ScreenTabletManager implements NativeTabletManager {
-	public void load(NativeLoader loader) throws NativeLoader.Exception {
+	public void load(NativeLoader loader) {
 //		loader.load();
 	}
 

@@ -242,9 +242,8 @@ public class JTabletCursor {
 	    		return TYPE_PEN_ERASER;
 	    	case STYLUS:
 	    		return TYPE_PEN_TIP;
-	    	default:
-	    		return TYPE_UNKNOWN;
     	}
+		return TYPE_UNKNOWN;
     }
 
     /**
@@ -296,7 +295,7 @@ public class JTabletCursor {
 //	    	case DATA_Z:
 	    	case DATA_ORIENTATION_ALTITUDE:
 	            if (getCursorType() == JTabletCursor.TYPE_PEN_ERASER) {
-	            	return -1;
+	            	return -900;
 	            }
 	            return 0;
 //	    	case DATA_ORIENTATION_AZIMUTH:

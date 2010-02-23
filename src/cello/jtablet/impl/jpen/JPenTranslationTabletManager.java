@@ -25,13 +25,13 @@ package cello.jtablet.impl.jpen;
 
 import java.awt.event.MouseEvent;
 
-import jpen.PButtonEvent;
-import jpen.PKindEvent;
-import jpen.PLevel;
-import jpen.PLevelEvent;
-import jpen.PenManager;
-import jpen.event.PenAdapter;
-import jpen.owner.ScreenPenOwner;
+import cello.jtablet.impl.jpen.PButtonEvent;
+import cello.jtablet.impl.jpen.PKindEvent;
+import cello.jtablet.impl.jpen.PLevel;
+import cello.jtablet.impl.jpen.PLevelEvent;
+import cello.jtablet.impl.jpen.PenManager;
+import cello.jtablet.impl.jpen.event.PenAdapter;
+import cello.jtablet.impl.jpen.owner.ScreenPenOwner;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletEvent.Type;
@@ -178,7 +178,6 @@ public class JPenTranslationTabletManager extends ScreenTabletManager {
 			
 			fireScreenTabletEvent(new TabletEvent(SCREEN_COMPONENT, TabletEvent.Type.ENTERED, ev.getTime(), buttonMask, buttonMask, device, x, y));
 		}
-		@SuppressWarnings("deprecation")
 		@Override
 		public void penLevelEvent(PLevelEvent ev) {
 			boolean moved = false;
