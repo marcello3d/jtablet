@@ -33,4 +33,8 @@ public class NativeLoader {
 		return nativeFile.getPath();
 	}
 
+	public void load() throws NativeLoaderException {
+		System.load(getLibraryPath());
+	}
+
 }

@@ -25,18 +25,18 @@ package cello.jtablet.impl.jpen;
 
 import java.awt.event.MouseEvent;
 
-import cello.jtablet.impl.jpen.PButtonEvent;
-import cello.jtablet.impl.jpen.PKindEvent;
-import cello.jtablet.impl.jpen.PLevel;
-import cello.jtablet.impl.jpen.PLevelEvent;
-import cello.jtablet.impl.jpen.PenManager;
-import cello.jtablet.impl.jpen.event.PenAdapter;
-import cello.jtablet.impl.jpen.owner.ScreenPenOwner;
+import cello.repackaged.jpen.event.PenAdapter;
+import cello.repackaged.jpen.owner.ScreenPenOwner;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletEvent.Type;
 import cello.jtablet.impl.ScreenTabletManager;
 import cello.jtablet.impl.SystemDevice;
+import cello.repackaged.jpen.PButtonEvent;
+import cello.repackaged.jpen.PKindEvent;
+import cello.repackaged.jpen.PLevel;
+import cello.repackaged.jpen.PLevelEvent;
+import cello.repackaged.jpen.PenManager;
 
 /**
  * 

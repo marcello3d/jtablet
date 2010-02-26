@@ -2,6 +2,7 @@ package cello.demo.jtablet;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -71,6 +72,7 @@ public class DemoInfoPanel extends JPanel {
 			gbc.anchor = GridBagConstraints.WEST;
 			gbc.fill = GridBagConstraints.NONE;
 			JLabel label2 = new JLabel(label.getText()+":",JLabel.LEFT);
+			label2.setFont(label2.getFont().deriveFont(Font.BOLD));
 			labelPrefixes.put(label, label2);
 			add(label2, gbc);
 			

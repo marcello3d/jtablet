@@ -33,7 +33,7 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-import cello.jtablet.impl.jpen.provider.wintab.WintabAccess;
+import cello.repackaged.jpen.provider.wintab.WintabAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
@@ -71,7 +71,7 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 	};
 	
 	public void load(NativeLoader loader) throws NativeLoaderException {
-		loader.getLibraryPath();
+		loader.load();
 		try {
 			wa = new WintabAccess();
 		} catch (Exception e) {

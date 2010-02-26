@@ -8,7 +8,12 @@
 			 
 	  <property name="src"					location="src"/>
 	  <property name="src.gen"				location="src-gen"/>
-	  <property name="src.gen.java"			location="src-gen/java/cello/jtablet/impl/jpen"/>
+	
+	<!-- these need to match (todo: generate from one property) -->
+	  <property name="src.gen.java"			location="${src.gen}/java/cello/repackaged/jpen"/>
+	  <property name="src.jpen.package"		value="cello.repackaged.jpen"/>
+	  <property name="src.jpen.package_"	value="cello_repackaged_jpen"/>
+	
 	  <property name="src.gen.native"		location="src-gen/native"/>
 	  <property name="src.demo"				location="src-demo"/>
 	  <property name="src.installer"		location="src-installer"/>
@@ -60,13 +65,13 @@
 
   <target name="init" depends="svn.version">
     <tstamp/>
-	<property name="dist.version"			value="${dist}/${DSTAMP}-${TSTAMP}-${svn.version}"/>
+	<property name="dist.version"			value="${dist}/${DSTAMP}-${svn.version}"/>
   	<mkdir dir="${dist.version}"/>
   </target>
 	
 	<target name="svn.version" description="Sets the buildversion for the current build">
-		<exec executable="svnversion" spawn="false" dir="." outputproperty="svn.version"></exec>
-		<!--<property name="svn.version" value="dev"/>-->
+		<!--<exec executable="svnversion" spawn="false" dir="." outputproperty="svn.version" errorproperty="svn.version.error"></exec>-->
+		<property name="svn.version" value="dev"/>
 	</target>
 
 	  <target name="jtabletjpen.gen.java" depends="init" description="repackage jpen java source for jtablet" >
@@ -80,10 +85,10 @@
 	  	<replace dir="${src.gen.java}">
 	  	  <replacefilter
 				token=" jpen."
-		  	  	value=" cello.jtablet.impl.jpen."/>
+		  	  	value=" ${src.jpen.package}."/>
 	  	  <replacefilter
 				token="package jpen;"
-		  	  	value="package cello.jtablet.impl.jpen;"/>
+		  	  	value="package ${src.jpen.package};"/>
 	  	</replace>
 	  </target>
 	  <target name="jtabletjpen.compile" depends="jtabletjpen.gen.java" description="compile the repackaged jpen source" >
@@ -107,7 +112,7 @@
 	  	<replace dir="${src.gen.native}">
 	  	  <replacefilter
 				token="Java_jpen_"
-		  	  	value="Java_cello_jtablet_impl_jpen_"/>
+		  	  	value="Java_${src.jpen.package_}_"/>
 	  	</replace>
 	  </target>
 
@@ -184,11 +189,11 @@
 	</proguard>
   </target>
 	
-	<target name="jtablet.install.mac" depends="jtablet.jar.compress,jtabletjpen.compile.osx">
+	<target name="jtablet.install.mac" depends="jtablet.jar,jtabletjpen.compile.osx">
 		<mkdir dir="${user.home}/Library/Java/Extensions"/>
 		<mkdir dir="${user.home}/.jtablet"/>
 		<copy 
-			file="${dist.version}/jtablet2.compressed.jar" 
+			file="${dist.version}/jtablet2.original.jar" 
 			tofile="${user.home}/Library/Java/Extensions/jtablet.jar"/>
 		
 		<copy 

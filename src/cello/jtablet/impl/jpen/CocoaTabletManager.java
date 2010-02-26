@@ -27,7 +27,7 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-import cello.jtablet.impl.jpen.provider.osx.CocoaAccess;
+import cello.repackaged.jpen.provider.osx.CocoaAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
@@ -45,7 +45,7 @@ public class CocoaTabletManager extends ScreenTabletManager implements NativeTab
 	private static final float DEVICE_DELTA_FACTOR = 0.25f;
 
 	public void load(NativeLoader loader) throws NativeLoaderException {
-		System.load(loader.getLibraryPath());
+		loader.load();
 		ca.start();
 	}
 

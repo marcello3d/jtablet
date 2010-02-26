@@ -11,12 +11,14 @@ import java.awt.event.ActionListener;
 import javax.swing.JApplet;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 
 import cello.jtablet.installer.ExtensionLoader;
+import cello.jtablet.installer.ExtensionLoader.InstallStatus;
 
 /**
  * A simple sketching surface applet
@@ -26,74 +28,91 @@ import cello.jtablet.installer.ExtensionLoader;
 public class DemoApplet extends JApplet {
 	
 	
+	public static final String REQUIRED_VERSION = "1.2.0";
+
 	public void init() {
 		
 		System.out.println("Installed JTablet version: " + ExtensionLoader.getInstalledVersion());
+		InstallStatus installStatus = ExtensionLoader.getInstallStatus(REQUIRED_VERSION);
 		
+		System.out.println("install status = "+installStatus);
+
 		Container contentPane = getContentPane();
 		contentPane.setLayout(new BorderLayout());
 		
-		JTabbedPane tabbedPane = new JTabbedPane();
+		switch (installStatus) {
+			case INSTALLED:
+			case NOT_INSTALLED:
+				
+				JTabbedPane tabbedPane = new JTabbedPane();
+				
 		
-
-
-		tabbedPane.addTab("1 Component",createDrawingGroup(BorderLayout.EAST));
-
-		JPanel panel = new JPanel(new GridLayout(1,3,5,5));
-		panel.setBackground(Color.BLACK);
-		panel.add(createDrawingGroup(BorderLayout.NORTH));
-		panel.add(createDrawingGroup(BorderLayout.NORTH));
-		panel.add(createDrawingGroup(BorderLayout.NORTH));
 		
-		tabbedPane.addTab("3 Components",panel);
-
-		panel = new JPanel(new GridLayout(4,4,5,5));
-//		panel.setBackground(Color.BLACK);
-		for (int i=0; i<16; i++) {
-			panel.add(new DemoSurface());
+				tabbedPane.addTab("1 Component",createDrawingGroup(BorderLayout.EAST));
+		
+				JPanel panel = new JPanel(new GridLayout(1,3,5,5));
+				panel.setBackground(Color.BLACK);
+				panel.add(createDrawingGroup(BorderLayout.NORTH));
+				panel.add(createDrawingGroup(BorderLayout.NORTH));
+				panel.add(createDrawingGroup(BorderLayout.NORTH));
+				
+				tabbedPane.addTab("3 Components",panel);
+		
+				panel = new JPanel(new GridLayout(4,4,5,5));
+		//		panel.setBackground(Color.BLACK);
+				for (int i=0; i<16; i++) {
+					panel.add(new DemoSurface());
+				}
+				tabbedPane.addTab("16 Components",panel);
+		
+				try {
+					tabbedPane.addTab("Screen Listener",new ScreenTabletListenerLogPanel());
+				} catch (UnsupportedOperationException ex) {
+					// do nothing
+				}
+				panel = new JPanel();
+				
+				JButton button = new JButton("Open in new window");
+				button.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+		//				System.gc();
+		//				
+		//				double freeMemory = Runtime.getRuntime().freeMemory() / 1024.0 / 1024.0;
+		//				double totalMemory = Runtime.getRuntime().totalMemory() / 1024.0 / 1024.0;
+		//				double usedMemory = totalMemory - freeMemory;
+		//				double maxMemory = Runtime.getRuntime().maxMemory() / 1024.0 / 1024.0;
+		//
+		//				NumberFormat nf = NumberFormat.getNumberInstance();
+		//				nf.setGroupingUsed(true);
+		//				nf.setMaximumFractionDigits(0);
+		//				nf.setMinimumFractionDigits(0);
+		//				System.out.println("memory: " + 
+		//					nf.format(usedMemory) + "/" +
+		//					nf.format(totalMemory) +  
+		//					"MB used (" +
+		//					nf.format(maxMemory) + "MB max)" 
+		//				);
+						JFrame frame = new JFrame("JTablet Demo");
+						frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+						frame.setSize(800,550);
+						frame.setLocationByPlatform(true);
+						frame.getContentPane().add(createDrawingGroup(BorderLayout.EAST), BorderLayout.CENTER);
+						frame.setVisible(true);
+					}
+				});
+				panel.add(button);
+				tabbedPane.addTab("Misc",panel);
+				
+				tabbedPane.addTab("JTablet Status Diagnostics", new InstallStatusPanel());
+				
+				
+				contentPane.add(tabbedPane,BorderLayout.CENTER);
+				break;
+			case RESTART_REQUIRED:
+			case UPDATE_REQUIRED:
+				contentPane.add(new InstallStatusPanel());
+				break;
 		}
-		tabbedPane.addTab("16 Components",panel);
-
-		try {
-			tabbedPane.addTab("Screen Listener",new ScreenTabletListenerLogPanel());
-		} catch (UnsupportedOperationException ex) {
-			// do nothing
-		}
-		panel = new JPanel();
-		
-		JButton button = new JButton("Open in new window");
-		button.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-//				System.gc();
-//				
-//				double freeMemory = Runtime.getRuntime().freeMemory() / 1024.0 / 1024.0;
-//				double totalMemory = Runtime.getRuntime().totalMemory() / 1024.0 / 1024.0;
-//				double usedMemory = totalMemory - freeMemory;
-//				double maxMemory = Runtime.getRuntime().maxMemory() / 1024.0 / 1024.0;
-//
-//				NumberFormat nf = NumberFormat.getNumberInstance();
-//				nf.setGroupingUsed(true);
-//				nf.setMaximumFractionDigits(0);
-//				nf.setMinimumFractionDigits(0);
-//				System.out.println("memory: " + 
-//					nf.format(usedMemory) + "/" +
-//					nf.format(totalMemory) +  
-//					"MB used (" +
-//					nf.format(maxMemory) + "MB max)" 
-//				);
-				JFrame frame = new JFrame("JTablet Demo");
-				frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-				frame.setSize(800,550);
-				frame.setLocationByPlatform(true);
-				frame.getContentPane().add(createDrawingGroup(BorderLayout.EAST), BorderLayout.CENTER);
-				frame.setVisible(true);
-			}
-		});
-		panel.add(button);
-		tabbedPane.addTab("Misc",panel);
-		
-		
-		contentPane.add(tabbedPane,BorderLayout.CENTER);
 		
 		invalidate();
 	}
