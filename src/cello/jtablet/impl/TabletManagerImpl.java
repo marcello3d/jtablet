@@ -47,77 +47,66 @@ public class TabletManagerImpl extends TabletManager {
 	/**
 	 */
 	public TabletManagerImpl() {
-		String os = System.getProperty("os.name").toLowerCase();
-		DriverStatus tabletStatus = new DriverStatus(DriverStatus.State.UNSUPPORTED_OS);;
-		TabletManager chosenManager = null;
-		
-		final NativeLoader loader;
-		NativeLoader tempLoader;
-		try {
-			tempLoader = new NativeLoader();
-		} catch (Throwable t) {
-			t.printStackTrace();
-			tabletStatus = new DriverStatus(DriverStatus.State.UNEXPECTED_EXCEPTION, t);
-			tempLoader = null;
-		}
-		loader = tempLoader;
-		
-		
-		Class<?> interfaces[] = {
-			ScreenMouseTabletManager.class, // supports screen listeners but requires extra security permissions
-			MouseTabletManager.class
-		};
-		if (loader != null) {
-			interfaces = new Class<?>[] {
+		if (PluginConstant.IS_PLUGIN) {
+			String os = System.getProperty("os.name").toLowerCase();
+			DriverStatus tabletStatus = new DriverStatus(DriverStatus.State.UNSUPPORTED_OS);
+			TabletManager chosenManager = null;
+			final NativeLoader loader = new NativeLoader();
+			
+			Class<?> interfaces[] = {
 				WinTabTabletManager.class,
 				CocoaTabletManager.class,
 				XInputTabletManager.class,
 				ScreenMouseTabletManager.class, // supports screen listeners but requires extra security permissions
 				MouseTabletManager.class
 			};
-		}
-		for (Class<?> cdClazz : interfaces) {
-			try {
-				TabletManager manager = (TabletManager)cdClazz.newInstance();
-				if (manager instanceof NativeTabletManager) {
-					final NativeTabletManager nsd = (NativeTabletManager)manager;
-					if (nsd.isSystemSupported(os)) {
-						try {
-
-							NativeLoaderException e = AccessController.doPrivileged(new PrivilegedAction<NativeLoaderException>() {
-					            public NativeLoaderException run() {
-					            	try {
-										nsd.load(loader);
-									} catch (NativeLoaderException e) {
-										return e;
-									}
-					            	return null;
-					            }
-					        });
-							if (e != null) {
-								throw e;
+			for (Class<?> cdClazz : interfaces) {
+				try {
+					TabletManager manager = (TabletManager)cdClazz.newInstance();
+					if (manager instanceof NativeTabletManager) {
+						final NativeTabletManager nsd = (NativeTabletManager)manager;
+						if (nsd.isSystemSupported(os)) {
+							try {
+	
+								NativeLoaderException e = AccessController.doPrivileged(new PrivilegedAction<NativeLoaderException>() {
+						            public NativeLoaderException run() {
+						            	try {
+						            		loader.load();
+										} catch (NativeLoaderException e) {
+											return e;
+										}
+						            	return null;
+						            }
+						        });
+								if (e != null) {
+									throw e;
+								}
+			            		nsd.load();
+								chosenManager = manager;
+								tabletStatus = new DriverStatus(DriverStatus.State.LOADED);
+								break;
+							} catch (SecurityException e) {
+								tabletStatus = new DriverStatus(DriverStatus.State.UNEXPECTED_EXCEPTION, e);
+							} catch (UnsatisfiedLinkError e) {
+								tabletStatus = new DriverStatus(DriverStatus.State.NATIVE_EXCEPTION, e);
+							} catch (NativeLoaderException e) {
+								tabletStatus = new DriverStatus(DriverStatus.State.NATIVE_EXCEPTION, e);
 							}
-							chosenManager = manager;
-							tabletStatus = new DriverStatus(DriverStatus.State.LOADED);
-							break;
-						} catch (SecurityException e) {
-							tabletStatus = new DriverStatus(DriverStatus.State.SECURITY_EXCEPTION, e);
-						} catch (UnsatisfiedLinkError e) {
-							tabletStatus = new DriverStatus(DriverStatus.State.NATIVE_EXCEPTION, e);
-						} catch (NativeLoaderException e) {
-							tabletStatus = new DriverStatus(DriverStatus.State.NATIVE_EXCEPTION, e);
 						}
+					} else {
+						chosenManager = manager;
+						break;
 					}
-				} else {
-					chosenManager = manager;
-					break;
+				} catch (Throwable t) {
+					tabletStatus = new DriverStatus(DriverStatus.State.UNEXPECTED_EXCEPTION, t);
 				}
-			} catch (Throwable t) {
-				tabletStatus = new DriverStatus(DriverStatus.State.UNEXPECTED_EXCEPTION, t);
 			}
+			this.tabletStatus = tabletStatus;
+			this.tabletManager = chosenManager;
+		} else {
+			this.tabletStatus = new DriverStatus(DriverStatus.State.NOT_INSTALLED);
+			this.tabletManager = new MouseTabletManager();
 		}
-		this.tabletStatus = tabletStatus;
-		this.tabletManager = chosenManager;
 	}
 
 	@Override

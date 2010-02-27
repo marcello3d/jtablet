@@ -5,13 +5,16 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.GridLayout;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.text.NumberFormat;
 
 import javax.swing.JApplet;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -27,7 +30,8 @@ import cello.jtablet.installer.ExtensionLoader.InstallStatus;
  */
 public class DemoApplet extends JApplet {
 	
-	
+
+	/** Require JTablet version for extension installation status. */
 	public static final String REQUIRED_VERSION = "1.2.0";
 
 	public void init() {
@@ -72,35 +76,55 @@ public class DemoApplet extends JApplet {
 				}
 				panel = new JPanel();
 				
-				JButton button = new JButton("Open in new window");
+				JButton button = new JButton("Garbage collect");
 				button.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-		//				System.gc();
-		//				
-		//				double freeMemory = Runtime.getRuntime().freeMemory() / 1024.0 / 1024.0;
-		//				double totalMemory = Runtime.getRuntime().totalMemory() / 1024.0 / 1024.0;
-		//				double usedMemory = totalMemory - freeMemory;
-		//				double maxMemory = Runtime.getRuntime().maxMemory() / 1024.0 / 1024.0;
-		//
-		//				NumberFormat nf = NumberFormat.getNumberInstance();
-		//				nf.setGroupingUsed(true);
-		//				nf.setMaximumFractionDigits(0);
-		//				nf.setMinimumFractionDigits(0);
-		//				System.out.println("memory: " + 
-		//					nf.format(usedMemory) + "/" +
-		//					nf.format(totalMemory) +  
-		//					"MB used (" +
-		//					nf.format(maxMemory) + "MB max)" 
-		//				);
-						JFrame frame = new JFrame("JTablet Demo");
-						frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-						frame.setSize(800,550);
-						frame.setLocationByPlatform(true);
-						frame.getContentPane().add(createDrawingGroup(BorderLayout.EAST), BorderLayout.CENTER);
-						frame.setVisible(true);
+
+						System.gc();
+						double freeMemory = Runtime.getRuntime().freeMemory() / 1024.0 / 1024.0;
+						double totalMemory = Runtime.getRuntime().totalMemory() / 1024.0 / 1024.0;
+						double usedMemory = totalMemory - freeMemory;
+						double maxMemory = Runtime.getRuntime().maxMemory() / 1024.0 / 1024.0;
+		
+						NumberFormat nf = NumberFormat.getNumberInstance();
+						nf.setGroupingUsed(true);
+						nf.setMaximumFractionDigits(0);
+						nf.setMinimumFractionDigits(0);
+						System.out.println("memory: " + 
+							nf.format(usedMemory) + "/" +
+							nf.format(totalMemory) +  
+							"MB used (" +
+							nf.format(maxMemory) + "MB max)" 
+						);
+
+						Window[] windows = Window.getWindows();
+						System.out.println("Windows ("+windows.length+"):");
+						for (Window w : windows) {
+							System.out.println("window: "+w);
+						}						
+
 					}
 				});
 				panel.add(button);
+				
+				button = new JButton("Open in new window");
+				button.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						makeNewFrame();
+					}
+				});
+				panel.add(button);
+				
+				button = new JButton("Window benchmark");
+				button.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						for (int i = 0; i<50; i++) {
+							makeNewFrame();
+						}
+					}
+				});
+				panel.add(button);
+				
 				tabbedPane.addTab("Misc",panel);
 				
 				tabbedPane.addTab("JTablet Status Diagnostics", new InstallStatusPanel());
@@ -124,6 +148,35 @@ public class DemoApplet extends JApplet {
 		panel.add(new TabletListenerLogPanel(demoSurface),BorderLayout.SOUTH);
 		panel.add(new JScrollPane(new DemoInfoPanel(demoSurface)),infoPosition);
 		return panel;
+	}
+
+	private void makeNewFrame() {
+		JFrame frame = new JFrame("JTablet Demo");
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setSize(800,550);
+//		frame.setLocationByPlatform(true);
+		frame.getContentPane().add(createDrawingGroup(BorderLayout.EAST), BorderLayout.CENTER);
+		frame.setVisible(true);
+		frame.addKeyListener(new KeyListener() {
+			public void keyPressed(KeyEvent e) {
+			}
+			public void keyReleased(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+					Component component = e.getComponent();
+					if (component instanceof Window) {
+						System.out.println("Disposing "+component);
+						((Window)component).dispose();
+					} else {
+						System.out.println("Cannot dispose "+component);
+					}
+				}
+			}
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
 	}
 
 	/**

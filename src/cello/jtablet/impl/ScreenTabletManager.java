@@ -30,19 +30,16 @@ import java.awt.GraphicsEnvironment;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
 import java.awt.event.MouseEvent;
-import java.lang.ref.Reference;
-import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.swing.SwingUtilities;
 
@@ -64,10 +61,6 @@ public abstract class ScreenTabletManager extends TabletManager {
 	// In order to avoid holding onto Component pointers, we only use weak references to the Component 
 	private final Map<Component,ComponentManager> componentManagers 
 			= Collections.synchronizedMap(new WeakHashMap<Component,ComponentManager>());	
-
-    private final ReferenceQueue<Component> queue = new ReferenceQueue<Component>();
-	
-	private final List<ComponentManager> showingComponents = new CopyOnWriteArrayList<ComponentManager>();
 	
 	
 	/**
@@ -143,8 +136,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 				for (TabletListener l : screenListeners) {
 					ev.fireEvent(l);
 				}
-				expungeFreedComponents();
-				for (ComponentManager cm : showingComponents) {
+				for (ComponentManager cm : componentManagers.values()) {
 					cm.fireScreenTabletEvent(ev);
 				}
 				if (ev.getType() == TabletEvent.Type.RELEASED) {
@@ -152,13 +144,6 @@ public abstract class ScreenTabletManager extends TabletManager {
 				}
 			}
 		});
-	}
-
-	private void expungeFreedComponents() {
-		Reference<? extends Component> c;
-		while ((c = queue.poll()) != null) {
-			System.out.println("expunging ... "+c);
-		}
 	}
 
 	public void addScreenTabletListener(TabletListener l) {
@@ -191,28 +176,41 @@ public abstract class ScreenTabletManager extends TabletManager {
 	}
 
 
+	/**
+	 * This is a hacked container that pretends to be a HierarchyListener so that it can associated with a Component.
+	 * Why HierarchyListener? The events aren't called very often, it doesn't have many methods, and the listener isn't
+	 * used all that often.
+	 */
+	private static class TabletListenerManager implements HierarchyListener, Iterable<TabletListener> {
+		List<TabletListener> listeners = new ArrayList<TabletListener>();
+		public void hierarchyChanged(HierarchyEvent e) {}
+		public void remove(TabletListener l) {
+			listeners.remove(l);
+		}
+		public boolean isEmpty() {
+			return listeners.isEmpty();
+		}
+		public Iterator<TabletListener> iterator() {
+			return listeners.iterator();
+		}
+		public boolean add(TabletListener l) {
+			return listeners.add(l);
+		}
+	}
 	private class ComponentManager {
 		private boolean cursorOver = false;
 		private boolean dragging = false;
-		private List<TabletListener> listeners = new ArrayList<TabletListener>();
+		private final WeakReference<TabletListenerManager> listenerManager;
 		private final WeakReference<Component> c;
-//		private final ComponentListener componentListener = new ComponentAdapter() {
-//			@Override
-//			public void componentShown(ComponentEvent e) {
-//				showingComponents.add(ComponentManager.this);
-//			}
-//			@Override
-//			public void componentHidden(ComponentEvent e) {
-//				showingComponents.remove(ComponentManager.this);
-//			}
-//		};
 
 		public ComponentManager(Component c) {
-			this.c = new WeakReference<Component>(c, queue);
-//			if (c.isShowing()) {
-				showingComponents.add(this);
-//			}
-//			c.addComponentListener(componentListener);
+			this.c = new WeakReference<Component>(c);
+			// We store the concrete reference in the Component itself guised as a HierarchyListener
+			// Then we keep a weak reference in the ComponentManager.
+			// The listeners are then freed when the Component is and we don't leak!
+			TabletListenerManager listeners = new TabletListenerManager();
+			c.addHierarchyListener(listeners);
+			this.listenerManager = new WeakReference<TabletListenerManager>(listeners);
 		}
 		
 		private boolean isWindowFocused(Component c) {
@@ -224,7 +222,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 			Component c = this.c.get();
 			// Has this component been garbage collected?
 			if (c == null) {
-				removeSelf();
+				cleanup();
 				return;
 			}
 			if (!isActive(c)) {
@@ -271,14 +269,14 @@ public abstract class ScreenTabletManager extends TabletManager {
 
 
 		private boolean isActive(Component c) {
-			return c.isShowing() && c.isDisplayable();
+			// isShowing implies isDisplayable
+			return c.isShowing();
 		}
 
 		private void fireEvent(TabletEvent event) {
-			Component c = this.c.get();
-			if (c != null) {
-//				c.dispatchEvent(event);
-				for (TabletListener l : listeners) {
+			TabletListenerManager listenerManager = this.listenerManager.get();
+			if (listenerManager != null) {
+				for (TabletListener l : listenerManager) {
 					event.fireEvent(l);
 				}
 			}
@@ -289,27 +287,29 @@ public abstract class ScreenTabletManager extends TabletManager {
 		 * @return false if the this is the last TabletListener to be removed
 		 */
 		public synchronized boolean remove(TabletListener l) {
-			listeners.remove(l);
-			
-			if (listeners.isEmpty()) {
-				componentManagers.remove(c.get());
-				afterRemoved();
+			TabletListenerManager listenerManager = this.listenerManager.get();
+			if (listenerManager != null) {
+				listenerManager.remove(l);
+				
+				if (listenerManager.isEmpty()) {
+					Component component = c.get();
+					component.removeHierarchyListener(listenerManager);
+					componentManagers.remove(component);
+					cleanup();
+				}
 			}
 			return true;
 		}
 
-		private void removeSelf() {
-			listeners.clear();
-			afterRemoved();
-		}
-		private void afterRemoved() {
-			showingComponents.remove(this);
+		private void cleanup() {
 			stopIfNeeded();
-			System.out.println("Removed ComponentManager...");
 		}
 
 		public synchronized void add(TabletListener l) {
-			listeners.add(l);
+			TabletListenerManager listenerManager = this.listenerManager.get();
+			if (listenerManager != null) {
+				listenerManager.add(l);
+			}
 		}
 
 	}

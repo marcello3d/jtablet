@@ -9,6 +9,8 @@ import java.net.URL;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import cello.jtablet.impl.PluginConstant;
+
 /**
  * This class provides a standard way to guarantee JTablet version compatibility. It performs checks for installed 
  * version of JTablet, allowing you to avoid problems with incompatible JTablet installations.
@@ -24,12 +26,15 @@ public class ExtensionLoader {
 //	private static final Pattern VERSION_NUMBER = Pattern.compile("([0-9]+)\\.([0-9]+)(?:\\.([0-9]+))?");
 
 	private static Package getInstalledPackage() {
+		if (!PluginConstant.IS_PLUGIN) {
+			return null;
+		}
 		Package p = ExtensionLoader.class.getPackage();
 		if (p == null) {
 			return null;
 		}
 		String version = p.getImplementationVersion();
-		if (version == null || version.endsWith("-standalone")) {
+		if (version == null) {
 			return null;
 		}
 		return p;

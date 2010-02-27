@@ -23,7 +23,6 @@
 
 package cello.jtablet.impl.jpen;
 
-import cello.jtablet.impl.NativeLoader;
 import cello.jtablet.impl.NativeTabletManager;
 import cello.jtablet.impl.ScreenTabletManager;
 
@@ -33,8 +32,7 @@ import cello.jtablet.impl.ScreenTabletManager;
  * @author marcello
  */
 public class XInputTabletManager extends ScreenTabletManager implements NativeTabletManager {
-	public void load(NativeLoader loader) {
-//		loader.load();
+	public void load() {
 	}
 
 	public boolean isSystemSupported(String os) {

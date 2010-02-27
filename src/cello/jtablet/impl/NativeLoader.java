@@ -15,12 +15,8 @@ public class NativeLoader {
 	/*package*/ NativeLoader() {
 	}
 
-	/**
-	 * @return the path to the library
-	 * @throws NativeLoaderException
-	 */
-	public String getLibraryPath() throws NativeLoaderException {
-		File libraryDirectory = new File(System.getProperty("user.home") + "/" + JTABLET_FOLDER_NAME);
+	private String getLibraryPath(String homeFolder) throws NativeLoaderException {
+		File libraryDirectory = new File(homeFolder + "/" + JTABLET_FOLDER_NAME);
 		if (!libraryDirectory.exists()) {
 			throw new NativeLoaderException("Cannot find ~/" + JTABLET_FOLDER_NAME);
 		}
@@ -33,8 +29,18 @@ public class NativeLoader {
 		return nativeFile.getPath();
 	}
 
-	public void load() throws NativeLoaderException {
-		System.load(getLibraryPath());
+	/*package*/ void load() throws NativeLoaderException {
+		String homeFolder = System.getProperty("user.home");
+		try {
+			System.load(getLibraryPath(homeFolder));
+		} catch (Throwable t) {
+			// For security reasons, we don't want to leak an exception with the home folder name, so swap it out with ~
+			String exceptionString = t.toString();
+			if (exceptionString.contains(homeFolder)) {
+				throw new NativeLoaderException(exceptionString.replace(homeFolder, "~"));
+			}
+			throw new NativeLoaderException(t);
+		}
 	}
 
 }

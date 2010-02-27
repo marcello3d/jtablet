@@ -33,11 +33,10 @@ package cello.jtablet.impl;
 public interface NativeTabletManager {
 
 	/**
-	 * Loads the actual device
-	 * @param loader 
+	 * Loads the actual driver
 	 * @throws NativeLoaderException 
 	 */
-	public void load(NativeLoader loader) throws NativeLoaderException;
+	public void load() throws NativeLoaderException;
 	
 	/**
 	 * @param os the os string

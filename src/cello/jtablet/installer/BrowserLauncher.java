@@ -21,7 +21,7 @@ import java.util.Arrays;
  * 
  * @version 2.0, May 26, 2009
  */
-public class BrowserLauncher {
+class BrowserLauncher {
 
 	private static final String[] UNIX_BROWSERS = {
 		"xdg-open",
@@ -60,7 +60,11 @@ public class BrowserLauncher {
 				} else {
 					Runtime runtime = Runtime.getRuntime();
 					if (osName.startsWith("Windows")) {
-						runtime.exec("rundll32 url.dll,FileProtocolHandler " + uriString);
+						runtime.exec(new String[]{
+							"rundll32",
+							"url.dll,FileProtocolHandler",
+							uriString
+						});
 					} else { 
 						// assume Unix or Linux
 						for (String browser : UNIX_BROWSERS) {

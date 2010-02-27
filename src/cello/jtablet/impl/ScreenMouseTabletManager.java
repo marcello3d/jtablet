@@ -37,9 +37,9 @@ import cello.jtablet.event.TabletEvent.Type;
 /**
  * @author marcello
  */
-public class ScreenMouseTabletManager extends ScreenTabletManager {
+class ScreenMouseTabletManager extends ScreenTabletManager {
 	
-	public ScreenMouseTabletManager() {
+	ScreenMouseTabletManager() {
 		start();
 		stop();
 	}

@@ -23,12 +23,7 @@
 
 package cello.jtablet;
 
-import java.awt.AWTEvent;
 import java.awt.Component;
-import java.awt.EventQueue;
-import java.awt.Toolkit;
-import java.awt.event.AWTEventListener;
-import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 

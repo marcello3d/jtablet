@@ -14,6 +14,11 @@ import cello.jtablet.DriverStatus;
 import cello.jtablet.TabletManager;
 import cello.jtablet.installer.ExtensionLoader;
 
+/**
+ * Displays information about the current JTablet installation.
+ * 
+ * @author marcello
+ */
 public class InstallStatusPanel extends JPanel {
 	
 	private JLabel installVersion = new JLabel("Installed version");
@@ -29,6 +34,9 @@ public class InstallStatusPanel extends JPanel {
 	};
 	private Map<JLabel,JLabel> labelPrefixes = new HashMap<JLabel,JLabel>(labels.length);
 
+	/**
+	 * Fills in the install status details.
+	 */
 	public InstallStatusPanel() {
 		super (new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();

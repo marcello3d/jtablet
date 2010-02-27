@@ -23,12 +23,6 @@ public class DriverStatus {
 		LOADED,
 		
 		/**
-		 * A security exception occurred trying to load a native driver. This could happen when trying to load JTablet
-		 * within a {@link SecurityManager}, such as in an Applet or locked-down Java setup.
-		 */
-		SECURITY_EXCEPTION,
-		
-		/**
 		 * A exception occurred loading the native library. This can happen if the native libraries cannot be found, 
 		 * or if some linked library required by the native code cannot be found (e.g. wintab32.dll not available).
 		 */
@@ -42,7 +36,12 @@ public class DriverStatus {
 		/**
 		 * JTablet isn't able to handle the given OS.
 		 */
-		UNSUPPORTED_OS 
+		UNSUPPORTED_OS,
+		
+		/**
+		 * JTablet isn't installed on this system.
+		 */
+		NOT_INSTALLED
 	}
 	
 	private final Throwable throwable;

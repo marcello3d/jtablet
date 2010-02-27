@@ -42,7 +42,7 @@ public class TabletListenerLogPanel extends AbstractLogPanel {
 		TabletManager.getDefaultManager().addTabletListener(targetComponent, new TabletFunneler() {
 			protected void handleEvent(TabletEvent ev) {
 				logMessage(ev.toString());
-			}		
+			}
 		});
 //		targetComponent.addMouseListener(new MouseListener() {
 //			public void mouseClicked(MouseEvent e) {

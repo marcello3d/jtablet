@@ -33,17 +33,16 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Map;
 
-import cello.repackaged.jpen.provider.wintab.WintabAccess;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
 import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.AbstractTabletDevice;
 import cello.jtablet.impl.MouseTabletManager;
-import cello.jtablet.impl.NativeLoader;
 import cello.jtablet.impl.NativeLoaderException;
 import cello.jtablet.impl.NativeTabletManager;
 import cello.jtablet.impl.ScreenTabletManager;
+import cello.repackaged.jpen.provider.wintab.WintabAccess;
 
 
 /**
@@ -53,7 +52,7 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 
 	private MouseTabletManager mouseListener = new MouseTabletManager();
 	private WintabAccess wa;
-	private boolean running = true;
+	private boolean running = false;
 	private Thread thread = new Thread("JTablet-WinTab") {
 		{
 			setDaemon(true);
@@ -70,8 +69,7 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 		}
 	};
 	
-	public void load(NativeLoader loader) throws NativeLoaderException {
-		loader.load();
+	public void load() throws NativeLoaderException {
 		try {
 			wa = new WintabAccess();
 		} catch (Exception e) {
@@ -303,7 +301,6 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 		sidePressure	= wa.getValue(WintabAccess.LEVEL_TYPE_SIDE_PRESSURE);
 		rotation		= wa.getValue(WintabAccess.LEVEL_TYPE_ROTATION);
 		rawTabletButtonMask	= wa.getButtons();
-//		System.out.printf("currentTime=%10d time=%10d x=%6d y=%6d alt=%6d azi=%6d pressure=%6d\n", System.nanoTime()/1000000, deviceTime, x, y, altitude, azimuth, pressure);	
 	}
 
 	private boolean checkCursor() {
@@ -312,7 +309,6 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 		String identifier = physicalId+"/"+cursorId+"/"+WintabAccess.getCursorName(cursorId);
 		if (cursor == null || !identifier.equals(cursor.identifier)) {
 			WinTabCursor newCursor = cursors.get(identifier);
-			System.out.println("cursor -> "+identifier);
 			if (newCursor == null) {
 				newCursor = new WinTabCursor(cursorId, physicalId, identifier);
 				cursors.put(identifier, newCursor);
@@ -329,6 +325,7 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 	@Override
 	protected void start() {
 		wa.setEnabled(true);
+		running = true;
 		environment = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		if (!thread.isAlive()) {
 			thread.start();
@@ -338,6 +335,7 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 	@Override
 	protected void stop() {
 		wa.setEnabled(false);
+		running = false;
 	}
 
 	@Override
