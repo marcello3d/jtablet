@@ -136,6 +136,9 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param e
 	 * @param type 
 	 * @param device 
+	 * @param c 
+	 * @param x 
+	 * @param y 
 	 */
 	public TabletEvent(MouseEvent e, Type type, TabletDevice device, Component c, float x, float y) {
 		super(c, e.getID(), e.getWhen(), e.getModifiersEx(), (int)x, (int)y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
@@ -630,16 +633,16 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 
 	/**
-	 * Returns a copy of this {@linkplain TabletEvent} with the given component and coordinates.
+	 * Constructs a {@linkplain TabletEvent} based on another with a new component and coordinates.
 	 * 
 	 * @see #withPoint(float, float)
+	 * @param original 
 	 * @param newComponent
 	 * @param newX x-coordinate
 	 * @param newY y-coordinate
-	 * @return a new {@linkplain TabletEvent} with the new component and coordinates
 	 */
 	public TabletEvent(TabletEvent original, Component newComponent, float newX, float newY) {
-	this(newComponent, original.type, original.getWhen(), original.getModifiersEx(), 
+		this(newComponent, original.type, original.getWhen(), original.getModifiersEx(), 
 				original.device, newX, newY, original.pressure,
 				original.tiltX, original.tiltY, original.sidePressure,
 				original.rotation,original.scrollX,original.scrollY,original.zoomFactor,
@@ -647,17 +650,18 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 
 	/**
-	 * Returns a copy of this {@linkplain TabletEvent} with the given coordinates.
+	 * Constructs a {@linkplain TabletEvent} based on another with new coordinates.
+	 * @param original 
 	 * @see #withPoint(Component, float, float)
 	 * @param newX x-coordinate
 	 * @param newY y-coordinate
-	 * @return a new {@linkplain TabletEvent} with the new coordinates
 	 */
 	public TabletEvent(TabletEvent original, float newX, float newY) {
 		this(original, original.getComponent(), newX, newY);
 	}
 	/**
-	 * Returns a copy of this {@linkplain TabletEvent} with a new event {@link Type}.
+	 * Constructs a {@linkplain TabletEvent} based on another with a new event {@link Type}.
+	 * @param original 
 	 * @param newType the new event type
 	 */
 	public TabletEvent(TabletEvent original, Type newType) {

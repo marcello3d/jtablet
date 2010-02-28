@@ -44,22 +44,5 @@ public class TabletListenerLogPanel extends AbstractLogPanel {
 				logMessage(ev.toString());
 			}
 		});
-//		targetComponent.addMouseListener(new MouseListener() {
-//			public void mouseClicked(MouseEvent e) {
-//				logMessage(e.toString());
-//			}
-//			public void mouseEntered(MouseEvent e) {
-//				logMessage(e.toString());
-//			}
-//			public void mouseExited(MouseEvent e) {
-//				logMessage(e.toString());
-//			}
-//			public void mousePressed(MouseEvent e) {
-//				logMessage(e.toString());
-//			}
-//			public void mouseReleased(MouseEvent e) {
-//				logMessage(e.toString());
-//			}			
-//		});
 	}
 }

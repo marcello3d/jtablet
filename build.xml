@@ -479,7 +479,7 @@
 	<target name="jars.signed" depends="jtablet.signed,demo.signed,installer.signed">
 	</target>
 
-	<target name="javadocs" depends="init" description="generates javadoc API documentation">
+	<target name="javadocs" depends="init" description="Generate javadoc API documentation">
 		<mkdir dir="${docs.api}"/>
 		<javadoc
 	        destdir="${docs.api}"
@@ -488,8 +488,8 @@
 	        use="true"
 			classpathref="jtablet.classpath"
 			Overview="src/overview.html"
-	        windowtitle="JTablet 2.0 API"
-			Header="JTablet 2.0 API">
+	        windowtitle="JTablet ${spec.version} API"
+			Header="JTablet ${spec.version} API">
 
 			<packageset dir="${src}" defaultexcludes="yes">
 				<include name="cello/jtablet/**"/>

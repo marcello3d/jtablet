@@ -20,8 +20,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 
-import cello.jtablet.installer.ExtensionLoader;
-import cello.jtablet.installer.ExtensionLoader.InstallStatus;
+import cello.jtablet.installer.JTabletExtension;
+import cello.jtablet.installer.JTabletExtension.InstallStatus;
 
 /**
  * A simple sketching surface applet
@@ -34,13 +34,9 @@ public class DemoApplet extends JApplet {
 	/** Require JTablet version for extension installation status. */
 	public static final String REQUIRED_VERSION = "1.2.0";
 
-	public void init() {
+	public void init() {		
+		InstallStatus installStatus = JTabletExtension.getInstallStatus(REQUIRED_VERSION);
 		
-		System.out.println("Installed JTablet version: " + ExtensionLoader.getInstalledVersion());
-		InstallStatus installStatus = ExtensionLoader.getInstallStatus(REQUIRED_VERSION);
-		
-		System.out.println("install status = "+installStatus);
-
 		Container contentPane = getContentPane();
 		contentPane.setLayout(new BorderLayout());
 		
@@ -132,7 +128,6 @@ public class DemoApplet extends JApplet {
 				
 				contentPane.add(tabbedPane,BorderLayout.CENTER);
 				break;
-			case RESTART_REQUIRED:
 			case UPDATE_REQUIRED:
 				contentPane.add(new InstallStatusPanel());
 				break;

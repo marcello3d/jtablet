@@ -21,10 +21,9 @@
  *     distribution.
  */
 
-/**
- * Provides interfaces and classes for dealing with tablet events on AWT components.
- * 
- * @see cello.jtablet.event.TabletListener 
- */
 
-package cello.jtablet.event;
+/**
+ * Provides classes for verifying JTablet extension installation and version incompatibilities.
+ */
+package cello.jtablet.installer;
+

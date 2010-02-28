@@ -12,7 +12,7 @@ import javax.swing.JPanel;
 
 import cello.jtablet.DriverStatus;
 import cello.jtablet.TabletManager;
-import cello.jtablet.installer.ExtensionLoader;
+import cello.jtablet.installer.JTabletExtension;
 
 /**
  * Displays information about the current JTablet installation.
@@ -65,8 +65,8 @@ public class InstallStatusPanel extends JPanel {
 			gbc.gridy++;
 		}
 		
-		installVersion.setText(ExtensionLoader.getInstalledVersion());
-		installStatus.setText(ExtensionLoader.getInstallStatus(DemoApplet.REQUIRED_VERSION).toString());
+		installVersion.setText(JTabletExtension.getInstalledVersion());
+		installStatus.setText(JTabletExtension.getInstallStatus(DemoApplet.REQUIRED_VERSION).toString());
 		DriverStatus status = TabletManager.getDefaultManager().getDriverStatus();
 		driverStatus.setText(status.getState().toString());
 		Throwable throwable = status.getThrowable();

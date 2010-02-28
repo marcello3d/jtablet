@@ -23,7 +23,7 @@
 
 
 /**
- * Contains classes for access the tablet and hooking up {@link cello.jtablet.event.TabletListener}s.
+ * Provides classes for accessing the tablet and attaching listeners to AWT components.
  */
 package cello.jtablet;
 

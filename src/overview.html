@@ -1,9 +1,15 @@
 <HTML>
 <BODY>
-This document is the API specification for the JTablet 2.0 API. The main entry point is 
-{@link cello.jtablet.TabletManager} and can be used to add listeners ({@link cello.jtablet.event.TabletListener}) to 
-listen for tablet events ({@link cello.jtablet.event.TabletEvent} on {@link java.awt.Component} objects).
+JTablet provides an listener-based API for accessing input from graphics tablets. It uses standard AWT Mouse 
+events to provide cursor events when the native driver is not installed or cannot be loaded on a particular platform.
 
+<p>The main entry point is {@link cello.jtablet.TabletManager} and can be used to 
+add listeners ({@link cello.jtablet.event.TabletListener}) to listen for tablet events
+({@link cello.jtablet.event.TabletEvent} on {@link java.awt.Component} objects).</p>
+
+<p>{@link cello.jtablet.installer.JTabletExtension} should be used to detect and avoid JTablet version conflicts.</p>
+
+@see cello.jtablet.installer.JTabletExtension
 @see cello.jtablet.TabletManager
 @see cello.jtablet.event.TabletListener
 @see cello.jtablet.event.TabletEvent
