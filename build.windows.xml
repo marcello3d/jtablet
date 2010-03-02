@@ -1,0 +1,100 @@
+<!--  Platform-specific build targets for Mac OS X -->
+<project>	
+	<property name="jdk.classes.jar" 	location="${java.home}/lib/rt.jar" />
+	<property name="gcc"				location="/mingw/bin/gcc" />
+	<property name="ext.dir"			location="${env.WINDIR}/Sun/Java/lib/ext" />
+	<property name="jdk.home"			location="${java.home}" />
+
+
+	<target name="jtablet.install" depends="jtablet.jar.compress,jtabletjpen.compile">
+		<mkdir dir="${ext.dir}"/>
+		<mkdir dir="${user.home}/.jtablet"/>
+		<copy 
+			file="${dist.version}/jtablet2.compressed.jar" 
+			tofile="${ext.dir}/jtablet.jar"/>
+
+		<copy 
+			file="${dist.version}/jtablet2.dll" 
+			todir="${user.home}/.jtablet"/>
+	</target>
+
+
+
+	<target name="jtablet.remove">
+		<delete 
+			file="${ext.dir}/jtablet.jar"/>
+		<delete
+			file="${user.home}/.jtablet/jtablet2.dll"/>
+	</target>
+
+	
+
+	<target name="jtabletjpen.compile" depends="jtabletjpen.gen.native" description="compile the jpen native source for windows" >
+		<exec
+	    	executable="${gcc}"
+		    	failonerror="true"
+		    	dir="${src.gen.native}/windows">
+			<arg value="-Wall"/>
+			<arg value="-c"/>
+			<arg value="-mrtd"/>
+			<arg value="-D_JNI_IMPLEMENTATION"/>
+			<arg value="-I${jdk.home}/include"/>
+			<arg value="-I${jdk.home}/include/win32"/>
+			<arg value="*.c"/>
+		</exec>
+		<exec
+	    	executable="${gcc}"
+		    	failonerror="true"
+		    	dir="${src.gen.native}/windows">
+			<arg value="-Wall"/>
+			<arg value="-Wl,--kill-at"/>
+			<arg value="-shared"/>
+			<arg value="-o"/>
+			<arg value="jtablet2.dll"/>
+			<arg value="*.o"/>
+			<arg value="-Llib"/>
+			<arg value="-lWintab32"/>
+		</exec>
+		<copy tofile="${dist.version}/jtablet2.dll">
+			<fileset dir="${src.gen.native}/windows">
+				<include name="*.dll"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="jtabletjpen.compile.64" depends="jtabletjpen.gen.native" description="compile the jpen native source for windows (64-bit)" >
+		<exec
+	    	executable="${gcc}"
+		    	failonerror="true"
+		    	dir="${src.gen.native}/windows">
+			<arg value="-Wall"/>
+			<arg value="-c"/>
+			<arg value="-mrtd"/>
+			<arg value="-D_JNI_IMPLEMENTATION"/>
+			<arg value="-I${jdk.home}/include"/>
+			<arg value="-I${jdk.home}/include/win32"/>
+			<arg value="*.c"/>
+		</exec>
+		<exec
+	    	executable="${gcc}"
+		    	failonerror="true"
+		    	dir="${src.gen.native}/windows">
+			<arg value="-Wall"/>
+			<arg value="-Wl,--kill-at"/>
+			<arg value="-shared"/>
+			<arg value="-o"/>
+			<arg value="jtablet2-64.dll"/>
+			<arg value="*.o"/>
+			<arg value="-Llib-64"/>
+			<arg value="-lWintab64"/>
+		</exec>
+		<copy tofile="${dist.version}/jtablet2-64.dll">
+			<fileset dir="${src.gen.native}/windows">
+				<include name="*.dll"/>
+			</fileset>
+		</copy>
+	</target>
+	
+	
+	
+</project>

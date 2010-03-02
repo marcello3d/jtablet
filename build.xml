@@ -6,20 +6,20 @@
 	<!-- set global properties for this build -->
 	<taskdef resource="proguard/ant/task.properties" classpath="lib/proguard.jar" />
 
-	<property name="src"					location="src"/>
-	<property name="src.gen"				location="src-gen"/>
-	<property name="src.gen.thin"			location="src-gen-thin"/>
+	<property name="src"				location="src"/>
+	<property name="src.gen"			location="src-gen"/>
+	<property name="src.gen.thin"		location="src-gen-thin"/>
 
 	<!-- these need to match (todo: generate from one property) -->
-	<property name="src.gen.java"			location="${src.gen}/java/cello/repackaged/jpen"/>
-	<property name="src.jpen.package"		value="cello.repackaged.jpen"/>
+	<property name="src.gen.java"		location="${src.gen}/java/cello/repackaged/jpen"/>
+	<property name="src.jpen.package"	value="cello.repackaged.jpen"/>
 	<property name="src.jpen.package_"	value="cello_repackaged_jpen"/>
 
 	<property name="src.gen.native"		location="src-gen/native"/>
-	<property name="src.demo"				location="src-demo"/>
+	<property name="src.demo"			location="src-demo"/>
 	<property name="src.installer"		location="src-installer"/>
-	<property name="src.jpen"				location="../jpen/src/main/java"/>
-	<property name="src.jpen.native"		location="../jpen/src/main/c"/>
+	<property name="src.jpen"			location="../jpen/src/main/java"/>
+	<property name="src.jpen.native"	location="../jpen/src/main/c"/>
 	<property name="src.jpen.resources"	location="../jpen/src/main/resources"/>
 
 
@@ -30,30 +30,35 @@
 	<property name="build.jtablet.jpen"	location="build/jtablet-jpen"/>
 	<property name="build.jtablet.thin"	location="build/jtablet-thin"/>
 	<property name="build.demo"			location="build/demo"/>
-	<property name="build.installer"		location="build/installer"/>
+	<property name="build.installer"	location="build/installer"/>
 
-	<property name="docs.api"				location="docs/api"/>
+	<property name="docs.api"			location="docs/api"/>
 
 	<property name="dist"  				location="dist"/>
-	<property name="lib.dir"     			location="lib"/>
+	<property name="lib.dir"    		location="lib"/>
 
-	<property name="ext.name"				value="JTablet"/>
+	<property name="ext.name"			value="JTablet"/>
 
 	<property name="spec.title"			value="JTablet 2"/>
-	<property name="spec.vendor"			value="Cellosoft"/>
-	<property name="spec.version"			value="1.2.0"/>
+	<property name="spec.vendor"		value="Cellosoft"/>
+	<property name="spec.version"		value="1.2.0"/>
 
 	<property name="impl.title"			value="JTablet 2"/>
-	<property name="impl.vendor"			value="Cellosoft"/>
+	<property name="impl.vendor"		value="Cellosoft"/>
 	<property name="impl.vendor.id"		value="cello"/>
-	<property name="impl.version"			value="1.2.0-alpha"/>
-
-	<condition property="platform" value="mac">
-		<os family="mac"/>
+	<property name="impl.version"		value="1.2.0-alpha"/>
+	
+	<condition property="platform" value="osx">
+		<and>
+			<os family="mac"/>
+			<os family="unix"/>
+		</and>
 	</condition>
+	
 	<condition property="platform" value="windows">
 		<os family="windows"/>
 	</condition>
+	
 	<condition property="platform" value="unix">
 		<and>
 			<os family="unix"/>
@@ -62,8 +67,8 @@
 			</not>
 		</and>
 	</condition>
-
-
+	
+	<import file="build.${platform}.xml" />
 
 	<target name="init" depends="svn.version">
 		<tstamp/>
@@ -118,21 +123,7 @@
 		</replace>
 	</target>
 
-	<target name="jtabletjpen.compile.osx" depends="jtabletjpen.gen.native" description="compile the jpen native source for mac os x" >
-		<exec
-	    	executable="xcodebuild"
-	    	failonerror="true"
-	    	dir="${src.gen.native}/osx">
-			<arg value="-target"/>
-			<arg value="jnilib"/>
-		</exec>
-		<copy tofile="${dist.version}/libjtablet2.jnilib">
-			<fileset dir="${src.gen.native}/osx/build/Release">
-				<include name="*.jnilib"/>
-			</fileset>
-		</copy>
-	</target>
-
+	
 	<!-- MAIN JTABLET JAR -->
 
 	<path id="jtablet.classpath">
@@ -194,7 +185,7 @@
 		</dependset>
 
 		<proguard configuration="proguard.conf">
-			<libraryjar location="/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar" filter="java/**,javax/**"/>
+			<libraryjar location="${jdk.classes.jar}" filter="java/**,javax/**"/>
 			<injar  file="${dist.version}/jtablet2.original.jar" />
 			<outjar file="${dist.version}/jtablet2.compressed.jar" />
 		</proguard>
@@ -272,7 +263,7 @@
 				includes="jtablet2.thin.compressed.jar"/>
 		</dependset>
 		<proguard configuration="proguard.conf">
-			<libraryjar location="/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar" filter="java/**,javax/**"/>
+			<libraryjar location="${jdk.classes.jar}" filter="java/**,javax/**"/>
 			<injar  file="${dist.version}/jtablet2.thin.original.jar" />
 			<outjar file="${dist.version}/jtablet2.thin.compressed.jar" />
 		</proguard>
@@ -280,24 +271,6 @@
 
 
 
-
-	<target name="jtablet.install.mac" depends="jtablet.jar.compress,jtabletjpen.compile.osx">
-		<mkdir dir="${user.home}/Library/Java/Extensions"/>
-		<mkdir dir="${user.home}/.jtablet"/>
-		<copy 
-			file="${dist.version}/jtablet2.compressed.jar" 
-			tofile="${user.home}/Library/Java/Extensions/jtablet.jar"/>
-
-		<copy 
-			file="${dist.version}/libjtablet2.jnilib" 
-			todir="${user.home}/.jtablet"/>
-	</target>
-
-	<target name="jtablet.remove.mac">
-		<delete file="${user.home}/Library/Java/Extensions/jtablet.jar"/>
-		<delete file="${user.home}/.jtablet/libjtablet2.jnilib"/>
-	</target>
-	
 	
 	<target name="jtablet.dist" depends="jtablet.jar.compress,jtablet.thin.jar.compress,javadocs" />
 	

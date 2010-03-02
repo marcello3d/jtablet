@@ -1,0 +1,38 @@
+<!--  Platform-specific build targets for Mac OS X -->
+<project>	
+	<property name="jdk.classes.jar" location="/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar" />
+	
+	<target name="jtabletjpen.compile" depends="jtabletjpen.gen.native" description="compile the jpen native source for mac os x" >
+		<exec
+	    	executable="xcodebuild"
+	    	failonerror="true"
+	    	dir="${src.gen.native}/osx">
+			<arg value="-target"/>
+			<arg value="jnilib"/>
+		</exec>
+		<copy tofile="${dist.version}/libjtablet2.jnilib">
+			<fileset dir="${src.gen.native}/osx/build/Release">
+				<include name="*.jnilib"/>
+			</fileset>
+		</copy>
+	</target>
+
+
+	<target name="jtablet.install" depends="jtablet.jar.compress,jtabletjpen.compile">
+		<mkdir dir="${user.home}/Library/Java/Extensions"/>
+		<mkdir dir="${user.home}/.jtablet"/>
+		<copy 
+			file="${dist.version}/jtablet2.compressed.jar" 
+			tofile="${user.home}/Library/Java/Extensions/jtablet.jar"/>
+
+		<copy 
+			file="${dist.version}/libjtablet2.jnilib" 
+			todir="${user.home}/.jtablet"/>
+	</target>
+
+	<target name="jtablet.remove">
+		<delete file="${user.home}/Library/Java/Extensions/jtablet.jar"/>
+		<delete file="${user.home}/.jtablet/libjtablet2.jnilib"/>
+	</target>
+	
+</project>
