@@ -1,5 +1,5 @@
-- don't rename anything public/protected with proguard (only remove classes)
-- repackage jpen as something outside of cello.jtablet
+XX- don't rename anything public/protected with proguard (only remove classes)
+XX- repackage jpen as something outside of cello.jtablet
 - get extensionloader working
   - detect jtablet 0.9.x installation
 - package installed jtablet.jar vs. applet/application jtablet2.jar that is included with apps so they can run without jtablet installed
@@ -11,5 +11,6 @@
 	- mac os x 10.5
 	- windows 32
 	- windows 64
+
 
 	

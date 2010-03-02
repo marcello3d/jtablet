@@ -3,6 +3,7 @@ package cello.jtablet.installer;
 import java.applet.Applet;
 import java.awt.Component;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -68,7 +69,7 @@ public class JTabletExtension {
 	public static String getInstalledVersion() {
 		Package p = getInstalledPackage();
 		if (p == null) {
-			return null;
+			return getLegacyJTabletVersion();
 		}
 		return p.getImplementationVersion();
 	}
@@ -140,6 +141,33 @@ public class JTabletExtension {
 				return showUpgradeDialog(parentComponent, desiredMinimumVersion);
 		}
 		return true;
+	}
+	
+	private static String getLegacyJTabletVersion() {
+		try {
+			// Get a class object through Reflection API
+			Class<?> jtablet = Class.forName("cello.tablet.JTablet");
+			// Create an instance of the object
+			Object tablet = jtablet.newInstance();
+			try {
+				// getVersion() was added in 0.2 BETA 2
+				// You can safely assume this function will exist, since the 0.1 BETA
+				// was distributed to a select group of users.
+				// If the user is using 0.1 BETA, you aren't required to support them
+				// so you can simply recommend an upgrade.
+				Method tablet_getVersion = jtablet.getMethod("getVersion");
+	
+				// Invoke function
+				return (String)tablet_getVersion.invoke(tablet);
+			} catch (Exception e) {
+				// If the class exists but the getVersion method doesn't, 
+				// they are using the old 0.1 beta version (highly unlikely)
+				return "0.1.0-beta";
+			}
+		} catch (Exception e) {
+			// No JTablet found
+			return null;
+		}
 	}
 
 	private static Package getInstalledPackage() {

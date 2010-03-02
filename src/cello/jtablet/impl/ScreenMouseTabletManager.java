@@ -40,6 +40,7 @@ import cello.jtablet.event.TabletEvent.Type;
 class ScreenMouseTabletManager extends ScreenTabletManager {
 	
 	ScreenMouseTabletManager() {
+		// trigger any security warnings immediately
 		start();
 		stop();
 	}

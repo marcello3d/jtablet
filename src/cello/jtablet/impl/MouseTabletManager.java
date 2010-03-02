@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009 Marcello Bast√©a-Forte (marcello@cellosoft.com)
+ * Copyright (c) 2009 Marcello Bastéa-Forte (marcello@cellosoft.com)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -42,8 +42,8 @@ import cello.jtablet.event.TabletEvent.Type;
  */
 public class MouseTabletManager extends TabletManager {
 
-	private boolean enabled = true;
-	private int lastModifiersEx;
+	private boolean firingEvents = true;
+	private int lastModifiersEx = 0;
 
 	public void addScreenTabletListener(TabletListener l) {
 		throw new UnsupportedOperationException(getClass()+" does not support screen listeners");
@@ -55,6 +55,8 @@ public class MouseTabletManager extends TabletManager {
 	// Map tablet listeners to our mouse listener
 	private final ConcurrentHashMap<TabletListener,MagicListener> listenerMap 
 			= new ConcurrentHashMap<TabletListener,MagicListener>();
+	
+	private MouseEvent lastEvent;
 	
 	public void addTabletListener(Component c, TabletListener l) {
 		synchronized (l) {
@@ -85,17 +87,17 @@ public class MouseTabletManager extends TabletManager {
 	}
 
 	/**
-	 * @param enabled
+	 * @param firingEvents
 	 */
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
+	public void setFiringEvents(boolean firingEvents) {
+		this.firingEvents = firingEvents;
 	}
 
 	/**
 	 * @return if this listener is enabled
 	 */
-	public boolean isEnabled() {
-		return enabled;
+	public boolean isFiringEvents() {
+		return firingEvents;
 	}
 
 	private class MagicListener implements MouseListener, MouseMotionListener, MouseWheelListener {
@@ -117,8 +119,9 @@ public class MouseTabletManager extends TabletManager {
 		}
 		
 		private void fireTabletEvent(MouseEvent e) {
+			lastEvent = e;
 			lastModifiersEx = e.getModifiersEx();
-			if (!enabled) {
+			if (!firingEvents) {
 				return;
 			}
 			TabletEvent.Type type = null;
@@ -181,7 +184,7 @@ public class MouseTabletManager extends TabletManager {
 		}
 
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			if (!enabled) {
+			if (!firingEvents) {
 				return;
 			}
 			float deltaX=0,deltaY=0;
@@ -212,9 +215,11 @@ public class MouseTabletManager extends TabletManager {
 	public int getLastModifiersEx() {
 		return lastModifiersEx;
 	}
-	
 
-//	public void setHints(TabletManagerFactory.Hints hints) {
-//		
-//	}
+	/**
+	 * @return the last event received by any mouse listener
+	 */
+	public MouseEvent getLastEvent() {
+		return lastEvent;
+	}
 }

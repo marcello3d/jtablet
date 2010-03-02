@@ -182,8 +182,15 @@
 
 	<target name="jtablet.jar.compress" depends="jtablet.jar" description="compress the jtablet jar" >
 		<dependset>
-			<srcfilelist dir="." files="proguard.conf"/>
-			<targetfileset dir="${dist.version}" includes="jtablet2.original.jar"/>
+			<srcfilelist 
+				dir="." 
+				files="proguard.conf"/>
+			<srcfilelist
+				dir="${dist.version}"
+				files="jtablet2.original.jar" />
+			<targetfileset 
+				dir="${dist.version}" 
+				includes="jtablet2.compressed.jar" />
 		</dependset>
 
 		<proguard configuration="proguard.conf">
@@ -254,8 +261,15 @@
 
 	<target name="jtablet.thin.jar.compress" depends="jtablet.thin.jar" description="compress the thin jtablet jar" >
 		<dependset>
-			<srcfilelist dir="." files="proguard.conf"/>
-			<targetfileset dir="${dist.version}" includes="jtablet2.thin.original.jar"/>
+			<srcfilelist 
+				dir="." 
+				files="proguard.conf"/>
+			<srcfilelist
+				dir="${dist.version}"
+				files="jtablet2.thin.original.jar" />
+			<targetfileset 
+				dir="${dist.version}" 
+				includes="jtablet2.thin.compressed.jar"/>
 		</dependset>
 		<proguard configuration="proguard.conf">
 			<libraryjar location="/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar" filter="java/**,javax/**"/>
@@ -267,11 +281,11 @@
 
 
 
-	<target name="jtablet.install.mac" depends="jtablet.jar,jtabletjpen.compile.osx">
+	<target name="jtablet.install.mac" depends="jtablet.jar.compress,jtabletjpen.compile.osx">
 		<mkdir dir="${user.home}/Library/Java/Extensions"/>
 		<mkdir dir="${user.home}/.jtablet"/>
 		<copy 
-			file="${dist.version}/jtablet2.original.jar" 
+			file="${dist.version}/jtablet2.compressed.jar" 
 			tofile="${user.home}/Library/Java/Extensions/jtablet.jar"/>
 
 		<copy 
@@ -279,7 +293,14 @@
 			todir="${user.home}/.jtablet"/>
 	</target>
 
-
+	<target name="jtablet.remove.mac">
+		<delete file="${user.home}/Library/Java/Extensions/jtablet.jar"/>
+		<delete file="${user.home}/.jtablet/libjtablet2.jnilib"/>
+	</target>
+	
+	
+	<target name="jtablet.dist" depends="jtablet.jar.compress,jtablet.thin.jar.compress,javadocs" />
+	
 	<!-- demo package -->
 	<path id="demo.classpath">
 		<!-- <fileset dir="lib" includes="**/*.jar"/> -->

@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009 Marcello BastÃ©a-Forte (marcello@cellosoft.com)
+ * Copyright (c) 2009 Marcello BastŽa-Forte (marcello@cellosoft.com)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -27,6 +27,7 @@ import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
@@ -87,6 +88,9 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 		private final LevelRange rotationRange;
 		private final TabletDevice device;
 		private final int cursorType;
+		private boolean relativeMode = false;
+		private int absoluteCount = 0;
+		private int relativeCount = 0;
 		
 
 		private Support getSupported(int capabilityMask, int capability) {
@@ -154,6 +158,24 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 		public TabletDevice getDevice() {
 			return device;
 		}
+
+		public Point updateRelativeMode(float tabletScreenX, float tabletScreenY, MouseEvent mouseEvent) {
+			Point mouse = mouseEvent.getLocationOnScreen();
+			float dx = mouse.x - tabletScreenX;
+			float dy = mouse.y - tabletScreenY;
+			float distance = dx*dx+dy*dy;
+			if (distance > 20*20) {
+				relativeCount++;
+				relativeMode = true;
+				absoluteCount = 0;
+			} else if (distance < 5*5) {
+				absoluteCount++;
+				if (absoluteCount > 50) {
+					relativeMode = false;
+				}
+			}
+			return relativeMode ? mouse : null;
+		}
 	}
 	
 	private class WinTabDevice extends AbstractTabletDevice {
@@ -191,7 +213,7 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 			r.add(graphicsConfiguration.getBounds());
 		}
 		while (wa.nextPacket()) {
-			mouseListener.setEnabled(false);
+			mouseListener.setFiringEvents(false);
 			boolean newCursor = checkCursor();
 			
 			readValues();
@@ -204,6 +226,15 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 			
 			x += r.x;
 			y += r.y;
+			
+			MouseEvent mouseEvent = mouseListener.getLastEvent();
+			if (mouseEvent != null) {
+				Point mouse = cursor.updateRelativeMode(x, y, mouseEvent);
+				if (mouse != null) {
+					x = mouse.x;
+					y = mouse.y;
+				}
+			}
 
 			float pressure = toFloat(this.pressure, cursor.pressureRange);
 			float sidePressure = toFloat(this.sidePressure, cursor.sidePressureRange);
@@ -270,9 +301,10 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 		if (cursor != null && when - lastTime > 100) {
 			generateDeviceEvents(cursor != null ? cursor.getDevice() : null, when, modifiers, false);
 			cursor = null;
-			mouseListener.setEnabled(true);
+			mouseListener.setFiringEvents(true);
 		}
 	}
+
 
 	private LevelRange getLevelRangeObject(int type) {
 		return new LevelRange(wa.getLevelRange(type));
