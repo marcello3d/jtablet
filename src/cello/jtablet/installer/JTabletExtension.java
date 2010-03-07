@@ -85,6 +85,10 @@ public class JTabletExtension {
 		if (installedVersion == null) {
 			return InstallStatus.NOT_INSTALLED;
 		}
+		String version = installedVersion.getSpecificationVersion();
+		if (version == null) {
+			return InstallStatus.NOT_INSTALLED;
+		}
 		if (!installedVersion.isCompatibleWith(desiredMinimumVersion)) { 
 			return InstallStatus.UPDATE_REQUIRED;
 		}
@@ -176,10 +180,6 @@ public class JTabletExtension {
 		}
 		Package p = JTabletExtension.class.getPackage();
 		if (p == null) {
-			return null;
-		}
-		String version = p.getImplementationVersion();
-		if (version == null) {
 			return null;
 		}
 		return p;

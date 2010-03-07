@@ -6,9 +6,11 @@
 	<!-- set global properties for this build -->
 	<taskdef resource="proguard/ant/task.properties" classpath="lib/proguard.jar" />
 
+	<property name="build"				location="build"/>
+		
 	<property name="src"				location="src"/>
-	<property name="src.gen"			location="src-gen"/>
-	<property name="src.gen.thin"		location="src-gen-thin"/>
+	<property name="src.gen"			location="${build}/src-gen"/>
+	<property name="src.gen.thin"		location="${build}/src-gen-thin"/>
 
 	<!-- these need to match (todo: generate from one property) -->
 	<property name="src.gen.java"		location="${src.gen}/java/cello/repackaged/jpen"/>
@@ -23,14 +25,14 @@
 	<property name="src.jpen.resources"	location="../jpen/src/main/resources"/>
 
 
-	<property name="build.version.file"	location="build/svn.version"/>
+	<property name="build.version.file"	location="${build}/svn.version"/>
 
-	<property name="build.jtablet"		location="build/jtablet"/>
-	<property name="build.jpen"			location="build/jpen"/>
-	<property name="build.jtablet.jpen"	location="build/jtablet-jpen"/>
-	<property name="build.jtablet.thin"	location="build/jtablet-thin"/>
-	<property name="build.demo"			location="build/demo"/>
-	<property name="build.installer"	location="build/installer"/>
+	<property name="build.jtablet"		location="${build}/jtablet"/>
+	<property name="build.jpen"			location="${build}/jpen"/>
+	<property name="build.jtablet.jpen"	location="${build}/jtablet-jpen"/>
+	<property name="build.jtablet.thin"	location="${build}/jtablet-thin"/>
+	<property name="build.demo"			location="${build}/demo"/>
+	<property name="build.installer"	location="${build}/installer"/>
 
 	<property name="docs.api"			location="docs/api"/>
 
@@ -76,12 +78,16 @@
 		<mkdir dir="${dist.version}"/>
 	</target>
 
-	<target name="svn.version" description="Sets the buildversion for the current build">
+	<target name="svn.version">
+		<!-- Sets the build version for the current build -->
 		<!--<exec executable="svnversion" spawn="false" dir="." outputproperty="svn.version" errorproperty="svn.version.error"></exec>-->
 		<property name="svn.version" value="dev"/>
 	</target>
 
-	<target name="jtabletjpen.gen.java" depends="init" description="repackage jpen java source for jtablet" >
+	<target name="jtabletjpen.gen.java" 
+			depends="init" 
+			description="repackage jpen java source for jtablet" >
+		
 		<mkdir dir="${src.gen.java}"/>
 		<copy todir="${src.gen.java}">
 			<fileset dir="${src.jpen}/jpen">
@@ -98,7 +104,9 @@
 		  	  	value="package ${src.jpen.package};"/>
 		</replace>
 	</target>
-	<target name="jtabletjpen.compile" depends="jtabletjpen.gen.java" description="compile the repackaged jpen source" >
+	<target name="jtabletjpen.compile.java" 
+			depends="jtabletjpen.gen.java, jtablet.uninstall" 
+			description="compile jpen java source">
 		<mkdir dir="${build.jtablet.jpen}"/>
 		<javac 
 			srcdir="${src.gen}/java"          
@@ -109,7 +117,10 @@
 			debug="on"/>
 	</target>
 
-	<target name="jtabletjpen.gen.native" depends="init" description="repackage jpen native source for jtablet" >
+	<target 
+		name="jtabletjpen.gen.native" 
+		depends="init" 
+		description="repackage jpen native source for jtablet" >
 		<mkdir dir="${src.gen.native}"/>
 		<copy todir="${src.gen.native}">
 			<fileset dir="${src.jpen.native}">
@@ -130,7 +141,7 @@
 		<pathelement location="${build.jtablet.jpen}"/>
 	</path>
 
-	<target name="jtablet.compile" depends="init,jtabletjpen.compile" description="compile the source" >
+	<target name="jtablet.compile" depends="init, jtabletjpen.compile.java, jtablet.uninstall" description="compile the source" >
 		<mkdir dir="${build.jtablet}"/>
 		<javac 
 			srcdir="${src}"          
@@ -143,7 +154,7 @@
 	</target>
 
 
-	<target name="jtablet.jar" depends="svn.version,jtablet.compile,jtabletjpen.compile" description="generate the initial jtablet jar" >
+	<target name="jtablet.jar.original" depends="svn.version,jtablet.compile">
 		<copy todir="${build.jtablet}">
 			<fileset dir="${build.jtablet.jpen}">
 				<include name="**/*" />
@@ -171,7 +182,7 @@
 		</jar>
 	</target>
 
-	<target name="jtablet.jar.compress" depends="jtablet.jar" description="compress the jtablet jar" >
+	<target name="jtablet.jar" depends="jtablet.jar.original" description="build the final (unsigned) jtablet.jar" >
 		<dependset>
 			<srcfilelist 
 				dir="." 
@@ -187,7 +198,7 @@
 		<proguard configuration="proguard.conf">
 			<libraryjar location="${jdk.classes.jar}" filter="java/**,javax/**"/>
 			<injar  file="${dist.version}/jtablet2.original.jar" />
-			<outjar file="${dist.version}/jtablet2.compressed.jar" />
+			<outjar file="${dist.version}/jtablet.jar" />
 		</proguard>
 	</target>
 
@@ -209,7 +220,8 @@
 		</replace>
 	</target>
 
-	<target name="jtablet.thin.compile" depends="init,jtablet.thin.gen,jtabletjpen.compile" description="compile the thin version of JTablet">
+	<!-- Note: we have to uninstall the jtablet.jar to build this -->
+	<target name="jtablet.thin.compile" depends="init,jtablet.uninstall,jtablet.thin.gen,jtabletjpen.gen.java" description="compile the thin version of JTablet">
 		<mkdir dir="${build.jtablet.thin}"/>
 		<javac 
 			srcdir="${src.gen.thin}"          
@@ -222,14 +234,14 @@
 	</target>
 
 
-	<target name="jtablet.thin.jar" depends="svn.version,jtablet.thin.compile,jtabletjpen.compile" description="generate the initial thin jtablet jar" >
+	<target name="jtablet-thin.jar.original" depends="svn.version, jtablet.thin.compile, jtabletjpen.compile.java">
 		<copy todir="${build.jtablet.thin}">
 			<fileset dir="${build.jtablet.jpen}">
 				<include name="**/*" />
 			</fileset>
 		</copy>
 		<jar 
-			jarfile="${dist.version}/jtablet2.thin.original.jar"
+			jarfile="${dist.version}/jtablet-thin.original.jar"
 			includes="cello/**"
 	    	level="9"
 			basedir="${build.jtablet.thin}">
@@ -250,7 +262,7 @@
 		</jar>
 	</target>
 
-	<target name="jtablet.thin.jar.compress" depends="jtablet.thin.jar" description="compress the thin jtablet jar" >
+	<target name="jtablet-thin.jar" depends="jtablet-thin.jar.original" description="build the final (unsigned) jtablet-thin.jar" >
 		<dependset>
 			<srcfilelist 
 				dir="." 
@@ -264,15 +276,15 @@
 		</dependset>
 		<proguard configuration="proguard.conf">
 			<libraryjar location="${jdk.classes.jar}" filter="java/**,javax/**"/>
-			<injar  file="${dist.version}/jtablet2.thin.original.jar" />
-			<outjar file="${dist.version}/jtablet2.thin.compressed.jar" />
+			<injar  file="${dist.version}/jtablet-thin.original.jar" />
+			<outjar file="${dist.version}/jtablet-thin.jar" />
 		</proguard>
 	</target>
 
 
 
 	
-	<target name="jtablet.dist" depends="jtablet.jar.compress,jtablet.thin.jar.compress,javadocs" />
+	<target name="jtablet.dist" depends="jtablet.jar,jtablet-thin.jar,javadocs" />
 	
 	<!-- demo package -->
 	<path id="demo.classpath">
@@ -280,7 +292,7 @@
 		<pathelement location="${build.jtablet}"/>
 	</path>
 
-	<target name="demo.compile" depends="init,jtablet.compile" description="compile the source" >
+	<target name="demo.compile" depends="init" description="compile the jtablet-demo source" >
 		<mkdir dir="${build.demo}"/>
 		<javac 
 		srcdir="${src.demo}"          
@@ -292,9 +304,9 @@
 		classpathref="demo.classpath"/>
 	</target>
 
-	<target name="demo.jar" depends="demo.compile">
+	<target name="demo.jar" depends="demo.compile" description="build the jtablet-demo.jar">
 		<jar 
-		jarfile="${dist.version}/jtablet2-demo.original.jar"
+		jarfile="${dist.version}/jtablet2-demo.jar"
 		includes="cello/**"
     	level="9"
     	basedir="${build.demo}">
@@ -305,10 +317,15 @@
 			</manifest>
 		</jar>
 	</target>
-	<target name="demo.run" depends="demo.jar">
+	
+	<target name="demo.run" depends="jtablet-thin.jar,demo.jar" description="run the jtablet demo">
 		<java           
-    	fork="true"
-  		jar="${dist.version}/jtablet2-demo.original.jar"/>
+	    	fork="true"
+	  		jar="${dist.version}/jtablet2-demo.jar">
+	         <classpath>
+	           <pathelement location="${dist.version}/jtablet-thin.jar"/>
+	         </classpath>
+		</java>
 	</target>
 
 
@@ -316,7 +333,7 @@
 	<path id="classpath.installer">
 		<fileset dir="lib" includes="**/*.jar"/>
 	</path>
-	<target name="installer.compile" depends="init" description="compile the source" >
+	<target name="installer.compile" depends="init">
 		<mkdir dir="${build.installer}"/>
 		<javac 
 		srcdir="${src.installer}"          
@@ -473,10 +490,10 @@
 	<target name="jars.signed" depends="jtablet.signed,demo.signed,installer.signed">
 	</target>
 
-	<target name="javadocs" depends="init" description="Generate javadoc API documentation">
-		<mkdir dir="${docs.api}"/>
+	<target name="javadocs" depends="jtablet.compile" description="Generate javadoc API documentation">
+		<mkdir dir="${dist.version}/api"/>
 		<javadoc
-	        destdir="${docs.api}"
+	        destdir="${dist.version}/api"
 	        author="true"
 	        version="true"
 	        use="true"
@@ -491,6 +508,43 @@
 			</packageset>
 			<link href="http://java.sun.com/j2se/1.5.0/docs/api/" packagelistloc="java1.5-package-list"/>
 		</javadoc>
+	</target>
+	
+	<target name="distribution" 
+		depends="javadocs,jtablet.jar,jtablet-thin.jar,demo.jar" 
+		description="builds the full JTablet distribution">
+		<delete dir="${dist.version}/developer-release" />
+		<mkdir dir="${dist.version}/developer-release" />
+		<copy todir="${dist.version}/developer-release">
+		    <fileset dir=".">
+		    	<include name="src/**" />
+		    	<include name="src-examples/**" />
+		    	<include name="src-demo/**" />
+		    	<include name="docs/**" />
+		    	<include name="LICENSE" />
+			</fileset>
+		</copy>
+		<copy todir="${dist.version}/developer-release">
+		    <fileset dir="${dist.version}">
+		    	<include name="jtablet.jar" />
+		    	<include name="jtablet-thin.jar" />
+		    	<include name="jtablet2-demo.jar" />
+		    	<include name="jtablet*.dll" />
+		    	<include name="libjtablet*" />
+			</fileset>
+		</copy>
+		<copy todir="${dist.version}/developer-release/docs">
+		    <fileset dir="${dist.version}">
+		    	<include name="api/**" />
+			</fileset>
+		</copy>
+		<tar 
+			destfile="${dist.version}/jtablet2-${impl.version}-${DSTAMP}-${svn.version}.tar" 
+			basedir="${dist.version}/developer-release" />
+		<gzip 
+			destfile="${dist.version}/jtablet2-${impl.version}-${DSTAMP}-${svn.version}.tgz" 
+			src="${dist.version}/jtablet2-${impl.version}-${DSTAMP}-${svn.version}.tar"/>
+
 	</target>
 
 	<target name="jars.demo" depends="jtablet.compile,demo.compile">
@@ -573,15 +627,9 @@
 
 
 	<target name="clean" description="clean up" >
-		<delete dir="${src.gen}"/>
-		<delete dir="${src.gen.thin}"/>
 
 		<!-- Delete the ${build.jtablet} and ${dist} directory trees -->
-		<delete dir="${build.jtablet}"/>
-		<delete dir="${build.jtablet.jpen}"/>
-		<delete dir="${build.jtablet.thin}"/>
-		<delete dir="${build.demo}"/>
-		<delete dir="${build.installer}"/>
+		<delete dir="${build}"/>
 		<!--
     <delete dir="${dist}/installer"/>
   	<delete file="${dist.version}/jtablet2.original.jar"/>

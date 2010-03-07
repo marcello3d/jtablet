@@ -1,16 +1,25 @@
 XX- don't rename anything public/protected with proguard (only remove classes)
 XX- repackage jpen as something outside of cello.jtablet
-- get extensionloader working
+X- get extensionloader working
   - detect jtablet 0.9.x installation
-- package installed jtablet.jar vs. applet/application jtablet2.jar that is included with apps so they can run without jtablet installed
+XX- package installed jtablet.jar vs. applet/application jtablet2.jar that is included with apps so they can run without jtablet installed
 - branch extensionloader to behave differently on included jar vs plugin jar  
 - design web-based installer (merely a signed app that depends on an extension jar?)
   - detect Java < 1.5 ?
   - deployJava.js ? 
+- uninstaller
 - build native DLLs
-	- mac os x 10.5
-	- windows 32
+XX	- mac os x 10.5
+XX	- windows 32
 	- windows 64
+- detect unexpected native DLL version
 
+user package:
+- installation instructions
 
-	
+developer package:
+- jtablet.jar
+- jtablet2.dll/.jnilib/.a
+- jtablet-thin.jar
+- jtablet2-demo.jar
+- jtablet2-demo.html

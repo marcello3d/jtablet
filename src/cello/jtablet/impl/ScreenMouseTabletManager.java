@@ -82,8 +82,14 @@ class ScreenMouseTabletManager extends ScreenTabletManager {
 				type = null;
 				break;
 		}
-		Point screen = e.getLocationOnScreen();
-		fireScreenTabletEvent(new TabletEvent(e, type, SystemDevice.INSTANCE, ScreenTabletManager.SCREEN_COMPONENT, screen.x, screen.y));
+		Point componentLocationOnScreen = e.getComponent().getLocationOnScreen();
+		fireScreenTabletEvent(new TabletEvent(
+				e, 
+				type, 
+				SystemDevice.INSTANCE, 
+				ScreenTabletManager.SCREEN_COMPONENT, 
+				componentLocationOnScreen.x + e.getX(), 
+				componentLocationOnScreen.y + e.getY()));
 	}
 
 	private void fireTabletEvent(MouseWheelEvent e) {

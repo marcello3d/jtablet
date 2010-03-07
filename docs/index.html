@@ -2,55 +2,224 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Cellosoft JTablet 2.0 SDK Documentation</title>
-<link href="../www/main.css" rel="stylesheet" type="text/css">
+<title>JTablet 2.0 Documentation</title>
+<link href="main.css" rel="stylesheet" type="text/css">
 </head>
 <body>
+
 <div id="header">
-<h1><a href=".">Cellosoft JTablet 2.0 SDK <small>Documentation</small></a></h1>
+ <h1><a href="index.html">JTablet 2.0 Documentation</a></h1>
 </div>
+
 <div id="page">
 
 <div class="section">
- <div class="first subheader">
-  <h2 class="first">JTablet 2.0 SDK Documentation</h2>
+ <div class="subheader first">
+  <h2>JTablet 2.0 SDK</h2>
  </div>
  <div class="contents">
-  <p>This site provides documentation for JTablet 2.0 for Java developers. You can access tutorials, examples, and 
-  API reference to help you get started with JTablet 2.0!</p>
-  <div class="imagecaption">
-   <object data="../www/img/jtablet2sdk.svg" type="image/svg+xml" style="width:230pt; height: 175.72pt;">
-    <img src="../www/img/jtablet2sdk.png" style="width:230pt; height: 175.72pt;" />
-   </object>
-  </div>
-  <h3>Table of Contents</h3>
+  <p>JTablet gives you open-source (zlib license) access to tablet input in your Java applications and Applets.</p>
+  <h3>Table of contents</h3>
   <ul>
-   <li><a href="tutorials/index.html">Tutorials</a>
-    <ul>
-   	 <li><a href="tutorials/installation.html">Installation</a></li>
-   	 <li><a href="tutorials/getting_started.html">Getting Started</a></li>
-   	 <li><a href="tutorials/swing.html">JTablet and Swing</a></li>
-   	 <li><a href="tutorials/applets.html">JTablet in Applets</a></li>
-   	 <li><a href="tutorials/webstart.html">JTablet with Webstart</a></li>
-   	</ul>
-   <li><a href="examples/index.html">Examples</a></li>
-   <li><a href="api/index.html">Javadoc API</a></li>
+      <ul>
+        <li><a href="api/index.html">API Javadocs</a></li>
+        <!-- <li><a href="examples/jtablet2-demo.html">Demo applet</a></li>
+        <li><a href="license.html">License</a></li>-->
+        <li><a href="#getting_started">Getting started</a>
+         <ul>
+          <li><a href="#including_jtablet">What you need</a></li>
+          <li><a href="#version_checking">Version checking</a></li>
+          <li><a href="#listening_intently">Listening intently...</a></li>
+          <li><a href="#devices">Left to your own devices...</a></li>
+         </ul>
+        </li>
+        <li><a href="#drawing_applet">Step-by-step Tutorial: Build a Drawing Applet</a></li>
+    </ul>
   </ul>
-
  </div>
 </div>
 
+<div class="section">
+ <div class="subheader">
+  <h2><a name="getting_started"></a>Getting started</h2>
+ </div>
+ <div class="contents">
+  <p>This guide is <i>quick</i>: less reading; more programming!</p>
+
+  <h3><a name="including_jtablet"></a>What you need</h3>
+  <p>Just include <code>jtablet-thin.jar</code>. This tiny (21k) jar includes everything you need to detect and use 
+  JTablet!</p>
+
+  <h3><a name="version_checking"></a>Out with the old...</h3>
+  <p>This is the only complicated part of JTablet.</p>
+  <p>JTablet 2 is installed by a user, so you need to ensure a compatible version is installed. Out-dated installations 
+  will conflict if you use newer features.</p>
+  <p>The simplest is to use the <a 
+  href="api/cello/jtablet/installer/JTabletExtension.html#checkCompatibility(java.awt.Component, java.lang.String)">checkCompatibility</a> 
+  method:</p>
+
+<pre>
+public class DetectionApplet extends Applet {
+    public void init() {
+<b>        // Displays alert if an incompatible version of JTablet is detected
+        if (!JTabletExtension.checkCompatibility(this, "1.2.0")) {
+            return;
+        }</b>
+        add(new Label("Installed JTablet version: " + 
+                JTabletExtension.getInstalledVersion()));
+    }
+}
+</pre>
+
+  <h3><a name="listening_intently"></a>Listening intently...</h3>
+  <p>JTablet 2 is based on <a href="http://java.sun.com/docs/books/tutorial/uiswing/events/index.html">AWT 
+  event listeners</a>, specifically MouseListener and MouseMotionListener. If you've used those, you're already a
+  JTablet expert!</p>
+  <p>Simply use <a href="api/cello/jtablet/TabletManager.html">TabletManager</a> to add a 
+  <a href="api/cello/jtablet/event/TabletListener.html">TabletListener</a> to a component:</p>
+<pre>
+TabletManager.getDefaultManager().addTabletListener(<i>component</i>, <i>listener</i>);
+</pre>
+  <p>You can either implement TabletListener and <a href="api/cello/jtablet/event/TabletListener.html">all of its 
+  methods</a>, or extend <a href="api/cello/jtablet/event/TabletAdapter.html">TabletAdapter</a> and specify just the
+  methods you need:</p>
+<pre>
+TabletListener listener = new TabletAdapter() {
+    public void cursorDragged(TabletEvent event) {
+    	System.out.println("Cursor was dragged! " + event);
+    }
+};
+</pre>
+  <p>The <a href="api/cello/jtablet/event/TabletEvent.html">TabletEvent</a> object provides all the necessary 
+  information about the cursor that you may need. Get sub-pixel positions with <code>event.getFloatX()</code> and 
+  <code>getFloatY()</code>, pressure with <code>getPressure()</code>, and so on.</p>
+<pre>
+TabletListener listener = new TabletAdapter() {
+    public void cursorDragged(TabletEvent event) {
+    	System.out.println("Dragging at " + <b>event.getFloatX()</b> + 
+                              "," + <b>event.getFloatY()</b> +
+                           " with pressure " + 
+                              (<b>event.getPressure()</b> * 100) + "%");
+    }
+};
+</pre>
+  
+  <h3><a name="devices"></a>Left to your own devices...</h3>
+  <p>JTablet represents different devices (mouse, stylus, stylus eraser, etc.) as different
+  <a href="api/cello/jtablet/TabletDevice.java">TabletDevice</a> objects, accessed with <code>event.getDevice()</code>. 
+  Use <code>device.getType()</code> to get the type of device, and other methods to check capabilities of the device.</p>
+  <p>TabletListener.cursorEntered triggers when new devices enter tablet proximity:</p>
+<pre>
+    public void cursorEntered(TabletEvent event) {
+    	System.out.println(event.getDevice() + " entered component");
+    }
+    public void cursorExited(TabletEvent event) {
+    	System.out.println(event.getDevice() + " left component");
+    }
+</pre>
+  <p>I hope that gets you started. Be sure to check out the many more details <a href="api/index.html">in the 
+  Javadocs</a>! Read on for a step-by-step tutorial to build a drawing Applet.</p>
+ </div>
+</div>
 
 <div class="section">
-<div class="subheader">
-<h2>For Questions</h2>
+ <div class="subheader">
+  <h2><a name="drawing_applet"></a>Step-by-step Tutorial: Build a Drawing Applet</h2>
+ </div>
+ <div class="contents">
+  <p>Let's make a drawing Applet using JTablet. We'll use Java2D for the actual drawing, and start by setting up our 
+  canvas (BufferedImage) and painting it to the screen:</p>
+<pre>
+public class DrawApplet extends Applet {
+    
+    BufferedImage image;
+    Graphics2D graphics;
+    
+    public void init() {
+        // Create a drawing canvas
+        image = new BufferedImage(getWidth(), getHeight(), 
+                                  BufferedImage.TYPE_INT_ARGB);
+        graphics = image.createGraphics();
+    }
+    
+    // Paint the canvas to the screen
+    public void paint(Graphics g) {
+        g.drawImage(image, 0, 0, null);
+    }
+}
+</pre>
+   <p>Next, we'll use <a href="api/cello/jtablet/event/TabletAdapter.html">TabletAdapter</a> to detect cursor drag 
+   events:</p>
+<pre>
+    // Create the tablet listener
+    TabletListener listener = new TabletAdapter() {
+        // Draw circles when the cursor is dragged
+        public void cursorDragged(TabletEvent event) {
+            float radius = event.getPressure() * 10;
+            
+            // Create an ellipse using floating points from TabletEvent
+            graphics.fill(new Ellipse2D.Float(
+                event.getFloatX() - radius,
+                event.getFloatY() - radius,
+                radius * 2,
+                radius * 2
+            ));
+            
+            repaint();
+        }
+    };            
+</pre>
+  <p>Then we'll add the listener to the Applet component:</p>
+<pre>
+    TabletManager.getDefaultManager().addTabletListener(this, listener);
+</pre>
+  <p>To make it prettier, we can paint the canvas white and enable anti-aliasing and sub-pixel stroke rendering:</p>
+<pre>
+    // Paint it white
+    graphics.setBackground(Color.WHITE);
+    graphics.clearRect(0, 0, getWidth(), getHeight());
+    
+    // Enable anti-aliasing and sub-pixel rendering 
+    graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+                              RenderingHints.VALUE_ANTIALIAS_ON);
+    graphics.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, 
+                              RenderingHints.VALUE_STROKE_PURE);
+</pre>
+  
+  <h3><a name="extra_training"></a>Enable eraser drawing</h3>
+  <p>Now let's detect a tablet eraser and switch between drawing black and white. We can do this by adding a 
+  cursorEntered event to our listener:</p>
+<pre>
+        // Detect when a new cursor enters the canvas
+        public void cursorEntered(TabletEvent event) {
+            // Set the color to white if the device is an eraser
+            if (event.getDevice().getType() == TabletDevice.Type.ERASER) {
+                graphics.setColor(Color.WHITE);
+            } else {
+                graphics.setColor(Color.BLACK);
+            }
+        }
+</pre>  
+  <h3>And that's it...</h3>
+  <p>This should give you a good starting point. Full example source: 
+  <a href="src-examples/DrawApplet.java">DrawApplet.java</a></p>
+ </div>
 </div>
-<div class="contents">
-<p>Contact me at <a href="mailto:marcello@cellosoft.com">marcello@cellosoft.com</a>.</p>
+
+<div class="section">
+ <div class="subheader">
+  <h2>For Questions</h2>
+ </div>
+ <div class="contents">
+  <p><a href="http://jtablet.cellosoft.com/">JTablet website</a></p>
+  <p>Contact me at <a href="mailto:marcello@cellosoft.com">marcello@cellosoft.com</a>.</p>
+ </div>
 </div>
+
 </div>
-</div>
+
 <div id="footer">JTablet &copy; 2002-2010 <a href="http://www.cellosoft.com">Cellosoft</a></div>
+
 <script src="http://www.google-analytics.com/urchin.js" type="text/javascript"></script>
 <script type="text/javascript">_uacct="UA-500492-3";urchinTracker();</script>
 </body>

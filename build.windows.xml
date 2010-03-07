@@ -6,12 +6,12 @@
 	<property name="jdk.home"			location="${java.home}" />
 
 
-	<target name="jtablet.install" depends="jtablet.jar.compress,jtabletjpen.compile">
+	<target name="jtablet.install" depends="jtablet.jar">
 		<mkdir dir="${ext.dir}"/>
 		<mkdir dir="${user.home}/.jtablet"/>
 		<copy 
-			file="${dist.version}/jtablet2.compressed.jar" 
-			tofile="${ext.dir}/jtablet.jar"/>
+			file="${dist.version}/jtablet.jar" 
+			todir="${ext.dir}"/>
 
 		<copy 
 			file="${dist.version}/jtablet2.dll" 
@@ -20,16 +20,14 @@
 
 
 
-	<target name="jtablet.remove">
-		<delete 
-			file="${ext.dir}/jtablet.jar"/>
-		<delete
-			file="${user.home}/.jtablet/jtablet2.dll"/>
+	<target name="jtablet.uninstall">
+		<delete file="${ext.dir}/jtablet.jar"/>
+		<delete file="${user.home}/.jtablet/jtablet2.dll"/>
 	</target>
 
 	
 
-	<target name="jtabletjpen.compile" depends="jtabletjpen.gen.native" description="compile the jpen native source for windows" >
+	<target name="jtabletjpen.compile.native" depends="jtabletjpen.gen.native" description="compile the jpen native source for windows" >
 		<exec
 	    	executable="${gcc}"
 		    	failonerror="true"
