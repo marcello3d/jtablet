@@ -39,6 +39,7 @@ public class DemoApplet extends JApplet {
 		
 		Container contentPane = getContentPane();
 		contentPane.setLayout(new BorderLayout());
+		setBackground(Color.WHITE);
 		
 		switch (installStatus) {
 			case INSTALLED:

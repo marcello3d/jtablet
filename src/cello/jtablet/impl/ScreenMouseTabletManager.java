@@ -77,10 +77,10 @@ class ScreenMouseTabletManager extends ScreenTabletManager {
 				type = Type.EXITED;
 				break;
 			case MouseEvent.MOUSE_CLICKED:
+				return;
 			default:
-				System.out.println("id = "+e.getID());
-				type = null;
-				break;
+				System.out.println("id = "+e.getID()+", event = " + e);
+				return;
 		}
 		Point componentLocationOnScreen = e.getComponent().getLocationOnScreen();
 		fireScreenTabletEvent(new TabletEvent(

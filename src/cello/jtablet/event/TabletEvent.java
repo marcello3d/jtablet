@@ -326,7 +326,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		DRAGGED			( MOUSE_DRAGGED ),
 		
 		/** 
-		 * Level changed. This occurs 
+		 * Level changed. This occurs when the stylus changes pressure or tilt, but does not move.
 		 */
 		LEVEL_CHANGED	( ID_START ),
 		

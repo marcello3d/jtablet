@@ -5,6 +5,13 @@
 	<property name="ext.dir"			location="${env.WINDIR}/Sun/Java/lib/ext" />
 	<property name="jdk.home"			location="${java.home}" />
 
+	<target name="jtabletjpen.gen.native">
+	   <fail message="imported file run without parent"/>
+	</target>
+	<target name="jtablet.jar">
+	   <fail message="imported file run without parent"/>
+	</target>
+	
 
 	<target name="jtablet.install" depends="jtablet.jar">
 		<mkdir dir="${ext.dir}"/>

@@ -2,6 +2,13 @@
 <project>
 	<property name="jdk.classes.jar" location="/System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Classes/classes.jar" />
 	
+	<target name="jtabletjpen.gen.native">
+	   <fail message="imported file run without parent"/>
+	</target>
+	<target name="jtablet.jar">
+	   <fail message="imported file run without parent"/>
+	</target>
+	
 	<target name="jtabletjpen.compile.native" depends="jtabletjpen.gen.native" description="compile the jpen native source for mac os x" >
 		<exec
 	    	executable="xcodebuild"
