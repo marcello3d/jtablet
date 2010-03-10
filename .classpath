@@ -3,7 +3,6 @@
 	<classpathentry excluding="cello/tablettest/" kind="src" path="src"/>
 	<classpathentry kind="src" path="src-demo"/>
 	<classpathentry kind="src" path="src-installer"/>
-	<classpathentry kind="src" path="docs/examples/src"/>
 	<classpathentry kind="src" path="src-examples"/>
 	<classpathentry kind="src" path="build/src-gen/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>

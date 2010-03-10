@@ -1,9 +1,10 @@
-<!--  Platform-specific build targets for Mac OS X -->
+<!--  Platform-specific build targets for Windows -->
 <project>	
+	<property environment="env" />
 	<property name="jdk.classes.jar" 	location="${java.home}/lib/rt.jar" />
 	<property name="gcc"				location="/mingw/bin/gcc" />
-	<property name="ext.dir"			location="${env.WINDIR}/Sun/Java/lib/ext" />
-	<property name="jdk.home"			location="${java.home}" />
+	<property name="ext.dir"			location="${env.WINDIR}\Sun\Java\lib\ext"/>
+	<property name="jdk.home"			location="\java\jdk1.6" />
 
 	<target name="jtabletjpen.gen.native">
 	   <fail message="imported file run without parent"/>
@@ -12,8 +13,7 @@
 	   <fail message="imported file run without parent"/>
 	</target>
 	
-
-	<target name="jtablet.install" depends="jtablet.jar">
+	<target name="jtablet.install" depends="jtablet.jar,jtabletjpen.compile.native">
 		<mkdir dir="${ext.dir}"/>
 		<mkdir dir="${user.home}/.jtablet"/>
 		<copy 

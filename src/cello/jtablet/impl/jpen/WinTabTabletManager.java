@@ -63,7 +63,7 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 			while (running) {
 				readPackets();
 				try {
-					Thread.sleep(5);
+					Thread.sleep(10);
 				} catch (InterruptedException e) {
 				}
 			}
@@ -197,11 +197,14 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 	private static final double PI_over_2=Math.PI/2;
 	private static final double PI_over_2_over_900=PI_over_2/900; // (/10) and (/90)
 	private static final double PI_2 = Math.PI * 2;
-	private static final int KEY_MODIFIERS = InputEvent.ALT_DOWN_MASK |
-											 InputEvent.ALT_GRAPH_DOWN_MASK | 
-											 InputEvent.SHIFT_DOWN_MASK | 
-											 InputEvent.CTRL_DOWN_MASK | 
-											 InputEvent.META_DOWN_MASK;
+	private static final int KEY_MODIFIERS =    InputEvent.ALT_DOWN_MASK |
+											    InputEvent.ALT_GRAPH_DOWN_MASK | 
+											    InputEvent.SHIFT_DOWN_MASK | 
+											    InputEvent.CTRL_DOWN_MASK | 
+											    InputEvent.META_DOWN_MASK;
+	private static final int BUTTON_MODIFIERS = InputEvent.BUTTON1_DOWN_MASK |
+												InputEvent.BUTTON2_DOWN_MASK | 
+												InputEvent.BUTTON3_DOWN_MASK;
 	
 	private WinTabCursor cursor = null;
 	private long lastTime = 0;
@@ -258,7 +261,9 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 			}
 			
 
-			int keyModifiers = mouseListener.getLastModifiersEx() & KEY_MODIFIERS;
+			int lastModifiers = mouseListener.getLastModifiersEx();
+			int buttonModifiers = lastModifiers & BUTTON_MODIFIERS;
+			int keyModifiers = lastModifiers & KEY_MODIFIERS;
 			
 			if (newCursor) {
 				generateDeviceEvents(cursor.getDevice(), when, modifiers, true, x, y);
@@ -267,22 +272,22 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 			boolean buttonJustReleased = false;
 			boolean buttonJustPressed = false;
 			
-			int difference = rawTabletButtonMask ^ lastButtonMask;
+			int difference = buttonModifiers ^ lastButtonMask;
 			if (difference != 0) {
-				if ((difference & WintabAccess.BUTTON1_MASK)!=0) {
+				if ((difference & InputEvent.BUTTON1_DOWN_MASK)!=0) {
 					button = MouseEvent.BUTTON1;
-					buttonJustPressed = (rawTabletButtonMask & WintabAccess.BUTTON1_MASK) != 0;
-				} else if ((difference & WintabAccess.BUTTON2_MASK)!=0) {
+					buttonJustPressed = (lastModifiers & InputEvent.BUTTON1_DOWN_MASK) != 0;
+				} else if ((difference & InputEvent.BUTTON2_DOWN_MASK)!=0) {
 					button = MouseEvent.BUTTON2;
-					buttonJustPressed = (rawTabletButtonMask & WintabAccess.BUTTON2_MASK) != 0;
-				} else if ((difference & WintabAccess.BUTTON3_MASK)!=0) {
+					buttonJustPressed = (lastModifiers & InputEvent.BUTTON2_DOWN_MASK) != 0;
+				} else if ((difference & InputEvent.BUTTON3_DOWN_MASK)!=0) {
 					button = MouseEvent.BUTTON3;
-					buttonJustPressed = (rawTabletButtonMask & WintabAccess.BUTTON3_MASK) != 0;
+					buttonJustPressed = (lastModifiers & InputEvent.BUTTON3_DOWN_MASK) != 0;
 				}
 				buttonJustReleased = !buttonJustPressed;
 			}
 			
-			lastButtonMask = rawTabletButtonMask;
+			lastButtonMask = buttonModifiers;
 			
 			generatePointEvents(
 				when, 
