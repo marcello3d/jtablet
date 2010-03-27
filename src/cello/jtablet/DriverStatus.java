@@ -63,9 +63,6 @@ public class DriverStatus {
 	public DriverStatus(State state, Throwable throwable) {
 		this.state = state;
 		this.throwable = throwable;
-		if (throwable != null) {
-			throwable.printStackTrace();
-		}
 	}
 	
 	/**

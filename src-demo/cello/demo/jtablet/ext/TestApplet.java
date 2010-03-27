@@ -27,4 +27,7 @@ public class TestApplet extends JApplet {
 		}
 //		System.out.println("UnusedClass.getString() = "+ExtLoadingClass.getString());
 	}
+	public static void main(String args[]) {
+		new TestApplet().init();
+	}
 }

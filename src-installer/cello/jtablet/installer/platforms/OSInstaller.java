@@ -13,6 +13,8 @@ import cello.jtablet.installer.JTabletInstaller;
  */
 public abstract class OSInstaller {
 
+	private static final String LIBNAME = "jtablet2";
+	
 	private final JTabletInstaller installer;
 
 	protected OSInstaller(JTabletInstaller installer) {
@@ -39,26 +41,27 @@ public abstract class OSInstaller {
 
 		List<File> directories = new ArrayList<File>();
 
-		installer.addLogMessage("Looking for Java Extension folders...");
-
-		String separator = System.getProperty("path.separator");
-		String libs[] = System.getProperty("java.library.path").split("\\Q"+separator);
-		
-		for (String s : libs) {
-			// Don't try to install to "."
-			if (s.equals(".")) {
-				continue;
-			}
-			File f = new File(s);
-			try {
-				installer.addLogMessage("\tLibrary dir = "+f.getCanonicalPath()+" ("+f.canWrite()+")");
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			if (f.isDirectory() && f.canWrite()) {
-				directories.add(f);
-			}
-		}
+//		installer.addLogMessage("Looking for Java Extension folders...");
+//
+//		String separator = System.getProperty("path.separator");
+//		String libs[] = System.getProperty("java.library.path").split("\\Q"+separator);
+//		
+//		for (String s : libs) {
+//			// Don't try to install to "."
+//			if (s.equals(".")) {
+//				continue;
+//			}
+//			File f = new File(s);
+//			try {
+//				installer.addLogMessage("\tLibrary dir = "+f.getCanonicalPath()+" ("+f.canWrite()+")");
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//			if (f.isDirectory() && f.canWrite()) {
+//				directories.add(f);
+//			}
+//		}
+		directories.add(new File(System.getProperty("user.home")));
 		
 		return directories;
 	}
@@ -87,13 +90,17 @@ public abstract class OSInstaller {
 	/**
 	 * @return a list of library files to download/install
 	 */
-	public abstract String[] getLibraryFiles();
+	public String[] getLibraryFiles() {
+		return new String[] {
+			System.mapLibraryName(LIBNAME)
+		};
+	}
 	
 	/**
 	 * @return a list of jar files to download/install
 	 */
 	public String[] getJarFiles() {
-		return new String[] { "jtablet2.jar", "jpen-2.jar" };
+		return new String[] { "jtablet.jar" };
 	}
 
 //	protected boolean installTo(File destination) {

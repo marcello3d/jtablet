@@ -27,11 +27,4 @@ public class MacOSXInstaller extends OSInstaller {
 
 	}
 
-	@Override
-	public String[] getLibraryFiles() {
-		return new String[] {
-			"libjpen-2.jnilib"
-		};
-	}
-
 }
