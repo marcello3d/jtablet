@@ -3,7 +3,10 @@
 	<property environment="env" />
 	<property name="jdk.classes.jar" 	location="${java.home}/lib/rt.jar" />
 	<property name="gcc"				location="/mingw/bin/gcc" />
+	<property name="makensis"           location="/Program Files/NSIS/makensis" />
 	<property name="ext.dir"			location="${env.WINDIR}\Sun\Java\lib\ext"/>
+    <property name="dll.dir"            location="${env.WINDIR}\Sun\Java\lib\bin"/>
+
 	<property name="jdk.home"			location="\java\jdk1.6" />
 
 	<target name="jtabletjpen.gen.native">
@@ -13,23 +16,24 @@
 	   <fail message="imported file run without parent"/>
 	</target>
 	
-	<target name="jtablet.install" depends="jtablet.jar,jtabletjpen.compile.native">
+	<target name="jtablet.install" depends="jtablet.jar,jtabletjpen.compile.native"
+		description="Ant-based installation to ${ext.dir} and ${dll.dir}">
 		<mkdir dir="${ext.dir}"/>
-		<mkdir dir="${user.home}/.jtablet"/>
-		<copy 
+		<mkdir dir="${dll.dir}"/>
+        <copy 
 			file="${dist.version}/jtablet.jar" 
 			todir="${ext.dir}"/>
-
 		<copy 
 			file="${dist.version}/jtablet2.dll" 
-			todir="${user.home}/.jtablet"/>
+			todir="${dll.dir}"/>
 	</target>
 
 
 
-	<target name="jtablet.uninstall">
-		<delete file="${ext.dir}/jtablet.jar"/>
-		<delete file="${user.home}/.jtablet/jtablet2.dll"/>
+	<target name="jtablet.uninstall"
+		description="Ant-based uninstallation to ${ext.dir} and ${dll.dir}">
+		<delete file="${ext.dir}\jtablet.jar"/>
+		<delete file="${dll.dir}\jtablet2.dll"/>
 	</target>
 
 	
@@ -100,6 +104,41 @@
 		</copy>
 	</target>
 	
-	
-	
+    <target name="jtablet.installer" 
+        depends="jtablet.jar,jtabletjpen.compile.native"
+    	description="Builds the Windows installer using NSIS">
+        
+        <property name="installer.dir" location="${dist.version}/${platform}/" />
+        
+        <mkdir dir="${installer.dir}"/>
+        
+        <copy todir="${installer.dir}">
+            <fileset dir="platform/${platform}" />
+        </copy>
+        
+        <replace dir="${installer.dir}">
+            <replacefilter
+                token="%%JTABLET.VERSION%%"
+                value="${impl.version}"/>
+        </replace>
+        
+        <copy todir="${installer.dir}/InstallFiles">
+            <fileset dir="${dist.version}">
+                <include name="jtablet.jar" />
+                <include name="jtablet*.dll" />
+            </fileset>
+        </copy>
+        
+        <exec
+            executable="${makensis}"
+            failonerror="true"
+            dir="${installer.dir}">
+            <arg value="/V2"/>
+            <arg value="Installer.nsi"/>
+        </exec>
+        
+        <copy 
+            file="${installer.dir}/JTabletSetup.exe"
+            tofile="${dist.version}/JTabletSetup-${impl.version}.exe"/>
+    </target>
 </project>
