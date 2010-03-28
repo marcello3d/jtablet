@@ -27,19 +27,60 @@
 
 	<target name="jtablet.install" depends="jtablet.jar">
 		<mkdir dir="${user.home}/Library/Java/Extensions"/>
-		<mkdir dir="${user.home}/.jtablet"/>
-		<copy 
-			file="${dist.version}/jtablet.jar" 
-			todir="${user.home}/Library/Java/Extensions/"/>
-
-		<copy 
-			file="${dist.version}/libjtablet2.jnilib" 
-			todir="${user.home}/.jtablet"/>
+		<copy todir="${user.home}/Library/Java/Extensions/">
+		    <fileset dir="${dist.version}">
+		    	<include name="jtablet.jar" />
+		    	<include name="libjtablet2.jnilib" />
+			</fileset>
+		</copy>
 	</target>
 
 	<target name="jtablet.uninstall">
 		<delete file="${user.home}/Library/Java/Extensions/jtablet.jar"/>
 		<delete file="${user.home}/.jtablet/libjtablet2.jnilib"/>
+	</target>
+	
+	
+	<target name="jtablet.installer" 
+		depends="jtablet.jar,jtabletjpen.compile.native">
+		
+		<property name="mac.installer.dir" location="${dist.version}/${platform}/" />
+		
+		<mkdir dir="${mac.installer.dir}"/>
+		
+		<copy todir="${mac.installer.dir}">
+			<fileset dir="platform/${platform}/installer" />
+		</copy>
+		
+		<replace dir="${mac.installer.dir}">
+			<replacefilter
+				token="%%JTABLET.VERSION%%"
+		  	  	value="${impl.version}"/>
+		</replace>
+		
+		<mkdir dir="${mac.installer.dir}/InstallFiles/Library/Java/Extensions/"/>
+		<copy todir="${mac.installer.dir}/InstallFiles/Library/Java/Extensions/">
+		    <fileset dir="${dist.version}">
+		    	<include name="jtablet.jar" />
+		    	<include name="libjtablet2.jnilib" />
+			</fileset>
+		</copy>
+		
+		<exec
+			executable="/Developer/Applications/Utilities/PackageMaker.app/Contents/MacOS/PackageMaker"
+	    	failonerror="true"
+	    	dir="${mac.installer.dir}">
+			<arg value="--doc"/>
+			<arg value="JTablet.pmdoc"/>
+			<arg value="--out"/>
+			<arg value="JTablet.pkg"/>
+			<arg value="--version"/>
+			<arg value="${impl.version}"/>
+		</exec>
+		
+		<copy 
+			file="${mac.installer.dir}/JTablet.pkg"
+			tofile="${dist.version}/JTablet-${impl.version}.pkg"/>
 	</target>
 	
 </project>

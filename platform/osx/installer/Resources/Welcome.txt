@@ -1,0 +1,1 @@
+You are about to install the Cellosoft JTablet %%JTABLET.VERSION%% for Java. I'm quite excited!
