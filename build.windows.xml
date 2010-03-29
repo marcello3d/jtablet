@@ -31,9 +31,9 @@
 
 
 	<target name="jtablet.uninstall"
-		description="Ant-based uninstallation to ${ext.dir} and ${dll.dir}">
-		<delete file="${ext.dir}\jtablet.jar"/>
-		<delete file="${dll.dir}\jtablet2.dll"/>
+		description="Manually remove JTablet jar and dll.">
+        <delete file="${dll.dir}\jtablet2.dll" failonerror="true"/>
+		<delete file="${ext.dir}\jtablet.jar" failonerror="true"/>
 	</target>
 
 	

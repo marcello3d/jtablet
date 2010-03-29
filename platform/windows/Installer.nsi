@@ -4,6 +4,7 @@ SetCompressor /SOLID lzma
 Name "Cellosoft JTablet %%JTABLET.VERSION%%"
 
 # General Symbol Definitions
+!define ID_NAME "Cellosoft JTablet 2"
 !define REGKEY "SOFTWARE\Cellosoft\JTablet2"
 !define VERSION %%JTABLET.VERSION%%
 !define COMPANY Cellosoft
@@ -24,30 +25,42 @@ Name "Cellosoft JTablet %%JTABLET.VERSION%%"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\orange-uninstall.ico"
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
 
-# Installer text
-
-
-!define MUI_WELCOMEPAGE_TITLE "$\r$\nCellosoft JTablet"
-!define MUI_WELCOMEPAGE_TEXT "You are about to install the Cellosoft JTablet %%JTABLET.VERSION%% for Java. I'm quite excited!"
-
-!define MUI_FINISHPAGE_TITLE "$\r$\nTada!"
-!define MUI_FINISHPAGE_TEXT "Cellosoft JTablet 2 is now installed!"
-!define MUI_FINISHPAGE_LINK "Visit the JTablet website"
-!define MUI_FINISHPAGE_LINK_LOCATION "http://jtablet.cellosoft.com/"
-
 # Included files
 !include MultiUser.nsh
 !include Sections.nsh
 !include MUI2.nsh
 !include Library.nsh
 
+
+# Installer text
+!define MUI_WELCOMEPAGE_TITLE "$\r$\nCellosoft JTablet"
+!define MUI_WELCOMEPAGE_TEXT "You are about to install the Cellosoft JTablet %%JTABLET.VERSION%% for Java. $\r$\n$\r$\nI'm quite excited!"
+
+!define MUI_FINISHPAGE_TITLE "$\r$\nTa-da!"
+!define MUI_FINISHPAGE_TEXT "Cellosoft JTablet 2 is now installed!"
+!define MUI_FINISHPAGE_LINK "Visit the JTablet website"
+!define MUI_FINISHPAGE_LINK_LOCATION "http://jtablet.cellosoft.com/"
+
 # Installer pages
 !insertmacro MUI_PAGE_WELCOME
-;!insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
-!insertmacro MUI_UNPAGE_CONFIRM
+
+
+# Uninstaller
+!define MUI_WELCOMEPAGE_TITLE "$\r$\nCellosoft JTablet"
+!define MUI_WELCOMEPAGE_TEXT "You are about to remove Cellosoft JTablet %%JTABLET.VERSION%%. $\r$\n$\r$\nIt's sad to see you go!"
+!define MUI_FINISHPAGE_TITLE "$\r$\nOK!"
+
+!define MUI_FINISHPAGE_TEXT "Cellosoft JTablet 2 should now be removed!"
+!define MUI_FINISHPAGE_TEXT_REBOOT "Cellosoft JTablet is mostly removed, but some files are still being used by Java. $\r$\n$\r$\nI am afraid you will have to reboot to remove them."
+!define MUI_FINISHPAGE_TEXT_REBOOTLATER "I'll reboot later"
+!define MUI_FINISHPAGE_LINK "Visit the JTablet website"
+!define MUI_FINISHPAGE_LINK_LOCATION "http://jtablet.cellosoft.com/"
+
+!insertmacro MUI_UNPAGE_WELCOME
 !insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
 
 
 # Installer languages
@@ -69,6 +82,7 @@ VIAddVersionKey FileDescription ""
 VIAddVersionKey LegalCopyright ""
 InstallDirRegKey HKLM "${REGKEY}" Path
 ShowUninstDetails hide
+RequestExecutionLevel user
 
 
 # Installer sections
@@ -178,10 +192,8 @@ Section -Main SEC0000
     
     SetOutPath $WINDIR\Sun\Java\lib\bin
     File InstallFiles\jtablet2.dll
-    ; install DLL to system directory
-    ;!insertmacro InstallLib DLL NOTSHARED REBOOT_NOTPROTECTED InstallFiles\jtablet2.dll $WINDIR\Sun\Java\bin\jtablet2.dll $WINDIR\Sun\Java\bin
-    ; install 64bit DLL (TODO)
-;    !insertmacro InstallLib REGDLL NOTSHARED REBOOT_NOTPROTECTED LIBRARY_X64 jtablet2-64.dll $WINDIR\Sun\Java\bin\jtablet2-64.dll $WINDIR
+;    File InstallFiles\jtablet2-64.dll
+
     WriteRegStr HKLM "${REGKEY}\Components" Main 1
 SectionEnd
 
@@ -191,14 +203,14 @@ Section -post SEC0001
     WriteUninstaller $INSTDIR\Uninstall.exe
     
     ; Adds uninstaller to add/remove programs
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "${COMPANY}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" URLInfoAbout "${URL}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayIcon $INSTDIR\Uninstall.exe
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\Uninstall.exe
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${ID_NAME}" DisplayName "$(^Name)"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${ID_NAME}" DisplayVersion "${VERSION}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${ID_NAME}" Publisher "${COMPANY}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${ID_NAME}" URLInfoAbout "${URL}"
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${ID_NAME}" DisplayIcon $INSTDIR\Uninstall.exe
+    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${ID_NAME}" UninstallString $INSTDIR\Uninstall.exe
+    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${ID_NAME}" NoModify 1
+    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${ID_NAME}" NoRepair 1
 SectionEnd
 
 # Macro for selecting uninstaller sections
@@ -216,13 +228,15 @@ done${UNSECTION_ID}:
 
 # Uninstaller sections
 Section /o -un.Main UNSEC0000
-    !insertmacro UnInstallLib DLL NOTSHARED REBOOT_NOTPROTECTED $SYSDIR\jtablet2.dll
+    Delete /REBOOTOK $WINDIR\Sun\Java\lib\ext\jtablet.jar
+    Delete /REBOOTOK $WINDIR\Sun\Java\lib\bin\jtablet2.dll
+    Delete /REBOOTOK $WINDIR\Sun\Java\lib\bin\jtablet2-64.dll
     RmDir /r /REBOOTOK $INSTDIR
     DeleteRegValue HKLM "${REGKEY}\Components" Main
 SectionEnd
 
 Section -un.post UNSEC0001
-    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
+    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${ID_NAME}"
     Delete /REBOOTOK $INSTDIR\Uninstall.exe
     DeleteRegValue HKLM "${REGKEY}" Path
     DeleteRegKey /IfEmpty HKLM "${REGKEY}\Components"
