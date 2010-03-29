@@ -182,15 +182,17 @@ Function CheckJREVersion
 FunctionEnd
 
 Section -Main SEC0000
+    ; Make sure the user has Java 6 installed ($WINDIR\Sun\Java\lib\ was added in Java 6)
     Call CheckJREVersion
     ; Remove legacy version of JTablet
     Call UninstallPrevious
+    
     SetOverwrite on
     
     SetOutPath $WINDIR\Sun\Java\lib\ext
     File InstallFiles\jtablet.jar
     
-    SetOutPath $WINDIR\Sun\Java\lib\bin
+    SetOutPath $WINDIR\Sun\Java\bin
     File InstallFiles\jtablet2.dll
 ;    File InstallFiles\jtablet2-64.dll
 
