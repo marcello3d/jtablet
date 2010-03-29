@@ -31,6 +31,7 @@ import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
 import cello.jtablet.impl.AbstractTabletDevice;
+import cello.jtablet.impl.Architecture;
 import cello.jtablet.impl.NativeLoaderException;
 import cello.jtablet.impl.NativeTabletManager;
 import cello.jtablet.impl.ScreenTabletManager;
@@ -366,6 +367,10 @@ public class CocoaTabletManager extends ScreenTabletManager implements NativeTab
 	protected void finalize() throws Throwable {
 		super.finalize();
 		ca.stop();
+	}
+
+	public Architecture getArchitecture() {
+		return Architecture.DEFAULT;
 	}
 
 }

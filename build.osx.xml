@@ -25,7 +25,10 @@
 	</target>
 
 
-	<target name="jtablet.install" depends="jtablet.jar">
+	<target 
+		name="jtablet.install" 
+		depends="jtablet.jar,jtabletjpen.compile.native" 
+		description="Manually installs JTablet jar and dll">
 		<mkdir dir="${user.home}/Library/Java/Extensions"/>
 		<copy todir="${user.home}/Library/Java/Extensions/">
 		    <fileset dir="${dist.version}">
@@ -35,14 +38,19 @@
 		</copy>
 	</target>
 
-	<target name="jtablet.uninstall">
+	<target 
+		name="jtablet.uninstall"
+		description="Manually removes JTablet jar and dll">
 		<delete file="${user.home}/Library/Java/Extensions/jtablet.jar"/>
-		<delete file="${user.home}/.jtablet/libjtablet2.jnilib"/>
+		<delete file="${user.home}/Library/Java/Extensions/libjtablet2.jnilib"/>
+		<delete file="/Library/Java/Extensions/jtablet.jar"/>
+		<delete file="/Library/Java/Extensions/libjtablet2.jnilib"/>
 	</target>
 	
 	
 	<target name="jtablet.installer" 
-		depends="jtablet.jar,jtabletjpen.compile.native">
+		depends="jtablet.jar,jtabletjpen.compile.native"
+		description="Builds the Mac OS X installer">
 		
 		<property name="mac.installer.dir" location="${dist.version}/${platform}/" />
 		

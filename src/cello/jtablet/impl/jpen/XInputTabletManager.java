@@ -23,6 +23,7 @@
 
 package cello.jtablet.impl.jpen;
 
+import cello.jtablet.impl.Architecture;
 import cello.jtablet.impl.NativeTabletManager;
 import cello.jtablet.impl.ScreenTabletManager;
 
@@ -45,5 +46,9 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 
 	@Override
 	protected void stop() {
+	}
+
+	public Architecture getArchitecture() {
+		return Architecture.DEFAULT;
 	}
 }

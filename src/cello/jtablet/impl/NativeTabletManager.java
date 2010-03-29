@@ -25,6 +25,7 @@ package cello.jtablet.impl;
 
 
 
+
 /**
  * This interface specifies cursor devices that load native code
  * 
@@ -43,4 +44,9 @@ public interface NativeTabletManager {
 	 * @return true if the given os is supported by this native device
 	 */
 	public boolean isSystemSupported(String os);
+
+	/**
+	 * @return the architecture type desired (used by Windows 64bit)
+	 */
+	public Architecture getArchitecture();
 }

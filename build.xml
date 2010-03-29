@@ -43,12 +43,12 @@
 
 	<property name="spec.title"			value="JTablet 2"/>
 	<property name="spec.vendor"		value="Cellosoft"/>
-	<property name="spec.version"		value="1.2.1"/>
+	<property name="spec.version"		value="1.2.0"/>
 
 	<property name="impl.title"			value="JTablet 2"/>
 	<property name="impl.vendor"		value="Cellosoft"/>
 	<property name="impl.vendor.id"		value="cello"/>
-	<property name="impl.version"		value="1.2.1-alpha"/>
+	<property name="impl.version"		value="1.2.2-alpha"/>
 	
 	<condition property="platform" value="osx">
 		<and>

@@ -67,11 +67,12 @@ public class TabletManagerImpl extends TabletManager {
 						final NativeTabletManager nsd = (NativeTabletManager)manager;
 						if (nsd.isSystemSupported(os)) {
 							try {
+								final Architecture arch = nsd.getArchitecture();
 	
 								NativeLoaderException e = AccessController.doPrivileged(new PrivilegedAction<NativeLoaderException>() {
 						            public NativeLoaderException run() {
 						            	try {
-						            		loader.load();
+						            		loader.load(arch);
 										} catch (NativeLoaderException e) {
 											return e;
 										}

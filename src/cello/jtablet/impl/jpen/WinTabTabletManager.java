@@ -39,6 +39,7 @@ import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
 import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.AbstractTabletDevice;
+import cello.jtablet.impl.Architecture;
 import cello.jtablet.impl.MouseTabletManager;
 import cello.jtablet.impl.NativeLoaderException;
 import cello.jtablet.impl.NativeTabletManager;
@@ -433,4 +434,11 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 		}
 	}
 
+	public Architecture getArchitecture() {
+		String architecture = System.getProperty("os.arch");
+		if (architecture.contains("64")) {
+			return Architecture.X64;
+		}
+		return Architecture.DEFAULT;
+	}
 }
