@@ -21,7 +21,7 @@ import java.util.Arrays;
  * 
  * @version 2.0, May 26, 2009
  */
-class BrowserLauncher {
+public class BrowserLauncher {
 
 	private static final String[] UNIX_BROWSERS = {
 		"xdg-open",

@@ -1,1 +1,1 @@
-You are about to install the Cellosoft JTablet %%JTABLET.VERSION%% for Java. I'm quite excited!
+You are about to install the Cellosoft JTablet %%JTABLET.VERSION%% Plugin for Java. I'm quite excited!

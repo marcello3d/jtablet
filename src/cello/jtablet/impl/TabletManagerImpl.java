@@ -24,8 +24,17 @@
 package cello.jtablet.impl;
 
 import java.awt.Component;
+import java.awt.Font;
+import java.net.URISyntaxException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+
+import javax.swing.JEditorPane;
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
+import javax.swing.text.html.HTMLDocument;
 
 import cello.jtablet.DriverStatus;
 import cello.jtablet.TabletManager;
@@ -33,6 +42,8 @@ import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.jpen.CocoaTabletManager;
 import cello.jtablet.impl.jpen.WinTabTabletManager;
 import cello.jtablet.impl.jpen.XInputTabletManager;
+import cello.jtablet.installer.BrowserLauncher;
+import cello.jtablet.installer.JTabletExtension;
 
 /**
  * This class 
@@ -48,6 +59,9 @@ public class TabletManagerImpl extends TabletManager {
 	 */
 	public TabletManagerImpl() {
 		if (PluginConstant.IS_PLUGIN) {
+			
+			showAlphaMessage();
+			
 			String os = System.getProperty("os.name").toLowerCase();
 			DriverStatus tabletStatus = new DriverStatus(DriverStatus.State.UNSUPPORTED_OS);
 			TabletManager chosenManager = null;
@@ -108,6 +122,55 @@ public class TabletManagerImpl extends TabletManager {
 			this.tabletStatus = new DriverStatus(DriverStatus.State.NOT_INSTALLED);
 			this.tabletManager = new MouseTabletManager();
 		}
+	}
+
+	private void showAlphaMessage() {
+
+		String installedVersion = JTabletExtension.getInstalledVersion();
+		if (installedVersion == null) {
+			installedVersion = "JTablet (development build)";
+		} else {
+			installedVersion = "JTablet "+installedVersion;
+		}
+		// All this work to display a link in the message... might as well throw some other stylings in there, too.
+		JEditorPane richText = new JEditorPane("text/html", 
+
+				"Loading "+installedVersion+"...<br>\n<br>\n"+
+				"This is an <b>EXPERIMENTAL</b> alpha release that <i>may crash!</i><br>\n"+
+					"Please use at your own risk!<br>\n<br>\n"+
+					"Visit our website for new releases and to report problems: <br>\n"+ 
+					"<a href=\"http://jtablet.cellosoft.com/\">http://jtablet.cellosoft.com/</a>");
+		
+		// Don't edit, let the color show throw, don't allow text selection
+		richText.setEditable(false);
+		richText.setOpaque(false);
+		richText.setHighlighter(null);
+		
+
+        // Set default font...
+        Font font = UIManager.getFont("Label.font");
+        String bodyRule = "body { font-family: " + font.getFamily() + "; font-size: " + font.getSize() + "pt; }";
+        ((HTMLDocument)richText.getDocument()).getStyleSheet().addRule(bodyRule);
+
+        // Make links clickable...
+		richText.addHyperlinkListener(new HyperlinkListener() {  
+			public void hyperlinkUpdate(HyperlinkEvent event) {  
+				if (HyperlinkEvent.EventType.ACTIVATED.equals(event.getEventType())) {  
+					try {
+						BrowserLauncher.browse(event.getURL().toURI());
+					} catch (URISyntaxException e) {
+						e.printStackTrace();
+					}  
+				}  
+			}  
+		});  
+		
+		// Show the message...
+		JOptionPane.showMessageDialog(
+				null, 
+				richText,
+				"JTablet 2",
+				JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	@Override

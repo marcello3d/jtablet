@@ -34,7 +34,7 @@ Name "Cellosoft JTablet %%JTABLET.VERSION%%"
 
 # Installer text
 !define MUI_WELCOMEPAGE_TITLE "$\r$\nCellosoft JTablet"
-!define MUI_WELCOMEPAGE_TEXT "You are about to install the Cellosoft JTablet %%JTABLET.VERSION%% for Java. $\r$\n$\r$\nI'm quite excited!"
+!define MUI_WELCOMEPAGE_TEXT "You are about to install the Cellosoft JTablet %%JTABLET.VERSION%% Plugin for Java. $\r$\n$\r$\nI'm quite excited!"
 
 !define MUI_FINISHPAGE_TITLE "$\r$\nTa-da!"
 !define MUI_FINISHPAGE_TEXT "Cellosoft JTablet 2 is now installed!"
