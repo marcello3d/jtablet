@@ -1,6 +1,6 @@
 <project name="JTablet2" default="jars" basedir=".">
 	<description>
-        JTablet2
+        JTablet 2
     </description>
 
 	<!-- set global properties for this build -->
@@ -109,6 +109,7 @@
 			description="compile jpen java source">
 		<mkdir dir="${build.jtablet.jpen}"/>
 		<javac 
+            encoding="utf-8"
 			srcdir="${src.gen}/java"          
 			includes="**"
 			destdir="${build.jtablet.jpen}" 
@@ -144,6 +145,7 @@
 	<target name="jtablet.compile" depends="init, jtabletjpen.compile.java, jtablet.uninstall" description="compile the source" >
 		<mkdir dir="${build.jtablet}"/>
 		<javac 
+            encoding="utf-8"
 			srcdir="${src}"          
 			includes="**"
 			destdir="${build.jtablet}" 
@@ -228,6 +230,7 @@
 		
 		<mkdir dir="${build.jtablet.thin}"/>
 		<javac 
+            encoding="utf-8"
 			srcdir="${src.gen.thin}"          
 			includes="**"
 			destdir="${build.jtablet.thin}" 
@@ -299,27 +302,28 @@
 	<target name="demo.compile" depends="init" description="compile the jtablet-demo source" >
 		<mkdir dir="${build.demo}"/>
 		<javac 
-		srcdir="${src.demo}"          
-		includes="**"
-		destdir="${build.demo}" 
-		source="1.5" 
-		target="1.5"
-		debug="on"
-		classpathref="demo.classpath"/>
+			encoding="utf-8"
+    		srcdir="${src.demo}"          
+    		includes="**"
+    		destdir="${build.demo}" 
+    		source="1.5" 
+    		target="1.5"
+    		debug="on"
+    		classpathref="demo.classpath"/>
 	</target>
 
 	<target name="demo.jar" depends="demo.compile" description="build the jtablet-demo.jar">
 		<jar 
-		jarfile="${dist.version}/jtablet2-demo.jar"
-		includes="cello/**"
-    	level="9"
-    	basedir="${build.demo}">
-			<manifest>
-				<attribute name="Main-Class" value="cello.demo.jtablet.DemoApplet" />
-				<attribute name="Built-By" value="Marcello"/>
-				<attribute name="Class-Path" value="jtablet2-thin.jar" />
-			</manifest>
-		</jar>
+    		jarfile="${dist.version}/jtablet2-demo.jar"
+    		includes="cello/**"
+        	level="9"
+        	basedir="${build.demo}">
+    			<manifest>
+    				<attribute name="Main-Class" value="cello.demo.jtablet.DemoApplet" />
+    				<attribute name="Built-By" value="Marcello"/>
+    				<attribute name="Class-Path" value="jtablet2-thin.jar" />
+    			</manifest>
+    		</jar>
 	</target>
 	
 	<target name="demo.run" depends="jtablet-thin.jar,demo.jar" description="run the jtablet demo">
@@ -332,187 +336,9 @@
 		</java>
 	</target>
 
-
-	<!-- INSTALLER -->
-	<path id="classpath.installer">
-	</path>
-	<target name="installer.compile" depends="init">
-		<mkdir dir="${build.installer}"/>
-		<javac 
-		srcdir="${src.installer}"          
-		includes="**"
-		destdir="${build.installer}" 
-		source="1.5" 
-		target="1.5"
-		debug="on"
-		classpathref="classpath.installer"/>
+	<target name="jars" depends="jtablet.jar,demo.jar" >
 	</target>
 
-	<target name="installer.jar" depends="installer.compile">
-		<jar 
-			jarfile="${dist.version}/jtablet2-installer.original.jar"
-			includes="cello/jtablet/installer**"
-	    	level="9"
-	    	basedir="${build.installer}">
-			<manifest>
-				<attribute name="Built-By" value="Marcello"/>
-				<attribute name="Extension-Name" 			value="${ext.name}"/>
-				<attribute name="Specification-Title" 		value="${spec.title}"/>
-				<attribute name="Specification-Vendor" 		value="${spec.vendor}"/>
-				<attribute name="Specification-Version" 	value="${spec.version}"/>
-				<attribute name="Implementation-Title" 		value="${impl.title}"/>
-				<attribute name="Implementation-Vendor" 	value="${impl.vendor}"/>
-				<attribute name="Implementation-Vendor-Id" 	value="${impl.vendor.id}"/>
-				<attribute name="Implementation-Version" 	value="${impl.version}_${DSTAMP}_${svn.version}-thin"/>
-				<attribute name="Main-Class" value="cello.tablet.installer.JTabletNativeInstall"/>
-
-				<section name="cello/jtablet/impl/">
-					<attribute name="Sealed" value="true"/>
-				</section>
-			</manifest>
-		</jar>
-	</target>
-
-
-	<target name="jars" depends="jtablet.jar,demo.jar,installer.jar" >
-	</target>
-
-
-	<target name="genkey">
-		<genkey 
-    	alias="jtablet2" 
-    	storepass="notsecureatall5936510" 
-		keypass="notsecureatall5936510"
-    	validity="365">
-			<dname>
-				<param name="CN" value="JTablet Installer"/>
-				<param name="O"  value="Cellosoft"/>
-				<param name="C"  value="US"/>
-			</dname>
-		</genkey>
-	</target>
-
-
-
-	<target name="exttest" depends="demo.compile">
-		<jar 
-			jarfile="${dist.version}/exttest-applet.jar"
-			includes="cello/demo/jtablet/ext/TestApplet.class"
-	    	level="9"
-	    	basedir="${build.demo}">
-			<manifest>
-				<attribute name="Built-By" value="Marcello"/>
-			</manifest>
-		</jar>
-		<jar 
-			jarfile="${dist.version}/exttest-other.jar"
-			includes="cello/demo/jtablet/ext/OtherClass.class"
-	    	level="9"
-	    	basedir="${build.demo}">
-			<manifest>
-				<attribute name="Built-By" value="Marcello"/>
-			</manifest>
-		</jar>
-		<jar 
-			jarfile="${dist.version}/exttest-ext.jar"
-			includes="cello/demo/jtablet/ext/ExtClass.class"
-	    	level="9"
-	    	basedir="${build.demo}">
-			<manifest>
-				<attribute name="Built-By" value="Marcello"/>
-				<attribute name="Extension-Name" value="exttest"/>
-				<attribute name="Specification-Vendor" value="exttest"/>
-				<attribute name="Specification-Version" value="1.0"/>
-				<attribute name="Implementation-Vendor-Id" value="exttest"/>
-				<attribute name="Implementation-Vendor" value="exttest"/>
-				<attribute name="Implementation-Version" value="1.0"/>
-
-			</manifest>
-		</jar>
-		<jar 
-			jarfile="${dist.version}/exttest-unused.jar"
-			includes="cello/demo/jtablet/ext/TestApplet.class"
-	    	level="9"
-	    	basedir="${build.demo}">
-			<manifest>
-				<attribute name="Built-By" value="Marcello"/>
-				<attribute name="Main-class" value="cello.demo.jtablet.ext.TestApplet"/>
-
-				<attribute name="Extension-List" value="exttest"/>
-				<attribute name="exttest-Extension-Name" value="exttest"/>
-				<attribute name="exttest-Specification-Version" value="1.0"/>
-				<attribute name="exttest-Specification-Vendor" value="Cellosoft"/>
-				<attribute name="exttest-Implementation-Version" value="1.0"/>
-				<attribute name="exttest-Implementation-Vendor-Id" value="cello"/>
-				<attribute name="exttest-Implementation-URL" value="file://${user.home}/exttest-ext.signed.jar"/>
-
-			</manifest>
-		</jar>
-		<signjar 
-			alias="jtablet2" 
-			storepass="notsecureatall5936510"
-			keypass="notsecureatall5936510"
-	  		lazy="true"
-	  		jar="${dist.version}/exttest-ext.jar"
-	  		signedjar="${dist.version}/exttest-ext.signed.jar">
-		</signjar>		
-		<mkdir dir="${user.home}/.jtablet"/>
-		<copy
-			file="${dist.version}/exttest-ext.signed.jar"
-			todir="${user.home}/.jtablet"/>
-	</target>
-
-
-	<target name="jtablet.signed" depends="jtablet.jar">
-		<signjar 
-			alias="jtablet2" 
-			storepass="notsecureatall5936510"
-			keypass="notsecureatall5936510"
-	  		lazy="true"
-	  		jar="${dist.version}/jtablet2.original.jar"
-	  		signedjar="${dist}/jtablet2.jar">
-		</signjar>
-	</target>
-
-	<target name="demo.signed" depends="demo.jar">
-		<signjar 
-			alias="jtablet2" 
-			storepass="notsecureatall5936510"
-			keypass="notsecureatall5936510"
-	  		lazy="true"
-	  		jar="${dist.version}/jtablet2-demo.original.jar"
-	  		signedjar="${dist}/jtablet2-demo.jar">
-		</signjar>
-	</target>
-
-	<target name="installer.signed" depends="installer.jar">
-		<signjar 
-
-			alias="jtablet2" 
-			storepass="notsecureatall5936510"
-			keypass="notsecureatall5936510"
-	  		lazy="true"
-	  		jar="${dist.version}/jtablet2-installer.original.jar"
-	  		signedjar="${dist}/jtablet2-installer.jar">
-		</signjar>
-	</target>
-
-	<!--
-  <target name="installer-dist" depends="signedjars">
-    <mkdir dir="${dist}/installer"/>
-
-	<filter token="buildVersion" value="${svn.version}"/>
-	<copy todir="${dist}/installer" filtering="true">
-		<fileset dir="html">
-		  <include name="**/*"/>
-		</fileset>
-	</copy>
-	<copy file="${dist}/signed/jtablet-installeroriginal.jar" tofile="${dist}/installer/jtablet-installer.jar" />
-	<copy todir="${dist}/installer" file="lib/javascript.jar" />
-  </target>
--->
-	<target name="jars.signed" depends="jtablet.signed,demo.signed,installer.signed">
-	</target>
 
 	<target name="javadocs" depends="jtablet.compile" description="Generate javadoc API documentation">
 		<mkdir dir="${dist.version}/api"/>
