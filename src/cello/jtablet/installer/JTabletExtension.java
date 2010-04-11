@@ -168,8 +168,8 @@ public class JTabletExtension {
 				// they are using the old 0.1 beta version (highly unlikely)
 				return "0.1.0-beta";
 			}
-		} catch (Exception e) {
-			// No JTablet found
+		} catch (Throwable e) {
+			// No JTablet found (or there was an error loading it) 
 			return null;
 		}
 	}
