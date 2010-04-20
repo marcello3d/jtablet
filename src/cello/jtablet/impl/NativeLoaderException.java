@@ -1,6 +1,11 @@
 package cello.jtablet.impl;
 
 /**
+ * {@code NativeLoaderException} provides a class of objects that can
+ * be thrown/caught and indicate a problem with loading native code.
+ * This may be thrown, for instance, if the required native library is
+ * not found.
+ *
  * @author marcello
  */
 public class NativeLoaderException extends Exception {

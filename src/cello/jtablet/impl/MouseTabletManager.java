@@ -38,6 +38,12 @@ import cello.jtablet.event.TabletListener;
 import cello.jtablet.event.TabletEvent.Type;
 
 /**
+ * The {@code MouseTabletManager} acts as a wrapper for Java's mouse
+ * event system. Though limited in ability, it allows a gracefull
+ * fallback for applications if there is no supported tablet. Though
+ * it does not support pressure data, applications will still recieve
+ * X and Y positions with which to draw.
+ *
  * @author marcello
  */
 public class MouseTabletManager extends TabletManager {

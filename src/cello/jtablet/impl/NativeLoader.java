@@ -4,6 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * {@code NativeLoader} provides a simple interface to load the
+ * native JTablet2 library, regardless of the system. It attempts
+ * to locate the library in the user's home folder, and load it
+ * if found.
+ *
  * @author marcello
  */
 public class NativeLoader {

@@ -27,14 +27,16 @@ package cello.jtablet.impl;
 
 
 /**
- * This interface specifies cursor devices that load native code
+ * Classes implementing {@link NativeTabletManager} make use of native
+ * tablet drivers or libraries. This allows the full use of devices
+ * which are unsupported or only partially supported by Java.
  * 
  * @author marcello
  */
 public interface NativeTabletManager {
 
 	/**
-	 * Loads the actual driver
+	 * Loads the actual native driver
 	 * @throws NativeLoaderException 
 	 */
 	public void load() throws NativeLoaderException;

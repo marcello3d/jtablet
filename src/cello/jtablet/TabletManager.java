@@ -33,7 +33,19 @@ import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.TabletManagerImpl;
 
 /**
- * Provides methods for setting up listeners to receive events on {@link Component} objects.
+ * {@code TabletManager} is responsible for detecting interesting
+ * events, translating them into {@link cello.jtablet.event.TabletEvent}
+ * objects, and finally broadcasting them to all registered
+ * {@link cello.jtablet.event.TabletListener}s.
+ * 
+ * {@code TabletManager} relies on concrete private subclasses to
+ * grab events from particular native libraries (e.g. Wacom's WinTab
+ * driver, Cocoa's NSEvent system, or X11's XInput). Given the
+ * difficulty in determining if a particular native library is
+ * supported on the end-user's system, we provide the simple static
+ * {@link TabletManager}.{@link TabletManager#getDefaultManager()}
+ * method that is guarnteed to return a {@code TabletManager} which
+ * is compatible.
  * 
  * <p>Example usage:
  * <pre>
@@ -49,33 +61,43 @@ import cello.jtablet.impl.TabletManagerImpl;
  *  });
  * </pre>
  * 
- * @see TabletListener 
+ * @see TabletListener
  * @author marcello
  */
 public abstract class TabletManager {
 	
+	/**
+	 * To obtain a reference to a TabletManager, call the static
+	 * {@link TabletManager}.{@link TabletManager#getDefaultManager()} method.
+	 */
 	protected TabletManager() {
 	}
 	
+	/**
+	 * Static singleton TabletManager to be used by the entire system.
+	 */
 	private static TabletManager tabletManager = new TabletManagerImpl();
 	
 	/**
 	 * Returns a shared tablet manager with the default settings.
-	 * @return tablet manager 
+	 *
+	 * @return the TabletManager for the whole system
 	 */
 	public static TabletManager getDefaultManager() {
 		return tabletManager;
 	}
+	
 	/**
 	 * Adds a {@link TabletListener} to the entire screen. This works very much like adding a {@link MouseListener} and 
 	 * {@link MouseMotionListener} on the component, meaning:
 	 * <ul>
 	 * 	<li>Events will have coordinates relative to the screen</li>
-	 *  <li>Enter and exit events will occur when the tablet stylus enters/exits proximity</li>
+	 * 	<li>Enter and exit events will occur when the tablet stylus enters/exits proximity</li>
 	 * </ul>
 	 * <p><b>Implementation Note:</b> behavior for this method is undefined when working with mouse input (i.e. no 
 	 * native library was loaded or the user is not using the tablet). Please use 
 	 * {@link #addTabletListener(Component, TabletListener)} when working with on-screen components.</p>
+	 *
 	 * @see TabletListener
 	 * @see #addTabletListener(Component, TabletListener)
 	 * @param listener the listener to add
@@ -85,6 +107,7 @@ public abstract class TabletManager {
 	/**
 	 * Removes a TabletListener previously added with {@link #addScreenTabletListener(TabletListener)}. It is safe to 
 	 * call this method if the specified listener has not been added (or already removed).
+	 *
 	 * @param listener the listener to remove
 	 */
 	public abstract void removeScreenTabletListener(TabletListener listener);
@@ -94,19 +117,20 @@ public abstract class TabletManager {
 	 * {@link MouseMotionListener} on the component, meaning:
 	 * <ul>
 	 * 	<li>Events will have coordinates relative to the component</li>
-	 *  <li>Events will only be received when: 
-	 *   <ul>
-	 *     <li>the mouse is over the component's bounds,</li>
-	 *     <li>or a drag was initiated on the component</li>
-	 *   </ul>
-	 *  </li>
-	 *  <li>Enter and exit events will occur both:
-	 *   <ul>
-	 *    <li>when the tablet stylus enters/exits proximity,
-	 *    <li>and when the cursor enters/exits the component bounds</li>
-	 *   </ul>
-	 *  </li>
+	 * 	<li>Events will only be received when:
+	 *	   <ul>
+	 * 		<li>the mouse is over the component's bounds,</li>
+	 * 		<li>or a drag was initiated on the component</li>
+	 * 	   </ul>
+	 * 	</li>
+	 * 	<li>Enter and exit events will occur both:
+	 * 	   <ul>
+	 * 		<li>when the tablet stylus enters/exits proximity,
+	 * 		<li>and when the cursor enters/exits the component bounds</li>
+	 * 	   </ul>
+	 * 	</li>
 	 * </ul>
+	 *
 	 * @see TabletListener
 	 * @param component component to add the listener to
 	 * @param listener the listener to send events to
@@ -126,6 +150,8 @@ public abstract class TabletManager {
 	/**
 	 * Returns the tablet driver status for this tablet manager. This contains exception information if there was a 
 	 * problem instantiating the tablet driver and can be used for debugging driver/native issues.
+	 *
+	 * TODO: Why are we returning null?
 	 * 
 	 * @return the current driver status
 	 */

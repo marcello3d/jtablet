@@ -28,12 +28,22 @@ import java.io.Serializable;
 import cello.jtablet.event.TabletEvent;
 
 /**
- * Represents a physical input device referenced in {@link TabletEvent}s.
- * 
+ * Represents a physical input device. TabletDevice objects are referenced
+ * in {@link TabletEvent}s and constructed by the JTablet library itself.
+ *
  * @author marcello
  */
 public abstract class TabletDevice implements Serializable {
-
+	
+	/**
+	 * TabletDevice objects may only be constructed by JTablet itself.
+	 * Typically one would obtain a reference to a TabletDevice object
+	 * though a {@link TabletEvent}.
+	 * 
+	 * {@link TabletManager} objects will typically contain concrete
+	 * subclasses of TabletDevice that they can construct on demand
+	 * in response to the detection of a tablet.
+	 */
 	protected TabletDevice() {}
 	
 	/**
@@ -71,6 +81,7 @@ public abstract class TabletDevice implements Serializable {
 
 	/**
 	 * Returns this device's type (such as stylus pen tip, stylus eraser, mouse cursor, or other).
+	 *
 	 * @return the device's type
 	 */
 	public abstract Type getType();
@@ -100,6 +111,7 @@ public abstract class TabletDevice implements Serializable {
 	
 	/**
 	 * Returns whether this device supports unique IDs.
+	 *
 	 * @see TabletDevice#getUniqueIdSupport()
 	 * @return unique ID support
 	 */
@@ -109,6 +121,7 @@ public abstract class TabletDevice implements Serializable {
 	
 	/**
 	 * Returns whether this device supports pressure sensitivity.
+	 *
 	 * @see TabletEvent#getPressure()
 	 * @return pressure sensitivity support
 	 */
@@ -118,6 +131,7 @@ public abstract class TabletDevice implements Serializable {
 	
 	/**
 	 * Returns whether this device supports tilt orientation.
+	 *
 	 * @see TabletEvent#getTiltX()
 	 * @see TabletEvent#getTiltY()
 	 * @return tilt (from the vertical axis) support
@@ -128,6 +142,7 @@ public abstract class TabletDevice implements Serializable {
 	
 	/**
 	 * Returns whether this device supports side pressure. (E.g. the side wheel on a Wacom airbrush tool.)
+	 *
 	 * @see TabletEvent#getSidePressure()
 	 * @return side pressure support
 	 */
@@ -139,7 +154,6 @@ public abstract class TabletDevice implements Serializable {
 	 * Returns whether this device supports axis rotation.
 	 * 
 	 * @see TabletEvent#getRotation()
-	 * 
 	 * @return rotation (around the axis of the stylus) support 
 	 */
 	public Support getRotationSupport() {
@@ -148,6 +162,7 @@ public abstract class TabletDevice implements Serializable {
 	
 	/**
 	 * Returns the device's name
+	 *
 	 * @return the name of this device
 	 */
 	public String getName() {

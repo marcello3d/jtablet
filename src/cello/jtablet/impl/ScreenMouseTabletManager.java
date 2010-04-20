@@ -35,6 +35,12 @@ import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletEvent.Type;
 
 /**
+ * The {@code ScreenMouseTabletManager} is similar to the {@link MouseTabletManager}
+ * but capable of tracking the mouse anywhere on screen. Unfortunately,
+ * use of this class requires elevated privliges: Java does not normally
+ * allow applications the ability to track the mouse outside of Java's
+ * sandbox.
+ *
  * @author marcello
  */
 class ScreenMouseTabletManager extends ScreenTabletManager {

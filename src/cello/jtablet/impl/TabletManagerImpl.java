@@ -46,7 +46,9 @@ import cello.jtablet.installer.BrowserLauncher;
 import cello.jtablet.installer.JTabletExtension;
 
 /**
- * This class 
+ * {@code TabletManagerImpl} is a {@link cello.jtablet.TabletManager}
+ * which is capable of automatically determining the best concrete
+ * manager to be used.
  * 
  * @author marcello
  */

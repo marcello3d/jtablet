@@ -51,8 +51,15 @@ import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.jpen.CocoaTabletManager;
 
 /**
- * @author marcello
+ * {@code ScreenTabletManager}s support the ability to track tablet
+ * devices on the entire screen. Most {@link NativeTabletManager}s
+ * should be capable of this.
+ * 
+ * The {@link ScreenTabletManager} primarily exists to ensure that
+ * non-native tablet managers (such as the {@link MouseTabletManager}
+ * are also compatible with JTablet.
  *
+ * @author marcello
  */
 public abstract class ScreenTabletManager extends TabletManager {	
 	
