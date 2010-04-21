@@ -84,7 +84,7 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 			TabletDevice.Type type = Type.UNKNOWN; //No clue at all :(
 			
 			TabletDevice.Support uniqueIdSupport     = TabletDevice.Support.NO;      //JPen provides no unique ID for us to use
-			TabletDevice.Support floatSupport        = TabletDevice.Support.NO;      //XInput API limits us here
+			TabletDevice.Support floatSupport        = TabletDevice.Support.YES;
 			
 			TabletDevice.Support buttonSupport       = TabletDevice.Support.UNKNOWN; //We support buttons, but the tablet may not
 			TabletDevice.Support pressureSupport     = TabletDevice.Support.UNKNOWN; //We support pressure, but the tablet may not
