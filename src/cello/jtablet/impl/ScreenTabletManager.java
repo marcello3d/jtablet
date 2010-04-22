@@ -376,6 +376,9 @@ public abstract class ScreenTabletManager extends TabletManager {
 		int buttonMask = lastButtonMask;
 		if (buttonJustPressed || buttonJustReleased) {
 			int mask = 0;
+			//FIXME: Shouldn't this be a bunch of binary ORs
+			//instead of a switch statement? Furthermore,
+			//shouldn't this be determined from rawTabletButtonMask?
 			switch (button) {
 				case MouseEvent.BUTTON1:
 			    	mask = MouseEvent.BUTTON1_DOWN_MASK;

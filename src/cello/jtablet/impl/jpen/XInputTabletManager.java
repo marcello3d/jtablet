@@ -58,16 +58,46 @@ import cello.repackaged.jpen.internal.Range;
  * private classes to store individual cursors, code to see if the cursor
  * changed, code to compute values for events from raw data, etc.
  *
+ *
+ * IDEA: Make XInputTabletManager *manage* the attached tablets,
+ *       nothing more. Essentially, it should periodically check
+ *       for (dis-)connected devices and update the list as needed.
+ *
+ * IDEA: Make XInputDevice be in charge of the device it manages.
+ *       This means that each device would have its own thread running
+ *       readPackets(). Ideally each thread would also stop automatically
+ *       when the device is disconnected (and wait for the manager
+ *       to nuke it completely), but I'm not sure that's possible
+ *       in XInput1...
+ *
+ * TODO: Add mouse support in to the tablet manager. As things stand
+ *       now, the mouse isn't an XInput device that JPen works with,
+ *       so JTablet-enabled apps can't draw with it (the mouse still
+ *       works fine for interacting with the UI, however).
+ *
+ * Javadoc:
+ * --------------------------------------------------------------
+ * 
+ * {@code XInputTabletManager} is responsible for keeping track of all
+ * of the tablets exposed via the X11 XInput interface. This class
+ * offloads the dirty native work off to JPen for convenience -- why
+ * reinvent the wheel? :)
+ *
  * @author Jason Gerecke
  */
 public class XInputTabletManager extends ScreenTabletManager implements NativeTabletManager {
 	
 	/**
-	 * {@code XInputDevice} serves a dual purpose. In addition to being
-	 * the concrete implementation of {@link AbstractTabletDevice} that
-	 * will appear in JTablet's events, it also acts as a wrapper around
-	 * JPen's {@code XiDevice} class. This saves us from completely
-	 * re-implementing the wheel.
+	 * An {@code XInputDevice} is a device which is exposed through
+	 * the XInput API. We use JPen's native code to acomplish this,
+	 * though the necessary method calls to custom native code could
+	 * work just as well.
+	 *
+	 * While most {@code XInputDevice} objects will likely represent
+	 * tablets, XInput is *NOT* a tablet-specific API. It is possible
+	 * the user may have some other "extended" input device connected.
+	 * Provided the valuator mappings line up well, such non-tablet
+	 * devices should work fine with JTablet.
 	 */
 	private static class XInputDevice extends AbstractTabletDevice {	
 		/**
@@ -81,16 +111,35 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 			String name     = device.getName();
 			String uniqueId = name;
 			
-			TabletDevice.Type type = Type.UNKNOWN; //No clue at all :(
-			
-			TabletDevice.Support uniqueIdSupport     = TabletDevice.Support.NO;      //JPen provides no unique ID for us to use
+			TabletDevice.Support uniqueIdSupport     = TabletDevice.Support.NO;
 			TabletDevice.Support floatSupport        = TabletDevice.Support.YES;
 			
-			TabletDevice.Support buttonSupport       = TabletDevice.Support.UNKNOWN; //We support buttons, but the tablet may not
-			TabletDevice.Support pressureSupport     = TabletDevice.Support.UNKNOWN; //We support pressure, but the tablet may not
-			TabletDevice.Support rotationSupport     = TabletDevice.Support.UNKNOWN; //We support rotation, but the tablet may not
-			TabletDevice.Support sidePressureSupport = TabletDevice.Support.UNKNOWN; //We support side pressure, but the tablet may not
-			TabletDevice.Support tiltSupport         = TabletDevice.Support.UNKNOWN; //We support tilt, but the tablet may not
+			TabletDevice.Support buttonSupport       = TabletDevice.Support.UNKNOWN;
+			TabletDevice.Support pressureSupport     = TabletDevice.Support.UNKNOWN;
+			TabletDevice.Support rotationSupport     = TabletDevice.Support.UNKNOWN;
+			TabletDevice.Support sidePressureSupport = TabletDevice.Support.UNKNOWN;
+			TabletDevice.Support tiltSupport         = TabletDevice.Support.UNKNOWN;
+			
+			TabletDevice.Type type = Type.UNKNOWN;
+			
+			//IDEA: We could move all this out to a properties
+			//      file that would be not only be easier for
+			//      users to extend with their own tablet data,
+			//      but also could contain info that can't be
+			//      found from the driver (e.g. physical tablet
+			//      size, resolution)
+			if (name.contains("Wacom Graphire4")) {
+				buttonSupport       = TabletDevice.Support.YES;
+				pressureSupport     = TabletDevice.Support.YES;
+				rotationSupport     = TabletDevice.Support.NO;
+				sidePressureSupport = TabletDevice.Support.NO;
+				tiltSupport         = TabletDevice.Support.NO;
+				
+				if      (name.contains("eraser")) { type = Type.ERASER;  }
+				else if (name.contains("cursor")) { type = Type.MOUSE;   }
+				else if (name.contains("pad"))    { type = Type.UNKNOWN; }
+				else                              { type = Type.STYLUS;  }
+			}
 			
 			return new XInputDevice(device, type, name, uniqueId,
 			   floatSupport, buttonSupport, uniqueIdSupport,
@@ -115,6 +164,8 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 		}
 		
 		XiDevice device;
+		boolean lastProximity = false;
+		int lastButton = 0;
 		
 		public XiDevice getXiDevice() { return device; }
 	}
@@ -122,6 +173,7 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 	private Collection<XInputDevice> devices = new LinkedList<XInputDevice>();
 	private XiBus xiBus;
 	private boolean running;
+	private java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
 	
 	/**
 	 * This thread is responsible for the tablet polling loop.
@@ -240,66 +292,113 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 		for (XInputDevice d : devices) {
 			XiDevice device = d.getXiDevice();
 			
-			if (!device.nextEvent())
-				continue;
+			while (device.nextEvent()) {			
+				long time = device.getLastEventTime();
 			
-			long time = device.getLastEventTime();
+				float x = device.getLevelRange(PLevel.Type.X).getRangedValue(
+					device.getValue(PLevel.Type.X)
+				)*screenSize.width;
 			
-			float x = device.getLevelRange(PLevel.Type.X).getRangedValue(
-				device.getValue(PLevel.Type.X)
-			);
+				float y = device.getLevelRange(PLevel.Type.Y).getRangedValue(
+					device.getValue(PLevel.Type.Y)
+				)*screenSize.height;
 			
-			float y = device.getLevelRange(PLevel.Type.Y).getRangedValue(
-				device.getValue(PLevel.Type.Y)
-			);
+				float pressure = device.getLevelRange(PLevel.Type.PRESSURE).getRangedValue(
+					device.getValue(PLevel.Type.PRESSURE)
+				);
 			
-			float pressure = device.getLevelRange(PLevel.Type.PRESSURE).getRangedValue(
-				device.getValue(PLevel.Type.PRESSURE)
-			);
+				float tiltX = device.getLevelRange(PLevel.Type.TILT_X).getRangedValue(
+					device.getValue(PLevel.Type.TILT_X)
+				);
 			
-			float tiltX = device.getLevelRange(PLevel.Type.TILT_X).getRangedValue(
-				device.getValue(PLevel.Type.TILT_X)
-			);
+				float tiltY = device.getLevelRange(PLevel.Type.TILT_Y).getRangedValue(
+					device.getValue(PLevel.Type.TILT_Y)
+				);
 			
-			float tiltY = device.getLevelRange(PLevel.Type.TILT_Y).getRangedValue(
-				device.getValue(PLevel.Type.TILT_Y)
-			);
+				float sidePressure = device.getLevelRange(PLevel.Type.SIDE_PRESSURE).getRangedValue(
+					device.getValue(PLevel.Type.SIDE_PRESSURE)
+				);
 			
-			float sidePressure = device.getLevelRange(PLevel.Type.SIDE_PRESSURE).getRangedValue(
-				device.getValue(PLevel.Type.SIDE_PRESSURE)
-			);
+				float rotation = device.getLevelRange(PLevel.Type.ROTATION).getRangedValue(
+					device.getValue(PLevel.Type.ROTATION)
+				);
 			
-			float rotation = device.getLevelRange(PLevel.Type.ROTATION).getRangedValue(
-				device.getValue(PLevel.Type.ROTATION)
-			);
+				//HACK: device.getLastEventButton() doesn't
+				//      "reset" when a button is unpressed.
+				//      Bleh. I remember this little problem
+				//      from working with JTablet1...
+				//
+				//      I've hacked around this by modifying
+				//      Device.c to do an XOR of its internal
+				//      mask on every button event, but this
+				//      breaks their API, so I probably can't
+				//      commit the change.
+				//
+				//      Those without a modified Device.c
+				//      will experience "stuck" buttons.
+				//      The only way to unstick them is to
+				//      press them a second time.
+				int rawTabletButtonMask = device.getLastEventButton();
+				int buttonChanges = rawTabletButtonMask ^ d.lastButton;
+				d.lastButton = rawTabletButtonMask;
+				
+				//HACK: Why is it that we set both a "button" value
+				//(which, BTW, isn't an ORing of components...) AND
+				//a rawTabletButtonMask? Is it because we can't be
+				//sure button 1 should be MouseEvent.BUTTON1? *shrug*
+				int button = 0;
+				if ((buttonChanges & 0x01) > 0)
+					button = java.awt.event.MouseEvent.BUTTON1;
+				else if ((buttonChanges & 0x02) > 0)
+					button = java.awt.event.MouseEvent.BUTTON2;
+				else if ((buttonChanges & 0x04) > 0)
+					button = java.awt.event.MouseEvent.BUTTON3;
 			
-			int rawTabletButtonMask = device.getLastEventButton();
-			
-			int button = 0; //FIXME
-			boolean buttonJustReleased = false; //FIXME
-			boolean buttonJustPressed = false;  //FIXME
+				boolean buttonJustPressed = (buttonChanges & rawTabletButtonMask) != 0;
+				boolean buttonJustReleased = (buttonChanges & ~rawTabletButtonMask) != 0;
 
-			//int lastModifiers = mouseListener.getLastModifiersEx();
-			//int buttonModifiers = lastModifiers & BUTTON_MODIFIERS;
-			//int keyModifiers = lastModifiers & KEY_MODIFIERS;
-			int keyModifiers = 0;
+				//TODO: Get keyModifier code up and working
+
+				//int lastModifiers = mouseListener.getLastModifiersEx();
+				//int buttonModifiers = lastModifiers & BUTTON_MODIFIERS;
+				//int keyModifiers = lastModifiers & KEY_MODIFIERS;
+				int keyModifiers = 0;
 			
 			
-			generatePointEvents(
-			   time, 
-			   keyModifiers, 
-			   x,
-			   y, 
-			   pressure,
-			   tiltX, 
-			   tiltY, 
-			   sidePressure,
-			   rotation, 
-			   rawTabletButtonMask,
-			   button, 
-			   buttonJustPressed, 
-			   buttonJustReleased
-			);
+				//HACK: ScreenTabletManager needs an overhaul:
+				//      it keeps way more state information
+				//      than it should. Using two tablets under
+				//      the same manager is difficult at best,
+				//      and outright buggy at worst.
+				//
+				//      These two method calls are just one
+				//      instance of the crazieness. The first
+				//      sets "lastDevice" which is used by the
+				//      latter. Unless we always call the
+				//      former before the latter, ScreenTabletManager
+				//      is bound to get confused.
+
+				//TODO: Talk with JPen devs about merging
+				//my proximity event changes into their trunk.
+				//generateDeviceEvents(d, time, keyModifiers, device.getLastEventProximity());
+
+				generateDeviceEvents(d, time, keyModifiers, true);
+				generatePointEvents(
+				   time, 
+				   keyModifiers, 
+				   x,
+				   y, 
+				   pressure,
+				   tiltX, 
+				   tiltY, 
+				   sidePressure,
+				   rotation, 
+				   rawTabletButtonMask,
+				   button, 
+				   buttonJustPressed, 
+				   buttonJustReleased
+				);
+			}
 		}
 	}
 }
