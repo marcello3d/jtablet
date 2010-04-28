@@ -36,6 +36,7 @@ public class DemoInfoPanel extends JPanel {
 	private JLabel sidePressureValue = new JLabel("Side Pressure");
 	private JLabel rotationValue = new JLabel("Rotation");
 	private JLabel ppsValue = new JLabel("Rate");
+	private JLabel rawButtonValue = new JLabel("Raw Buttons");
 	private JLabel labels[] = {
 		ppsValue,
 		typeValue,
@@ -45,7 +46,8 @@ public class DemoInfoPanel extends JPanel {
 		sidePressureValue,
 		tiltXValue,
 		tiltYValue,
-		rotationValue
+		rotationValue,
+		rawButtonValue
 	};
 	private Map<JLabel,JLabel> labelPrefixes = new HashMap<JLabel,JLabel>(labels.length);
 	
@@ -107,6 +109,7 @@ public class DemoInfoPanel extends JPanel {
 				setText(tiltXValue,			nf.format(Math.toDegrees(ev.getTiltX()))+degree,		device.getTiltSupport());
 				setText(tiltYValue,			nf.format(Math.toDegrees(ev.getTiltY()))+degree,		device.getTiltSupport());
 				setText(rotationValue,		nf.format(Math.toDegrees(ev.getRotation()))+degree,		device.getRotationSupport());
+				setText(rawButtonValue, String.format("%1$#04x", ev.getRawTabletButtonMask()), device.getButtonSupport());
 			}
 			private void setText(JLabel label, String value, TabletDevice.Support supported) {
 				if (supported != null) {
