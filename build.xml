@@ -121,7 +121,8 @@
 		        destdir="${build.jtablet.jpen}" 
 		        source="1.5" 
 		        target="1.5"
-		        debug="on"/>
+		        debug="on"
+		        includeAntRuntime="false"/>
 	</target>
 	
 	<target 
@@ -158,6 +159,7 @@
 		        source="1.5" 
 		        target="1.5"
 		        debug="on"
+		        includeAntRuntime="false"
 		        classpathref="jtablet.classpath"/>
 	</target>
 	
@@ -243,6 +245,7 @@
 		        source="1.5" 
 		        target="1.5"
 		        debug="on"
+		        includeAntRuntime="false"
 		        classpathref="jtablet.classpath"/>
 	</target>
 	
@@ -315,6 +318,7 @@
 		        source="1.5" 
 		        target="1.5"
 		        debug="on"
+		        includeAntRuntime="false"
 		        classpathref="demo.classpath"/>
 	</target>
 	
