@@ -30,6 +30,8 @@ import java.awt.event.AWTEventListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletEvent.Type;
@@ -124,11 +126,21 @@ class ScreenMouseTabletManager extends ScreenTabletManager {
 
 	@Override
 	protected void start() {
-		Toolkit.getDefaultToolkit().addAWTEventListener(listener, 
-				AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.MOUSE_WHEEL_EVENT_MASK);
+		AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+				Toolkit.getDefaultToolkit().addAWTEventListener(listener, 
+						AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.MOUSE_WHEEL_EVENT_MASK);
+				return null;
+            }
+		});
 	}
 	@Override
 	protected void stop() {
-		Toolkit.getDefaultToolkit().removeAWTEventListener(listener);
+		AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+            	Toolkit.getDefaultToolkit().removeAWTEventListener(listener);
+            	return null;
+            }
+		});
 	}
 }

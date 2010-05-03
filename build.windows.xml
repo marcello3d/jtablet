@@ -3,12 +3,14 @@
 	<property environment="env" />
 	<property name="jdk.classes.jar" 	location="${java.home}/lib/rt.jar" />
     <property name="gcc"                location="/mingw32/bin/gcc" />
-    <property name="gcc64"              location="/mingw32/bin/i686-w64-mingw32-gcc" />
-	<property name="makensis"           location="/Program Files/NSIS/makensis" />
+    <property name="gcc64"              location="/mingw64/bin/gcc" />
+    <property name="dlltool"            location="/mingw32/bin/dlltool" />
+    <property name="dlltool64"          location="/mingw64/bin/dlltool" />
+	<property name="makensis"           location="/Program Files (x86)/NSIS/makensis" />
 	<property name="ext.dir"			location="${env.WINDIR}\Sun\Java\lib\ext"/>
     <property name="dll.dir"            location="${env.WINDIR}\Sun\Java\bin"/>
 
-	<property name="jdk.home"			location="\java\jdk1.6" />
+	<property name="jdk.home"			location="\Program Files\Java\jdk1.6.0_20" />
 
 	<target name="jtabletjpen.gen.native">
 	   <fail message="imported file run without parent"/>
@@ -41,7 +43,7 @@
 
 	<target name="jtabletjpen.compile.native" depends="jtabletjpen.gen.native" description="compile the jpen native source for windows" >
 		<exec
-	    	executable="${gcc64}"
+	    	executable="${gcc}"
 		    	failonerror="true"
 		    	dir="${src.gen.native}/windows">
 			<arg value="-Wall"/>
@@ -68,54 +70,55 @@
         <delete>
                <fileset dir="${src.gen.native}/windows" includes="*.o"/>
         </delete>
-		<copy tofile="${dist.version}/jtablet2.dll">
-			<fileset dir="${src.gen.native}/windows">
-				<include name="*.dll"/>
-			</fileset>
-		</copy>
+		<copy 
+			file="${src.gen.native}/windows/jtablet2.dll" 
+			todir="${dist.version}"/>
 	</target>
 
 	<target name="jtabletjpen.compile.64" depends="jtabletjpen.gen.native" description="compile the jpen native source for windows (64-bit)" >
-		<echo>Compiling...</echo>
 		<exec
-	    	executable="${gcc}"
+	    	executable="${gcc64}"
 		    	failonerror="true"
 		    	dir="${src.gen.native}/windows">
 			<arg value="-Wall"/>
 			<arg value="-c"/>
-			<arg value="-mrtd"/>
 			<arg value="-D_JNI_IMPLEMENTATION"/>
 			<arg value="-I${jdk.home}/include"/>
 			<arg value="-I${jdk.home}/include/win32"/>
-			<arg value="*.c"/>
+			<arg line="*.c"/>
 		</exec>
-		<echo>Linking...</echo>
         <exec
-	    	executable="${gcc}"
-		    	failonerror="true"
-		    	dir="${src.gen.native}/windows">
+	    	executable="${dlltool64}"
+	    	failonerror="true"
+	    	dir="${src.gen.native}/windows/lib-64">
+            <arg value="-d"/>
+            <arg value="Wintab64.def"/>
+            <arg value="-l"/>
+			<arg value="libWintab64.a"/>
+		</exec>
+        <exec
+	    	executable="${gcc64}"
+	    	failonerror="true"
+	    	dir="${src.gen.native}/windows">
             <arg value="-Wall"/>
-            <arg value="-v"/>
-			<arg value="-Wl,--kill-at"/>
+            <arg value="-Wl,--kill-at"/>
 			<arg value="-shared"/>
-            <arg value="-Llib-64"/>
-            <arg value="-lWintab64"/>
 			<arg value="-o"/>
 			<arg value="jtablet2-64.dll"/>
-			<arg value="*.o"/>
+			<arg line="*.o"/>
+            <arg value="-Llib-64"/>
+            <arg value="-lWintab64"/>
 		</exec>
 		<delete>
 			   <fileset dir="${src.gen.native}/windows" includes="*.o"/>
 		</delete>
-		<copy tofile="${dist.version}/jtablet2-64.dll">
-			<fileset dir="${src.gen.native}/windows">
-				<include name="*.dll"/>
-			</fileset>
-		</copy>
+		<copy 
+			file="${src.gen.native}/windows/jtablet2-64.dll" 
+			todir="${dist.version}"/>
 	</target>
 	
     <target name="jtablet.installer" 
-        depends="jtablet.jar,jtabletjpen.compile.native"
+        depends="jtablet.jar,jtabletjpen.compile.native,jtabletjpen.compile.64"
     	description="Builds the Windows installer using NSIS">
         
         <property name="installer.dir" location="${dist.version}/${platform}/" />

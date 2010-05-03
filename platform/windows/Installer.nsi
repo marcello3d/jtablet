@@ -13,7 +13,7 @@ Name "Cellosoft JTablet %%JTABLET.VERSION%%"
 !define MIN_JAVA_VERSION "1.6"
 
 # MultiUser Symbol Definitions
-!define MULTIUSER_EXECUTIONLEVEL Power
+!define MULTIUSER_EXECUTIONLEVEL Admin
 !define MULTIUSER_INSTALLMODE_COMMANDLINE
 !define MULTIUSER_INSTALLMODE_INSTDIR "Cellosoft\JTablet 2"
 !define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "${REGKEY}"
@@ -82,7 +82,7 @@ VIAddVersionKey FileDescription ""
 VIAddVersionKey LegalCopyright ""
 InstallDirRegKey HKLM "${REGKEY}" Path
 ShowUninstDetails hide
-RequestExecutionLevel user
+RequestExecutionLevel admin
 
 
 # Installer sections
@@ -194,7 +194,7 @@ Section -Main SEC0000
     
     SetOutPath $WINDIR\Sun\Java\bin
     File InstallFiles\jtablet2.dll
-;    File InstallFiles\jtablet2-64.dll
+    File InstallFiles\jtablet2-64.dll
 
     WriteRegStr HKLM "${REGKEY}\Components" Main 1
 SectionEnd
@@ -231,8 +231,8 @@ done${UNSECTION_ID}:
 # Uninstaller sections
 Section /o -un.Main UNSEC0000
     Delete /REBOOTOK $WINDIR\Sun\Java\lib\ext\jtablet.jar
-    Delete /REBOOTOK $WINDIR\Sun\Java\lib\bin\jtablet2.dll
-    Delete /REBOOTOK $WINDIR\Sun\Java\lib\bin\jtablet2-64.dll
+    Delete /REBOOTOK $WINDIR\Sun\Java\bin\jtablet2.dll
+    Delete /REBOOTOK $WINDIR\Sun\Java\bin\jtablet2-64.dll
     RmDir /r /REBOOTOK $INSTDIR
     DeleteRegValue HKLM "${REGKEY}\Components" Main
 SectionEnd
