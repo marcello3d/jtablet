@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009 Marcello BastŽa-Forte (marcello@cellosoft.com)
+ * Copyright (c) 2009 Marcello Bastï¿½a-Forte (marcello@cellosoft.com)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -23,14 +23,19 @@
 
 package cello.jtablet.impl.jpen;
 
+import java.awt.AWTEvent;
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.event.AWTEventListener;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -89,10 +94,6 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 		private final LevelRange rotationRange;
 		private final TabletDevice device;
 		private final int cursorType;
-		private boolean relativeMode = false;
-		private int absoluteCount = 0;
-		private int relativeCount = 0;
-		
 
 		private Support getSupported(int capabilityMask, int capability) {
 			if (capabilityMask == 0) {
@@ -160,22 +161,39 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 			return device;
 		}
 
+
+		// Assume we're in absolute mode by default...
+		private boolean relativeMode = false;
+		private int absoluteCount = 0;
+		
+		/**
+		 * This method is used to determine if the cursor is mapped in relative mode or absolute mode. This can be 
+		 * deduced by comparing how close the wintab coordinates are to the actual on-screen cursor coordinates. If they
+		 * are wildly off, we can assume the device is in relative mode and we cannot take advantage of the fractional
+		 * coordinates provided by wintab.
+		 * 
+		 * @param tabletScreenX
+		 * @param tabletScreenY
+		 * @param mouseEvent
+		 * @return the mouse position if in relative mode, null if in absolute
+		 */
 		public Point updateRelativeMode(float tabletScreenX, float tabletScreenY, MouseEvent mouseEvent) {
-			Point mouse = mouseEvent.getLocationOnScreen();
-			float dx = mouse.x - tabletScreenX;
-			float dy = mouse.y - tabletScreenY;
+			Point mouseScreen = mouseEvent.getLocationOnScreen();
+			float dx = mouseScreen.x - tabletScreenX;
+			float dy = mouseScreen.y - tabletScreenY;
 			float distance = dx*dx+dy*dy;
 			if (distance > 20*20) {
-				relativeCount++;
 				relativeMode = true;
 				absoluteCount = 0;
 			} else if (distance < 5*5) {
+				// It's possible (but rare) for the coordinates to match up when in relative mode, so we keep track of
+				// how long they match before switching off of relative mode
 				absoluteCount++;
 				if (absoluteCount > 50) {
 					relativeMode = false;
 				}
 			}
-			return relativeMode ? mouse : null;
+			return relativeMode ? mouseScreen : null;
 		}
 	}
 	
@@ -326,11 +344,10 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 
 
 	private GraphicsEnvironment environment;
-//	private long deviceTime;
-	
+
+		
 	
 	private void readValues() {
-//		deviceTime		= wa.getTime();
 		x				= wa.getValue(WintabAccess.LEVEL_TYPE_X);
 		y				= wa.getValue(WintabAccess.LEVEL_TYPE_Y);
 		pressure		= wa.getValue(WintabAccess.LEVEL_TYPE_PRESSURE);
@@ -360,6 +377,18 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 	public boolean isSystemSupported(String os) {
 		return os.contains("win");
 	}
+	
+	private final AWTEventListener mouseEnterListener = new AWTEventListener() {
+		public void eventDispatched(AWTEvent event) {
+			// If we haven't received any events recently and the mouse entered a component
+			if (cursor == null && event.getID() == MouseEvent.MOUSE_ENTERED) {
+				// Cycle the Wintab driver to wake it up
+				wa.setEnabled(false);
+				wa.setEnabled(true);
+			}
+		}
+	};
+	
 	@Override
 	protected void start() {
 		wa.setEnabled(true);
@@ -368,10 +397,25 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 		if (!thread.isAlive()) {
 			thread.start();
 		}
+		
+		// We want to track all mouse enter events so that we can access the tablet when it is over an element but we 
+		// don't have focus
+		AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+				Toolkit.getDefaultToolkit().addAWTEventListener(mouseEnterListener, AWTEvent.MOUSE_EVENT_MASK);
+				return null;
+            }
+		});
 	}
-
 	@Override
 	protected void stop() {
+		// Remove the awt event listener again
+		AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+            	Toolkit.getDefaultToolkit().removeAWTEventListener(mouseEnterListener);
+            	return null;
+            }
+		});
 		wa.setEnabled(false);
 		running = false;
 	}

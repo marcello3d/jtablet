@@ -233,7 +233,6 @@ Section /o -un.Main UNSEC0000
     Delete /REBOOTOK $WINDIR\Sun\Java\lib\ext\jtablet.jar
     Delete /REBOOTOK $WINDIR\Sun\Java\bin\jtablet2.dll
     Delete /REBOOTOK $WINDIR\Sun\Java\bin\jtablet2-64.dll
-    RmDir /r /REBOOTOK $INSTDIR
     DeleteRegValue HKLM "${REGKEY}\Components" Main
 SectionEnd
 

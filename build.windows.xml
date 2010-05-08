@@ -7,8 +7,8 @@
     <property name="dlltool"            location="/mingw32/bin/dlltool" />
     <property name="dlltool64"          location="/mingw64/bin/dlltool" />
 	<property name="makensis"           location="/Program Files (x86)/NSIS/makensis" />
-	<property name="ext.dir"			location="${env.WINDIR}\Sun\Java\lib\ext"/>
-    <property name="dll.dir"            location="${env.WINDIR}\Sun\Java\bin"/>
+	<property name="ext.dir"			location="${env.windir}\Sun\Java\lib\ext"/>
+    <property name="dll.dir"            location="${env.windir}\Sun\Java\bin"/>
 
 	<property name="jdk.home"			location="\Program Files\Java\jdk1.6.0_20" />
 
@@ -19,16 +19,21 @@
 	   <fail message="imported file run without parent"/>
 	</target>
 	
-	<target name="jtablet.install" depends="jtablet.jar,jtabletjpen.compile.native"
+	<target 
+		name="jtablet.install" 
+		depends="jtablet.jar,jtabletjpen.compile.native.32,jtabletjpen.compile.native.64"
 		description="Ant-based installation to ${ext.dir} and ${dll.dir}">
 		<mkdir dir="${ext.dir}"/>
 		<mkdir dir="${dll.dir}"/>
-        <copy 
-			file="${dist.version}/jtablet.jar" 
-			todir="${ext.dir}"/>
 		<copy 
 			file="${dist.version}/jtablet2.dll" 
 			todir="${dll.dir}"/>
+		<copy 
+			file="${dist.version}/jtablet2-64.dll" 
+			todir="${dll.dir}"/>
+        <copy 
+			file="${dist.version}/jtablet.jar" 
+			todir="${ext.dir}"/>
 	</target>
 
 
@@ -36,12 +41,16 @@
 	<target name="jtablet.uninstall"
 		description="Manually remove JTablet jar and dll.">
         <delete file="${dll.dir}\jtablet2.dll" failonerror="true"/>
+        <delete file="${dll.dir}\jtablet2-64.dll" failonerror="true"/>
 		<delete file="${ext.dir}\jtablet.jar" failonerror="true"/>
 	</target>
 
 	
 
-	<target name="jtabletjpen.compile.native" depends="jtabletjpen.gen.native" description="compile the jpen native source for windows" >
+	<target 
+		name="jtabletjpen.compile.native.32" 
+		depends="jtabletjpen.gen.native"
+		description="compile the jpen native source for windows" >
 		<exec
 	    	executable="${gcc}"
 		    	failonerror="true"
@@ -75,7 +84,10 @@
 			todir="${dist.version}"/>
 	</target>
 
-	<target name="jtabletjpen.compile.64" depends="jtabletjpen.gen.native" description="compile the jpen native source for windows (64-bit)" >
+	<target 
+		name="jtabletjpen.compile.native.64" 
+		depends="jtabletjpen.gen.native" 
+		description="compile the jpen native source for windows (64-bit)" >
 		<exec
 	    	executable="${gcc64}"
 		    	failonerror="true"
@@ -118,7 +130,7 @@
 	</target>
 	
     <target name="jtablet.installer" 
-        depends="jtablet.jar,jtabletjpen.compile.native,jtabletjpen.compile.64"
+        depends="jtablet.jar,jtabletjpen.compile.native.32,jtabletjpen.compile.native.64"
     	description="Builds the Windows installer using NSIS">
         
         <property name="installer.dir" location="${dist.version}/${platform}/" />
