@@ -1,0 +1,11 @@
+Package: %%JTABLET.PACKAGE%%
+Provides: jtablet2
+Version: %%JTABLET.VERSION%%
+Section: x11
+Priority: optional
+Architecture: %%COMPILED.ARCH%%
+Essential: no
+Depends: default-jre
+Conflicts: jtablet2
+Maintainer: killertofu@gmail.com
+Description: JNI library allowing JTablet2-enabled applets and applications to make full use of your graphics tablet.
