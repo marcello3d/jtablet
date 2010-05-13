@@ -29,6 +29,7 @@ import java.util.LinkedList;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.impl.AbstractTabletDevice;
 import cello.jtablet.impl.Architecture;
+import cello.jtablet.impl.MouseTabletManager;
 import cello.jtablet.impl.NativeLoaderException;
 import cello.jtablet.impl.NativeTabletManager;
 import cello.jtablet.impl.ScreenTabletManager;
@@ -164,16 +165,62 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 		}
 		
 		XiDevice device;
-		boolean lastProximity = false;
 		int lastButton = 0;
+		int buttonMask = 0;
 		
 		public XiDevice getXiDevice() { return device; }
+		
+		public int getValue(PLevel.Type type) {
+			return device.getValue(type);
+		}
+		
+		public float getRangedValue(PLevel.Type type) {
+			cello.repackaged.jpen.internal.Range range = device.getLevelRange(type);
+			int value = getValue(type);
+			float ranged = range.getRangedValue(value);
+			
+			if (Float.isInfinite(ranged) || Float.isNaN(ranged))
+				return value;
+			else
+				return ranged;
+		}
+		
+		public int getButtonMask() {
+			return buttonMask;
+		}
+		
+		public int getLastEventButton() {
+			return lastButton;
+		}
+		
+		public boolean nextEvent() {
+			if (device.nextEvent()) {
+				XiDevice.EventType eventType = device.getLastEventType();
+				
+				if (eventType == XiDevice.EventType.BUTTON_PRESS ||
+				    eventType == XiDevice.EventType.BUTTON_RELEASE)
+					lastButton = device.getLastEventButton();
+				else
+					lastButton = 0;
+				
+				if (eventType == XiDevice.EventType.BUTTON_PRESS)
+					buttonMask = buttonMask | (1 << (lastButton - 1));
+				else if (eventType == XiDevice.EventType.BUTTON_RELEASE)
+					buttonMask = buttonMask & ~(1 << (lastButton - 1));
+				
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
 	}
 	
 	private Collection<XInputDevice> devices = new LinkedList<XInputDevice>();
 	private XiBus xiBus;
 	private boolean running;
 	private java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+	private MouseTabletManager mouseListener = new MouseTabletManager();
 	
 	/**
 	 * This thread is responsible for the tablet polling loop.
@@ -236,8 +283,10 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 	protected void start() {
 		running = true;
 		if (!thread.isAlive()) {
+			mouseListener.setFiringEvents(false);
 			thread.start();
 		}
+		mouseListener.setFiringEvents(true);
 	}
 
 	@Override
@@ -263,14 +312,6 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 			catch (Exception ex) { continue; }
 			
 			XiDevice device = xiBus2.getXiDevice();
-			if(!device.getIsAbsoluteMode() && !device.getName().toLowerCase().contains("pad")) {
-				// A bug in the original JPen code, so likely
-				// a bug here as well.
-				System.err.println("devices using relative positioning mode are not supported, device skipped: "+device.getName()+
-				                   "\n See bug description https://sourceforge.net/tracker/?func=detail&aid=2929548&group_id=209997&atid=1011964");
-				continue;
-			}
-			
 			device.setIsListening(true);
 			if (!device.getIsListening()) {
 				System.err.println("device was not able to be grabbed.");
@@ -292,55 +333,23 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 		for (XInputDevice d : devices) {
 			XiDevice device = d.getXiDevice();
 			
-			while (device.nextEvent()) {			
+			while (d.nextEvent()) {
 				long time = device.getLastEventTime();
-			
-				float x = device.getLevelRange(PLevel.Type.X).getRangedValue(
-					device.getValue(PLevel.Type.X)
-				)*screenSize.width;
-			
-				float y = device.getLevelRange(PLevel.Type.Y).getRangedValue(
-					device.getValue(PLevel.Type.Y)
-				)*screenSize.height;
-			
-				float pressure = device.getLevelRange(PLevel.Type.PRESSURE).getRangedValue(
-					device.getValue(PLevel.Type.PRESSURE)
-				);
-			
-				float tiltX = device.getLevelRange(PLevel.Type.TILT_X).getRangedValue(
-					device.getValue(PLevel.Type.TILT_X)
-				);
-			
-				float tiltY = device.getLevelRange(PLevel.Type.TILT_Y).getRangedValue(
-					device.getValue(PLevel.Type.TILT_Y)
-				);
-			
-				float sidePressure = device.getLevelRange(PLevel.Type.SIDE_PRESSURE).getRangedValue(
-					device.getValue(PLevel.Type.SIDE_PRESSURE)
-				);
-			
-				float rotation = device.getLevelRange(PLevel.Type.ROTATION).getRangedValue(
-					device.getValue(PLevel.Type.ROTATION)
-				);
-			
-				//HACK: device.getLastEventButton() doesn't
-				//      "reset" when a button is unpressed.
-				//      Bleh. I remember this little problem
-				//      from working with JTablet1...
-				//
-				//      I've hacked around this by modifying
-				//      Device.c to do an XOR of its internal
-				//      mask on every button event, but this
-				//      breaks their API, so I probably can't
-				//      commit the change.
-				//
-				//      Those without a modified Device.c
-				//      will experience "stuck" buttons.
-				//      The only way to unstick them is to
-				//      press them a second time.
-				int rawTabletButtonMask = device.getLastEventButton();
-				int buttonChanges = rawTabletButtonMask ^ d.lastButton;
-				d.lastButton = rawTabletButtonMask;
+				
+				float x            = d.getRangedValue(PLevel.Type.X) * screenSize.width;				
+				float y            = d.getRangedValue(PLevel.Type.Y) * screenSize.height;
+				float pressure     = d.getRangedValue(PLevel.Type.PRESSURE);
+				float tiltX        = d.getRangedValue(PLevel.Type.TILT_X);
+				float tiltY        = d.getRangedValue(PLevel.Type.TILT_Y);
+				float sidePressure = d.getRangedValue(PLevel.Type.SIDE_PRESSURE);
+				float rotation     = d.getRangedValue(PLevel.Type.ROTATION);
+				
+				//TODO: Does XInput do this, or just the
+				//      Linux Wacom drivers? For some
+				//      reason button 0x0001 maps to
+				//      0x0100; 0x0002 to 0x0200; etc.
+				int rawTabletButtonMask = d.getButtonMask();
+				int buttonChanges = d.getLastEventButton() > 0 ? 1 << (d.getLastEventButton() - 1) : 0;
 				
 				//HACK: Why is it that we set both a "button" value
 				//(which, BTW, isn't an ORing of components...) AND
@@ -353,7 +362,7 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 					button = java.awt.event.MouseEvent.BUTTON2;
 				else if ((buttonChanges & 0x04) > 0)
 					button = java.awt.event.MouseEvent.BUTTON3;
-			
+				
 				boolean buttonJustPressed = (buttonChanges & rawTabletButtonMask) != 0;
 				boolean buttonJustReleased = (buttonChanges & ~rawTabletButtonMask) != 0;
 
@@ -378,9 +387,7 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 				//      former before the latter, ScreenTabletManager
 				//      is bound to get confused.
 
-				//TODO: Talk with JPen devs about merging
-				//my proximity event changes into their trunk.
-				//generateDeviceEvents(d, time, keyModifiers, device.getLastEventProximity());
+				generateDeviceEvents(d, time, keyModifiers, device.getLastEventProximity());
 
 				generateDeviceEvents(d, time, keyModifiers, true);
 				generatePointEvents(
