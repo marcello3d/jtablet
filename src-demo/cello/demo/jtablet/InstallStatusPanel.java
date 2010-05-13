@@ -22,7 +22,7 @@ import cello.jtablet.installer.JTabletExtension;
 public class InstallStatusPanel extends JPanel {
 	
 	private JLabel installVersion = new JLabel("Installed version");
-	private JLabel installStatus = new JLabel("Install status (³"+DemoApplet.REQUIRED_VERSION+")");
+	private JLabel installStatus = new JLabel("Install status ("+DemoApplet.REQUIRED_VERSION+")");
 	private JLabel driverStatus = new JLabel("Driver status");
 	private JLabel driverException = new JLabel("Driver exception");
 	
