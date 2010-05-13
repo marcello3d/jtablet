@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009 Marcello Bastéa-Forte (marcello@cellosoft.com)
+ * Copyright (c) 2009 Marcello Bast√©a-Forte (marcello@cellosoft.com)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
