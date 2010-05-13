@@ -149,18 +149,25 @@
 		<pathelement location="${build.jtablet.jpen}"/>
 	</path>
 	
+	<path id="jtablet.sourcepath">
+		<pathelement location="${src}"/>
+		<pathelement location="${src.gen}/java"/>
+	</path>
+	
 	<target name="jtablet.compile" depends="init, jtabletjpen.compile.java, jtablet.uninstall" description="compile the source" >
 		<mkdir dir="${build.jtablet}"/>
 		<javac 
 		        encoding="utf-8"
-		        srcdir="${src}"          
 		        includes="**"
 		        destdir="${build.jtablet}" 
 		        source="1.5" 
 		        target="1.5"
 		        debug="on"
 		        includeAntRuntime="false"
-		        classpathref="jtablet.classpath"/>
+		        classpathref="jtablet.classpath">
+			<src path="${src}"/>
+			<src path="${src.gen}/java"/>
+		</javac>
 	</target>
 	
 	
