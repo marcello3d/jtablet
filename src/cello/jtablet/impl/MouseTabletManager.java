@@ -106,7 +106,7 @@ public class MouseTabletManager extends TabletManager {
 		return firingEvents;
 	}
 
-	private class MagicListener implements MouseListener, MouseMotionListener, MouseWheelListener {
+	protected class MagicListener implements MouseListener, MouseMotionListener, MouseWheelListener {
 
 		private final TabletListener listener;
 		private int count = 0;
@@ -158,7 +158,7 @@ public class MouseTabletManager extends TabletManager {
 			fireEvent(new TabletEvent(e,type,SystemDevice.INSTANCE));
 		}
 
-		private void fireEvent(TabletEvent ev) {
+		protected void fireEvent(TabletEvent ev) {
 			ev.fireEvent(listener);
 		}
 		public void mouseClicked(MouseEvent e) {

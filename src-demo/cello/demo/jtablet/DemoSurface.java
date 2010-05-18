@@ -22,6 +22,7 @@ import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletAdapter;
 import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletListener;
 
 /**
  * Simple demo component that handles tablet input to draw lines 
@@ -32,9 +33,10 @@ public class DemoSurface extends JComponent {
 
 	private static final Stroke BASIC_STROKE = new BasicStroke(1.0f);
 	private static final int MAX_RADIUS = 20;
-	protected static final float SCROLL_SCALE = 2;
-	private BufferedImage bi;
-	private Graphics2D g2d;
+	private static final float SCROLL_SCALE = 2;
+	
+	private BufferedImage bufferedSurface;
+	private Graphics2D bufferedSurfaceGraphics;
 	
 	private float lastX,lastY,lastPressure;
 	
@@ -43,141 +45,195 @@ public class DemoSurface extends JComponent {
 	private boolean onSurface = false;
 	private boolean dragging = false;
 	
-//	private Area drawShape = new Area(), canvasArea = new Area();
 	private boolean erasing = false;
-//	private Stroke zoomedStroke = BASIC_STROKE;
 
-	Ellipse2D.Double cursorShape;
+	private Ellipse2D.Double cursorShape;
+	
+	private TabletEventQueue eventQueue = new TabletEventQueue();
+	
+	private boolean pollForEvents = false;
 	/**
 	 * 
 	 */
 	public DemoSurface() {
-		createBuffer();
-		TabletManager.getDefaultManager().addTabletListener(this, new TabletAdapter() {
-
-			boolean dragged = false;
-			@Override
-			public void cursorExited(TabletEvent ev) {
-				onSurface = false;
-				repaint();
-			}
-			
-			
-			@Override
-			public synchronized void cursorDragged(TabletEvent ev) {
-				onSurface = true;
-				dragged = true;
-				float x = ev.getFloatX();
-				float y = ev.getFloatY();
-				float pressure = ev.getPressure() * MAX_RADIUS;
-				boolean rightClick = (ev.getModifiersEx()&InputEvent.BUTTON3_DOWN_MASK) != 0;
-				if (ev.getDevice().getPressureSupport() != TabletDevice.Support.YES) {
-					pressure = MAX_RADIUS;
-				}
-				if (lastPressure>0) {
-
-					boolean erasing = rightClick || ev.getDevice().getType() == TabletDevice.Type.ERASER;
-					if (erasing != DemoSurface.this.erasing) {
-						DemoSurface.this.erasing = erasing;
-					}
-					drawRoundedLine(x, y, pressure, lastX, lastY, lastPressure);
-				}
-				lastX = x;
-				lastY = y;
-				lastPressure = pressure;
-				updateCursor();
-			}
-			@Override
-			public void cursorMoved(TabletEvent ev) {
-				onSurface = true;
-				lastX = ev.getFloatX();
-				lastY = ev.getFloatY();
-				lastPressure = ev.getPressure();
-				dragged = false;
-				updateCursor();
-			}
-
-			@Override
-			public void cursorPressed(TabletEvent ev) {
-				lastX = ev.getFloatX();
-				lastY = ev.getFloatY();
-				lastPressure = ev.getPressure();
-				dragged = false;
-				dragging = true;
-			}
-
-			@Override
-			public void cursorReleased(TabletEvent ev) {
-				if (!dragged) {
-					double x = ev.getFloatX();
-					double y = ev.getFloatY();
-					double radius = MAX_RADIUS;
-					erasing = ev.getDevice().getType() == TabletDevice.Type.ERASER;
-					fill(new Ellipse2D.Double(x-radius,y-radius,2*radius,2*radius));
-				}
-				dragged = false;
-				dragging = false;
-				updateCursor();
-			}
-			@Override
-			public void cursorScrolled(TabletEvent ev) {
-				
-				at.preConcatenate(AffineTransform.getTranslateInstance(ev.getScrollX()*SCROLL_SCALE, ev.getScrollY()*SCROLL_SCALE));
-//				Point2D p = atInv.transform(new Point2D.Float(ev.getRealX()+ev.getScrollX(),ev.getRealY()+ev.getScrollY()), null);
-//				at.translate(p.getX(), p.getY());
-				updateTransform();
-			}
-
-
-			private void updateTransform() {
-				try {
-					atInv = at.createInverse();
-				} catch (NoninvertibleTransformException e) {
-					e.printStackTrace();
-				}
-				repaint();
-			}
-			
-			public void updateCursor() {
-				if (cursorShape != null) {
-					repaint(cursorShape);
-				}
-				if (lastPressure == 0) {
-					cursorShape = new Ellipse2D.Double(lastX-MAX_RADIUS,lastY-MAX_RADIUS,2*MAX_RADIUS,2*MAX_RADIUS);
-				} else { 
-					cursorShape = new Ellipse2D.Double(lastX-lastPressure,lastY-lastPressure,2*lastPressure,2*lastPressure);
-				}
-				repaint(cursorShape);
-			}
-			
-			@Override
-			public void cursorGestured(TabletEvent ev) {
-				Point2D transformedPoint;
-				switch (ev.getType()) {
-					case ZOOMED:
-						float zoom = 1+ev.getZoomFactor();
-						transformedPoint = atInv.transform(ev.getPoint2D(), null);
-						at.translate(transformedPoint.getX(), transformedPoint.getY());
-						at.scale(zoom, zoom);
-						at.translate(-transformedPoint.getX(), -transformedPoint.getY());
-						updateTransform();
-						break;
-					case ROTATED:
-						transformedPoint = atInv.transform(ev.getPoint2D(), null);
-						at.translate(transformedPoint.getX(), transformedPoint.getY());
-						at.rotate(-ev.getRotation());
-						at.translate(-transformedPoint.getX(), -transformedPoint.getY());
-						updateTransform();
-						break;
-					case SWIPED:
-						at.setToIdentity();
-						updateTransform();
-						break;
-				}
-			}
-		});
+		createBackgroundBuffer();
+		
+		// Add listener that sucks tablet events into a queue
+		TabletManager.getDefaultManager().addTabletListener(this, eventQueue);	
+	}
+	
+	/**
+	 * This is called when the component is added to a parent.
+	 * @see JComponent#addNotify()
+	 */
+	@Override
+	public void addNotify() {
+		startPollingForEvents();
+		
+		super.addNotify();
 	}
 
+	private synchronized void startPollingForEvents() {
+		pollForEvents = true;
+		
+		eventPollThread = new Thread() {
+			public void run() {
+				try {
+					while (pollForEvents) {
+						eventQueue.take().fireEvent(eventHandler);
+					}
+				} catch (InterruptedException e) {
+					// Done!
+				}
+			}
+		};
+		eventPollThread.setDaemon(true);
+		eventPollThread.start();
+	}
+	/**
+	 * This is called when the component is removed from a parent.
+	 * @see JComponent#removeNotify()
+	 */
+	@Override
+	public void removeNotify() {
+		stopPollingForEvents();
+		
+		super.removeNotify();
+	}
+
+	private synchronized void stopPollingForEvents() {
+		if (eventPollThread != null) {
+			pollForEvents = false;
+			eventPollThread.interrupt();
+			eventPollThread = null;
+		}
+	}
+	
+	/**
+	 * This class receives the tablet events from the event queue.
+	 */
+	private TabletListener eventHandler = new TabletAdapter() {
+
+		boolean dragged = false;
+		@Override
+		public void cursorExited(TabletEvent ev) {
+			onSurface = false;
+			repaint();
+		}
+		
+		
+		@Override
+		public synchronized void cursorDragged(TabletEvent ev) {
+			onSurface = true;
+			dragged = true;
+			float x = ev.getFloatX();
+			float y = ev.getFloatY();
+			float pressure = ev.getPressure() * MAX_RADIUS;
+			boolean rightClick = (ev.getModifiersEx()&InputEvent.BUTTON3_DOWN_MASK) != 0;
+			if (ev.getDevice().getPressureSupport() != TabletDevice.Support.YES) {
+				pressure = MAX_RADIUS;
+			}
+			if (lastPressure>0) {
+
+				boolean erasing = rightClick || ev.getDevice().getType() == TabletDevice.Type.ERASER;
+				if (erasing != DemoSurface.this.erasing) {
+					DemoSurface.this.erasing = erasing;
+				}
+				drawRoundedLine(x, y, pressure, lastX, lastY, lastPressure);
+			}
+			lastX = x;
+			lastY = y;
+			lastPressure = pressure;
+			updateCursor();
+		}
+		@Override
+		public void cursorMoved(TabletEvent ev) {
+			onSurface = true;
+			lastX = ev.getFloatX();
+			lastY = ev.getFloatY();
+			lastPressure = ev.getPressure();
+			dragged = false;
+			updateCursor();
+		}
+
+		@Override
+		public void cursorPressed(TabletEvent ev) {
+			lastX = ev.getFloatX();
+			lastY = ev.getFloatY();
+			lastPressure = ev.getPressure();
+			dragged = false;
+			dragging = true;
+		}
+
+		@Override
+		public void cursorReleased(TabletEvent ev) {
+			if (!dragged) {
+				double x = ev.getFloatX();
+				double y = ev.getFloatY();
+				double radius = MAX_RADIUS;
+				erasing = ev.getDevice().getType() == TabletDevice.Type.ERASER;
+				fill(new Ellipse2D.Double(x-radius,y-radius,2*radius,2*radius));
+			}
+			dragged = false;
+			dragging = false;
+			updateCursor();
+		}
+		
+		@Override
+		public void cursorScrolled(TabletEvent ev) {			
+			at.preConcatenate(AffineTransform.getTranslateInstance(ev.getScrollX()*SCROLL_SCALE, ev.getScrollY()*SCROLL_SCALE));
+			updateTransform();
+		}
+
+
+		private void updateTransform() {
+			try {
+				atInv = at.createInverse();
+			} catch (NoninvertibleTransformException e) {
+				e.printStackTrace();
+			}
+			repaint();
+		}
+		
+		public void updateCursor() {
+			if (cursorShape != null) {
+				repaint(cursorShape);
+			}
+			if (lastPressure == 0) {
+				cursorShape = new Ellipse2D.Double(lastX-MAX_RADIUS,lastY-MAX_RADIUS,2*MAX_RADIUS,2*MAX_RADIUS);
+			} else { 
+				cursorShape = new Ellipse2D.Double(lastX-lastPressure,lastY-lastPressure,2*lastPressure,2*lastPressure);
+			}
+			repaint(cursorShape);
+		}
+		
+		@Override
+		public void cursorGestured(TabletEvent ev) {
+			Point2D transformedPoint;
+			switch (ev.getType()) {
+				case ZOOMED:
+					float zoom = 1+ev.getZoomFactor();
+					transformedPoint = atInv.transform(ev.getPoint2D(), null);
+					at.translate(transformedPoint.getX(), transformedPoint.getY());
+					at.scale(zoom, zoom);
+					at.translate(-transformedPoint.getX(), -transformedPoint.getY());
+					updateTransform();
+					break;
+				case ROTATED:
+					transformedPoint = atInv.transform(ev.getPoint2D(), null);
+					at.translate(transformedPoint.getX(), transformedPoint.getY());
+					at.rotate(-ev.getRotation());
+					at.translate(-transformedPoint.getX(), -transformedPoint.getY());
+					updateTransform();
+					break;
+				case SWIPED:
+					at.setToIdentity();
+					updateTransform();
+					break;
+			}
+		}
+	};
+	private Thread eventPollThread;
 
 
 	/**
@@ -191,14 +247,13 @@ public class DemoSurface extends JComponent {
 	 * @param radius2
 	 */
 	private void drawRoundedLine(double x, double y, double radius,
-			double x2, double y2, double radius2) {
+								 double x2, double y2, double radius2) {
 		
-		// Draw the two endpoint circles
+		// Draw the two circles at either end of the line
 		fill(new Ellipse2D.Double(x-radius,y-radius,2*radius,2*radius));
 		fill(new Ellipse2D.Double(x2-radius2,y2-radius2,2*radius2,2*radius2));
 		
 		// Next calculate the points where tangential lines to the two circles t 
-		
 		
 		double angle = Math.atan2(y-y2, x-x2);
 		
@@ -220,6 +275,7 @@ public class DemoSurface extends JComponent {
 			double sin2 = Math.sin(angle+angle2);
 			double cos2 = Math.cos(angle+angle2);
 			
+			// Build a quad that's tangential to the two circles 
 			Path2D.Double p = new Path2D.Double();
 			p.moveTo((x2+cos1*radius2), (y2+sin1*radius2));
 			p.lineTo((x2+cos2*radius2), (y2+sin2*radius2));
@@ -227,31 +283,44 @@ public class DemoSurface extends JComponent {
 			p.lineTo((x+cos1*radius),   (y+sin1*radius));
 			p.closePath();
 
+			// fill it in
 			fill(p);
 		}
 	}
 
-	protected void repaint(Shape s) {
-		repaint(s,1);
+	/**
+	 * Repaint an anti-aliased shape 
+	 * @param shape
+	 */
+	protected void repaint(Shape shape) {
+		repaint(shape,1);
 	}
-	protected void repaint(Shape s, int amount) {
-		Rectangle r = s.getBounds();
-		r.grow(amount, amount);
+	/**
+	 * Repaint a shape with a given amount of margin
+	 * @param shape
+	 * @param margin
+	 */
+	protected void repaint(Shape shape, int margin) {
+		Rectangle r = shape.getBounds();
+		r.grow(margin, margin);
 		repaint(r);
 	}
 	
-	private void fill(Shape s) {
-		g2d.setColor(erasing ? Color.WHITE : Color.BLACK);
-		Shape repaintShape = atInv.createTransformedShape(s);
-		g2d.fill(repaintShape);
+	/**
+	 * Draw filled shape to the buffered surface independent of the viewport 
+	 * @param shape
+	 */
+	private void fill(Shape shape) {
+		bufferedSurfaceGraphics.setColor(erasing ? Color.WHITE : Color.BLACK);
+		Shape repaintShape = atInv.createTransformedShape(shape);
+		bufferedSurfaceGraphics.fill(repaintShape);
 
 		// To calculate the scale independent of rotation we need Math.sqrt(m00^2 + m01^2)
 		double scaleX = at.getScaleX();
 		double shearX = at.getShearX();
 		double scale = scaleX*scaleX+shearX*shearX;
-
 		
-		repaint(s,(int)(scale));
+		repaint(shape,(int)scale);
 	}
 
 
@@ -260,23 +329,23 @@ public class DemoSurface extends JComponent {
 	/**
 	 * Creates a new buffer based on the current component size 
 	 */
-	private void createBuffer() {
+	private void createBackgroundBuffer() {
 		int width = Math.max(1,getWidth());
 		int height= Math.max(1,getHeight());
-		bi = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
-		g2d = bi.createGraphics();
-		g2d.setColor(Color.WHITE);
-		g2d.fillRect(0,0, width, height);
-		setSuperSmoothRenderingHints(g2d);
+		bufferedSurface = new BufferedImage(width,height,BufferedImage.TYPE_INT_RGB);
+		bufferedSurfaceGraphics = bufferedSurface.createGraphics();
+		bufferedSurfaceGraphics.setColor(Color.WHITE);
+		bufferedSurfaceGraphics.fillRect(0,0, width, height);
+		setSuperSmoothRenderingHints(bufferedSurfaceGraphics);
 	}
 	
 	@Override
 	protected void paintComponent(Graphics g) {
 		// Component size changed? update buffer size
-		if (getWidth()>bi.getWidth() || getHeight()>bi.getHeight()) {
-			BufferedImage old = bi;
-			createBuffer();
-			g2d.drawImage(old,0,0,null);
+		if (getWidth()>bufferedSurface.getWidth() || getHeight()>bufferedSurface.getHeight()) {
+			BufferedImage old = bufferedSurface;
+			createBackgroundBuffer();
+			bufferedSurfaceGraphics.drawImage(old,0,0,null);
 		}
 		Graphics2D gg = (Graphics2D)g;
 		setSuperSmoothRenderingHints(gg);
@@ -284,14 +353,8 @@ public class DemoSurface extends JComponent {
 		gg.fill(g.getClip());
 		AffineTransform t = gg.getTransform();
 		gg.transform(at);
-		gg.drawImage(bi, 0, 0, null);
-//		gg.setColor(erasing ? Color.WHITE : Color.DARK_GRAY);
-//		synchronized (drawShape) {
-//			gg.fill(drawShape);
-//			gg.setColor(Color.RED);
-//			gg.setStroke(zoomedStroke);
-//			gg.draw(drawShape);
-//		}
+		gg.drawImage(bufferedSurface, 0, 0, null);
+
 		gg.setTransform(t);
 		gg.setStroke(BASIC_STROKE);
 		if (onSurface || dragging) {
@@ -299,9 +362,6 @@ public class DemoSurface extends JComponent {
 			gg.draw(cursorShape);
 		}
 	}
-
-
-
 
 	private void setSuperSmoothRenderingHints(Graphics2D gg) {
 		gg.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

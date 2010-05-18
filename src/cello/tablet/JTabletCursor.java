@@ -290,14 +290,15 @@ public class JTabletCursor {
 	    	case DATA_Y:
 	    		return event.getY();
 
-	    		// NOT SUPPORTED
-//	    	case DATA_CURSOR:
-//	    	case DATA_Z:
 	    	case DATA_ORIENTATION_ALTITUDE:
+	    		// Hack for super legacy apps that used orientation to determine the eraser pen
 	            if (getCursorType() == JTabletCursor.TYPE_PEN_ERASER) {
 	            	return -900;
 	            }
-	            return 0;
+	            return 900;
+	    		// NOT SUPPORTED
+//		    	case DATA_CURSOR:
+//		    	case DATA_Z:
 //	    	case DATA_ORIENTATION_AZIMUTH:
 //	    	case DATA_ORIENTATION_TWIST:
 //	    	case DATA_ROTATION_PITCH:
@@ -317,7 +318,7 @@ public class JTabletCursor {
     public int getDataMaximum(int type) {
     	switch (type) {
 	    	case DATA_BUTTONS:
-	    		// doesn't make sense
+	    		// doesn't apply
 	    		return 0;
 	    	case DATA_PRESSURE:
 	    		return PRESSURE_MAX;
@@ -423,6 +424,10 @@ public class JTabletCursor {
      *         JTabletCursor.getPressureExtent()-1
      */
     public final int getPressure() {
+    	TabletDevice device = event.getDevice();
+		if (device.getPressureSupport() == TabletDevice.Support.NO) {
+    		return PRESSURE_MAX;
+    	}
         return (int)Math.round(event.getPressure()*PRESSURE_MAX);
     }
 

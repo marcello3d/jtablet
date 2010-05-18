@@ -23,7 +23,6 @@
 
 package cello.tablet;
 
-import java.util.LinkedList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import cello.jtablet.TabletManager;
@@ -203,8 +202,9 @@ public class JTablet {
      */
     @Deprecated
     public int getPressure() {
-        if(!hasCursor())
+        if (!hasCursor()) {
             return 0;
+        }
         return getCursor().getPressure();
     }
 
@@ -217,8 +217,9 @@ public class JTablet {
      */
     @Deprecated
     public int getPressureExtent() {
-        if(!hasCursor())
+        if(!hasCursor()) {
             return 0;
+        }
         return getCursor().getPressureExtent();
     }
 
@@ -278,8 +279,9 @@ public class JTablet {
      */
     @Deprecated
     public int getOrientation() {
-        if(!hasCursor())
+        if (!hasCursor()) {
             return 0;
+        }
         return getCursor().getData(JTabletCursor.DATA_ORIENTATION_ALTITUDE);
     }
 
@@ -288,13 +290,14 @@ public class JTablet {
      * JTabletCursor.getData() should be used instead.
      * 
      * @see cello.tablet.JTabletCursor#getData(int)
-     * @deprecated
+     * @deprecated 
      * @return the buttons value
      */
     @Deprecated
     public int getButtons() {
-        if(!hasCursor())
+        if (!hasCursor()) {
             return 0;
+        }
         return getCursor().getData(JTabletCursor.DATA_BUTTONS);
     }
 
