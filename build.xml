@@ -53,7 +53,7 @@
 	<property name="impl.title"             value="JTablet 2"/>
 	<property name="impl.vendor"            value="Cellosoft"/>
 	<property name="impl.vendor.id"         value="cello"/>
-	<property name="impl.version"           value="1.2.4-alpha"/>
+	<property name="impl.version"           value="1.2.5-alpha"/>
 	
 	<condition property="platform" value="osx">
 		<and>
@@ -147,6 +147,7 @@
 	
 	<path id="jtablet.classpath">
 		<pathelement location="${build.jtablet.jpen}"/>
+        <pathelement location="lib/plugin.jar"/>
 	</path>
 	
 	<path id="jtablet.sourcepath">
@@ -213,7 +214,8 @@
 		</dependset>
 		
 		<proguard configuration="proguard.conf">
-			<libraryjar location="${jdk.classes.jar}" filter="java/**,javax/**"/>
+			<libraryjar location="${jdk.classes.jar}"/>
+            <libraryjar location="lib/plugin.jar"/>
 			<injar  file="${dist.version}/jtablet2.original.jar" />
 			<outjar file="${dist.version}/jtablet.jar" />
 		</proguard>

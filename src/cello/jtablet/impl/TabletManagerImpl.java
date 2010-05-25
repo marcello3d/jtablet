@@ -24,7 +24,9 @@
 package cello.jtablet.impl;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Font;
+import java.awt.Window;
 import java.net.URISyntaxException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -39,6 +41,7 @@ import javax.swing.text.html.HTMLDocument;
 import cello.jtablet.DriverStatus;
 import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletListener;
+import cello.jtablet.impl.JTabletUpdateChecker.UpdateListener;
 import cello.jtablet.impl.jpen.CocoaTabletManager;
 import cello.jtablet.impl.jpen.WinTabTabletManager;
 import cello.jtablet.impl.jpen.XInputTabletManager;
@@ -128,27 +131,39 @@ public class TabletManagerImpl extends TabletManager {
 
 	private void showAlphaMessage() {
 
-		String installedVersion = JTabletExtension.getInstalledVersion();
+		final String installedVersion = JTabletExtension.getInstalledVersion();
+		String installedVersionTitle;
 		if (installedVersion == null) {
-			installedVersion = "JTablet (development build)";
+			installedVersionTitle = "JTablet (development build)";
 		} else {
-			installedVersion = "JTablet "+installedVersion;
+			installedVersionTitle = "JTablet "+installedVersion;
 		}
+		
+		final String messageHtml = 
+			"Loading "+installedVersionTitle+"...<br>\n<br>\n"+
+			"This is an <b>EXPERIMENTAL</b> alpha release that <i>may crash!</i><br>\n"+
+			"Please use at your own risk!<br>\n<br>\n"+
+			"Visit our website to get new versions and report problems: <br>\n"+ 
+			"<a href=\"http://jtablet.cellosoft.com/\">http://jtablet.cellosoft.com/</a><br>\n<br>\n";
+		
 		// All this work to display a link in the message... might as well throw some other stylings in there, too.
-		JEditorPane richText = new JEditorPane("text/html", 
-
-				"Loading "+installedVersion+"...<br>\n<br>\n"+
-				"This is an <b>EXPERIMENTAL</b> alpha release that <i>may crash!</i><br>\n"+
-					"Please use at your own risk!<br>\n<br>\n"+
-					"Visit our website for new releases and to report problems: <br>\n"+ 
-					"<a href=\"http://jtablet.cellosoft.com/\">http://jtablet.cellosoft.com/</a>");
+		final JEditorPane richText = new JEditorPane("text/html", messageHtml + "Checking for updates...");
 		
 		// Don't edit, let the color show throw, don't allow text selection
 		richText.setEditable(false);
 		richText.setOpaque(false);
 		richText.setHighlighter(null);
 		
-
+		JTabletUpdateChecker checker = new JTabletUpdateChecker(installedVersion, new UpdateListener() {
+			public void newGoodStatus(String message) {
+				richText.setText(messageHtml+message);
+			}
+			public void newBadStatus(String message) {
+				newGoodStatus("<font color=\"#ff0000\">"+message+"</font>");
+			}
+		});
+		checker.start();
+		
         // Set default font...
         Font font = UIManager.getFont("Label.font");
         String bodyRule = "body { font-family: " + font.getFamily() + "; font-size: " + font.getSize() + "pt; }";
@@ -173,6 +188,9 @@ public class TabletManagerImpl extends TabletManager {
 				richText,
 				"JTablet 2",
 				JOptionPane.INFORMATION_MESSAGE);
+		
+		// Attempt to stop update thread if it hasn't already...
+		checker.stop();
 	}
 
 	@Override
