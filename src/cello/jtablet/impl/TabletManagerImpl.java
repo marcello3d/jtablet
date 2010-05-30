@@ -24,9 +24,7 @@
 package cello.jtablet.impl;
 
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Font;
-import java.awt.Window;
 import java.net.URISyntaxException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;

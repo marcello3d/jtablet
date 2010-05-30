@@ -227,7 +227,7 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 	
 	private WinTabCursor cursor = null;
 	private long lastTime = 0;
-	protected void readPackets() {
+	protected synchronized void readPackets() {
 		long when = System.currentTimeMillis();
 		Rectangle r = new Rectangle();
 		for (GraphicsDevice gd : environment.getScreenDevices()){
@@ -386,6 +386,8 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 				wa.setEnabled(false);
 				wa.setEnabled(true);
 			}
+			// Make sure we get the latest packets (for legacy JTablet 0.9.x applications)
+			readPackets();
 		}
 	};
 	
@@ -400,9 +402,12 @@ public class WinTabTabletManager extends ScreenTabletManager implements NativeTa
 		
 		// We want to track all mouse enter events so that we can access the tablet when it is over an element but we 
 		// don't have focus
+		
+		// We also want to track mouse motion events so we know when to read packets from Wacom
 		AccessController.doPrivileged(new PrivilegedAction<Void>() {
             public Void run() {
-				Toolkit.getDefaultToolkit().addAWTEventListener(mouseEnterListener, AWTEvent.MOUSE_EVENT_MASK);
+				Toolkit.getDefaultToolkit().addAWTEventListener(mouseEnterListener, 
+						AWTEvent.MOUSE_EVENT_MASK|AWTEvent.MOUSE_MOTION_EVENT_MASK);
 				return null;
             }
 		});

@@ -67,7 +67,7 @@ public class JTablet {
      */
     @Deprecated
     public JTablet(boolean fullControl) throws JTabletException {
-		System.out.println("JTablet loaded");
+		System.out.println("JTablet loaded("+getVersion()+")");
     	TabletManager.getDefaultManager().addScreenTabletListener(tabletListener);
     }
 
