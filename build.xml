@@ -242,7 +242,7 @@
 	<!-- Note: we have to uninstall the jtablet.jar to build this -->
 	<target 
 	        name="jtablet.thin.compile" 
-	        depends="init,jtablet.uninstall,jtablet.thin.gen,jtabletjpen.gen.java" 
+	        depends="init,jtablet.uninstall,jtablet.thin.gen,jtabletjpen.gen.java,jtabletjpen.compile.java" 
 	        description="compile the thin version of JTablet">
 		
 		<mkdir dir="${build.jtablet.thin}"/>
@@ -301,6 +301,7 @@
 		</dependset>
 		<proguard configuration="proguard.conf">
 			<libraryjar location="${jdk.classes.jar}" filter="java/**,javax/**"/>
+            <libraryjar location="lib/plugin.jar"/>
 			<injar  file="${dist.version}/jtablet2-thin.original.jar" />
 			<outjar file="${dist.version}/jtablet2-thin.jar" />
 		</proguard>

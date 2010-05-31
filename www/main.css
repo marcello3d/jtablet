@@ -99,6 +99,12 @@ a,a:link {
 	padding: 5pt 5pt 5pt 10pt;
 	background: white;
 }
+.contents .notice {
+	padding: 5pt;
+	margin: auto;
+	background: #FFF6AC;
+	text-align: center;
+} 
 ul.download {
 	font-size: 15pt;
 }
