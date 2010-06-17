@@ -129,7 +129,21 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 			//      but also could contain info that can't be
 			//      found from the driver (e.g. physical tablet
 			//      size, resolution)
-			if (name.contains("Wacom Graphire4")) {
+			if (name.contains("Intuos") ||
+			    name.contains("Cintiq")) {
+				buttonSupport       = TabletDevice.Support.YES;
+				pressureSupport     = TabletDevice.Support.YES;
+				rotationSupport     = TabletDevice.Support.YES;
+				sidePressureSupport = TabletDevice.Support.YES;
+				tiltSupport         = TabletDevice.Support.YES;
+				
+				if      (name.contains("eraser")) { type = Type.ERASER;  }
+				else if (name.contains("cursor")) { type = Type.MOUSE;   }
+				else if (name.contains("pad"))    { type = Type.UNKNOWN; }
+				else                              { type = Type.STYLUS;  }
+			}
+			else if (name.contains("Graphire") ||
+			         name.contains("Bamboo")) {
 				buttonSupport       = TabletDevice.Support.YES;
 				pressureSupport     = TabletDevice.Support.YES;
 				rotationSupport     = TabletDevice.Support.NO;
