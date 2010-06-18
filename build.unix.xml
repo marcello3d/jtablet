@@ -5,6 +5,9 @@
 	<property name="gcc"              location="/usr/bin/gcc" />
 	<property name="ext.dir"          location="/usr/java/packages"/>
 	<property name="jdk.home"         location="${env.JDK_HOME}" />
+	<property name="libname"          value="jtablet2" />
+        <property name="linkname"         value="lib${libname}.so" />
+        <property name="soname"           value="${linkname}.0" />
 	
 	<target name="jtabletjpen.gen.native">
 		<fail message="imported file run without parent"/>
@@ -15,6 +18,8 @@
 	</target>
 	
 	<target name="jtabletjpen.compile.native" depends="jtabletjpen.gen.native" description="compile the jpen native source for linux" >
+		<property name="realname" value="${soname}.${svn.version}.0" />
+		
 		<apply
 		executable="${gcc}"
 		failonerror="true"
@@ -35,15 +40,18 @@
 			<arg value="-Wall"/>
 			<arg value="-shared"/>
 			<arg value="-o"/>
-			<arg value="libjtablet2.so"/>
+			<arg value="${src.gen.native}/linux/${realname}"/>
 			<arg value="-Llib"/>
 			<fileset dir="${src.gen.native}/linux" includes="*.o" />
 		</apply>
-		<copy tofile="${dist.version}/libjtablet2.so">
+		<copy todir="${dist.version}">
 			<fileset dir="${src.gen.native}/linux">
 				<include name="*.so"/>
+				<include name="*.so.*"/>
 			</fileset>
 		</copy>
+		<symlink link="${dist.version}/${soname}" resource="${realname}" />
+		<symlink link="${dist.version}/${linkname}" resource="${realname}" />
 	</target>
 	
 	<target name="jtablet.install" depends="jtablet.jar,jtabletjpen.compile.native">
@@ -53,9 +61,12 @@
 			file="${dist.version}/jtablet.jar" 
 			todir="${ext.dir}"/>
 		
-		<copy 
-			file="${dist.version}/libjtablet2.so" 
-			todir="${user.home}/.jtablet"/>
+		<copy todir="${user.home}/.jtablet">
+			<fileset dir="${dist.version}">
+				<include name="*.so" />
+				<include name="*.so.*" />
+			</fileset>
+		</copy>
 	</target>
 	
 	<target name="jtablet.uninstall">
