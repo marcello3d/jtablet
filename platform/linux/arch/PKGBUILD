@@ -81,6 +81,9 @@ build() {
 	msg "Installing libraries..."
 	mkdir -p ${_extdir} ${_sodir}
 	cp ${_distdir}/jtablet.jar ${_extdir}
-	cp ${_distdir}/libjtablet2.so ${_sodir}
+	cp -d ${_distdir}/*.so ${_sodir}
+	cp -d ${_distdir}/*.so.* ${_sodir}
+	chown root:root -h ${_extdir}/*
+	chown root:root -h ${_sodir}/*
 }
 

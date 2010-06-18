@@ -5,9 +5,11 @@
 	<property name="gcc"              location="/usr/bin/gcc" />
 	<property name="ext.dir"          location="/usr/java/packages"/>
 	<property name="jdk.home"         location="${env.JDK_HOME}" />
-	<property name="libname"          value="jtablet2" />
-        <property name="linkname"         value="lib${libname}.so" />
-        <property name="soname"           value="${linkname}.0" />
+	
+	<property name="linkname"         value="libjtablet2.so" />
+	<property name="soname"           value="${linkname}.0" />
+	<property name="softname"         value="${soname}.0" />
+	<property name="realname"         value="${softname}.0" />
 	
 	<target name="jtabletjpen.gen.native">
 		<fail message="imported file run without parent"/>
@@ -17,9 +19,7 @@
 		<fail message="imported file run without parent"/>
 	</target>
 	
-	<target name="jtabletjpen.compile.native" depends="jtabletjpen.gen.native" description="compile the jpen native source for linux" >
-		<property name="realname" value="${soname}.${svn.version}.0" />
-		
+	<target name="jtabletjpen.compile.native" depends="jtabletjpen.gen.native" description="compile the jpen native source for linux" >		
 		<apply
 		executable="${gcc}"
 		failonerror="true"
@@ -39,9 +39,10 @@
 		parallel="true">
 			<arg value="-Wall"/>
 			<arg value="-shared"/>
+			<arg value="-Llib"/>
 			<arg value="-o"/>
 			<arg value="${src.gen.native}/linux/${realname}"/>
-			<arg value="-Llib"/>
+			<arg value="-Wl,-soname,${soname}"/>
 			<fileset dir="${src.gen.native}/linux" includes="*.o" />
 		</apply>
 		<copy todir="${dist.version}">
@@ -50,6 +51,7 @@
 				<include name="*.so.*"/>
 			</fileset>
 		</copy>
+		<symlink link="${dist.version}/${softname}" resource="${realname}" />
 		<symlink link="${dist.version}/${soname}" resource="${realname}" />
 		<symlink link="${dist.version}/${linkname}" resource="${realname}" />
 	</target>
@@ -63,8 +65,8 @@
 		
 		<copy todir="${user.home}/.jtablet">
 			<fileset dir="${dist.version}">
-				<include name="*.so" />
 				<include name="*.so.*" />
+				<include name="*.so" />
 			</fileset>
 		</copy>
 	</target>
