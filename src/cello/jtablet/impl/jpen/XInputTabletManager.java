@@ -23,10 +23,15 @@
 
 package cello.jtablet.impl.jpen;
 
+import java.awt.Component;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.Collection;
 import java.util.LinkedList;
 
+
 import cello.jtablet.TabletDevice;
+import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.AbstractTabletDevice;
 import cello.jtablet.impl.Architecture;
 import cello.jtablet.impl.MouseTabletManager;
@@ -248,12 +253,14 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 			setPriority(NORM_PRIORITY+1);
 		}
 		public void run() {
+			mouseListener.setFiringEvents(true);
 			while (running) {
 				readPackets();
 				try {
 					Thread.sleep(10);
 				} catch (InterruptedException e) {}
 			}
+			mouseListener.setFiringEvents(false);
 		}
 	};
 	
@@ -297,10 +304,8 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 	protected void start() {
 		running = true;
 		if (!thread.isAlive()) {
-			mouseListener.setFiringEvents(false);
 			thread.start();
 		}
-		mouseListener.setFiringEvents(true);
 	}
 
 	@Override
@@ -371,11 +376,11 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 				//sure button 1 should be MouseEvent.BUTTON1? *shrug*
 				int button = 0;
 				if ((buttonChanges & 0x01) > 0)
-					button = java.awt.event.MouseEvent.BUTTON1;
+					button = MouseEvent.BUTTON1;
 				else if ((buttonChanges & 0x02) > 0)
-					button = java.awt.event.MouseEvent.BUTTON2;
+					button = MouseEvent.BUTTON2;
 				else if ((buttonChanges & 0x04) > 0)
-					button = java.awt.event.MouseEvent.BUTTON3;
+					button = MouseEvent.BUTTON3;
 				
 				boolean buttonJustPressed = (buttonChanges & rawTabletButtonMask) != 0;
 				boolean buttonJustReleased = (buttonChanges & ~rawTabletButtonMask) != 0;
@@ -400,8 +405,14 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 				//      latter. Unless we always call the
 				//      former before the latter, ScreenTabletManager
 				//      is bound to get confused.
-
-				generateDeviceEvents(d, time, keyModifiers, device.getLastEventProximity());
+				boolean proximity = device.getLastEventProximity();
+				if (proximity) {
+					mouseListener.setFiringEvents(false);
+				}
+				else {
+					mouseListener.setFiringEvents(true);
+				}
+				generateDeviceEvents(d, time, keyModifiers, proximity);
 
 				generateDeviceEvents(d, time, keyModifiers, true);
 				generatePointEvents(
@@ -421,5 +432,24 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 				);
 			}
 		}
+	}
+	
+	public void addTabletListener(Component c, TabletListener l) {
+		super.addTabletListener(c, l);
+		mouseListener.addTabletListener(c, l);
+	}
+	public void removeTabletListener(Component c, TabletListener l) {
+		super.removeTabletListener(c, l);
+		mouseListener.removeTabletListener(c, l);
+		
+	}
+	
+	public void addScreenTabletListener(TabletListener l) {
+		super.addScreenTabletListener(l);
+		mouseListener.addScreenTabletListener(l);
+	}
+	public void removeScreenTabletListener(TabletListener l) {
+		super.removeScreenTabletListener(l);
+		mouseListener.removeScreenTabletListener(l);
 	}
 }
