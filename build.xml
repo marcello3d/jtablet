@@ -23,7 +23,7 @@
 	<property name="src.jpen.package_"      value="cello_repackaged_jpen"/>
 	
 	<property name="src.gen.native"         location="src-gen/native"/>
-	<property name="src.demo"               location="src-demo"/>
+	<property name="src.demo"               location="src/demo"/>
 	<property name="src.installer"          location="src-installer"/>
 	<property name="src.jpen"               location="../jpen/src/main/java"/>
 	<property name="src.jpen.native"        location="../jpen/src/main/c"/>
@@ -389,7 +389,6 @@
 		    <fileset dir=".">
 		    	<include name="src/**" />
 		    	<include name="src-examples/**" />
-		    	<include name="src-demo/**" />
 		    	<include name="docs/**" />
 		    	<include name="LICENSE" />
 			</fileset>
