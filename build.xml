@@ -388,7 +388,6 @@
 		<copy todir="${dist.version}/developer-release">
 		    <fileset dir=".">
 		    	<include name="src/**" />
-		    	<include name="src-examples/**" />
 		    	<include name="docs/**" />
 		    	<include name="LICENSE" />
 			</fileset>
