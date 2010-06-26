@@ -11,6 +11,8 @@
 	<property name="softname"         value="${soname}.0" />
 	<property name="realname"         value="${softname}.0" />
 	
+	
+	
 	<target name="jtabletjpen.gen.native">
 		<fail message="imported file run without parent"/>
 	</target>
@@ -19,24 +21,28 @@
 		<fail message="imported file run without parent"/>
 	</target>
 	
-	<target name="jtabletjpen.compile.native" depends="jtabletjpen.gen.native" description="compile the jpen native source for linux" >		
-		<apply
-		executable="${gcc}"
-		failonerror="true"
-		dir="${src.gen.native}/linux"
-		parallel="true">
+	
+	
+	<target name="jtabletjpen.compile.native"
+	        depends="jtabletjpen.gen.native"
+	        description="compile the jpen native source for linux">
+		
+		<apply executable="${gcc}"
+		       failonerror="true"
+		       dir="${src.gen.native}/linux"
+		       parallel="true">
 			<arg value="-Wall"/>
+			<arg value="-fpic"/>
 			<arg value="-c"/>
 			<arg value="-D_JNI_IMPLEMENTATION"/>
 			<arg value="-I${jdk.home}/include"/>
 			<arg value="-I${jdk.home}/include/linux"/>
 			<fileset dir="${src.gen.native}/linux" includes="*.c" />
 		</apply>
-		<apply
-	    	executable="${gcc}"
-		failonerror="true"
-		dir="${src.gen.native}/linux"
-		parallel="true">
+		<apply executable="${gcc}"
+		       failonerror="true"
+		       dir="${src.gen.native}/linux"
+		       parallel="true">
 			<arg value="-Wall"/>
 			<arg value="-shared"/>
 			<arg value="-Llib"/>
@@ -45,26 +51,30 @@
 			<arg value="-Wl,-soname,${soname}"/>
 			<fileset dir="${src.gen.native}/linux" includes="*.o" />
 		</apply>
-		<copy todir="${dist.version}">
+		<copy todir="${dir.dist}/${dist.version}">
 			<fileset dir="${src.gen.native}/linux">
 				<include name="*.so"/>
 				<include name="*.so.*"/>
 			</fileset>
 		</copy>
-		<symlink link="${dist.version}/${softname}" resource="${realname}" />
-		<symlink link="${dist.version}/${soname}" resource="${realname}" />
-		<symlink link="${dist.version}/${linkname}" resource="${realname}" />
+		<symlink link="${dir.dist}/${dist.version}/${softname}" resource="${realname}" />
+		<symlink link="${dir.dist}/${dist.version}/${soname}"   resource="${realname}" />
+		<symlink link="${dir.dist}/${dist.version}/${linkname}" resource="${realname}" />
 	</target>
 	
-	<target name="jtablet.install" depends="jtablet.jar,jtabletjpen.compile.native">
+	
+	
+	<target name="jtablet.install"
+	        depends="jtablet.jar,jtabletjpen.compile.native">
+		
 		<mkdir dir="${ext.dir}"/>
 		<mkdir dir="${user.home}/.jtablet"/>
 		<copy 
-			file="${dist.version}/jtablet.jar" 
+			file="${dir.dist}/${dist.version}/jtablet.jar" 
 			todir="${ext.dir}"/>
 		
 		<copy todir="${user.home}/.jtablet">
-			<fileset dir="${dist.version}">
+			<fileset dir="${dir.dist}/${dist.version}">
 				<include name="*.so.*" />
 				<include name="*.so" />
 			</fileset>
