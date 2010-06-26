@@ -368,7 +368,7 @@
 		        version="true"
 		        use="true"
 		        classpathref="jtablet.classpath"
-		        Overview="src/overview.html"
+		        Overview="src/jtablet/overview.html"
 		        windowtitle="JTablet ${spec.version} API"
 		        Header="JTablet ${spec.version} API">
 			
