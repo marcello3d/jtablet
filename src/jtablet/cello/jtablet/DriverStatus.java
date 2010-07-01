@@ -16,7 +16,7 @@ public class DriverStatus {
 	 * 
 	 * @author marcello
 	 */
-	public enum State {
+	public static enum State {
 		/**
 		 * Successfully loaded a native driver. 
 		 */
@@ -81,6 +81,7 @@ public class DriverStatus {
 	public Throwable getThrowable() {
 		return throwable;
 	}
+	
 	@Override
 	public String toString() {
 		return getClass().getName()+"[state="+state+",throwable="+throwable+"]";

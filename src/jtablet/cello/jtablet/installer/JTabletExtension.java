@@ -11,7 +11,7 @@ import java.net.URL;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import cello.jtablet.impl.PluginConstant;
+import cello.jtablet.PluginConstant;
 
 /**
  * This class provides a system for JTablet version compatibility for Applets and Applications. Even if you are bundling 
