@@ -38,6 +38,14 @@ public class DriverStatus {
 	 */
 	public static enum State {
 		/**
+		 * Driver has not been loaded. This is the default
+		 * state until {@link TabletDriver#load()} is called.
+		 * 
+		 * @since 1.2.5
+		 */
+		UNLOADED,
+
+		/**
 		 * Driver code was successfully loaded.
 		 *
 		 * @since 1.2.5

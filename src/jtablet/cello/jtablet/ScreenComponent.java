@@ -45,7 +45,7 @@ public class ScreenComponent extends Component {
 	public static ScreenComponent INSTANCE = new ScreenComponent();
 
 	private ScreenComponent() {}
-
+	/*
 	private java.awt.GraphicsConfiguration getMainScreen() {
 		java.awt.GraphicsDevice[] gs = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
 		if (gs.length > 0) {
@@ -53,13 +53,15 @@ public class ScreenComponent extends Component {
 		}
 		return null;
 	}
+	*/
 	@Override
 	public Point getLocationOnScreen() {
 		return POINT;
 	}
 	@Override
 	public java.awt.Rectangle bounds() {
-		return getMainScreen().getBounds();
+		//return getMainScreen().getBounds();
+		return new java.awt.Rectangle(java.awt.Toolkit.getDefaultToolkit().getScreenSize());
 	}
 	@Override
 	public java.awt.Rectangle getBounds(java.awt.Rectangle rv) {

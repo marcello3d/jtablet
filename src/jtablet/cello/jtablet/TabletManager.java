@@ -90,11 +90,15 @@ public class TabletManager implements Runnable {
 	protected TabletManager() {
 		//Add all known drivers to our set of drivers
 		//and have them load themselves up
-		drivers.add(new cello.jtablet.impl.MouseDriver());
+		drivers.add(new cello.jtablet.impl.XInputDriver());
 		for (TabletDriver d : drivers) {
 			d.load();
-			if (d.getStatus().getState() == DriverStatus.State.LOADED)
-			    new Thread(d).start();
+			if (d.getStatus().getState() == DriverStatus.State.LOADED) {
+				Thread thread = new Thread(d);
+				thread.setName(d.getClass().getSimpleName() + " driver thread");
+				thread.setDaemon(true);
+				thread.start();
+			}
 		}
 	}
 	
@@ -111,8 +115,11 @@ public class TabletManager implements Runnable {
 	 * @since 1.2.5
 	 */
 	public static TabletManager getDefaultManager() {
-		if (managerThread.getState() == Thread.State.NEW)
+		if (managerThread.getState() == Thread.State.NEW) {
+			managerThread.setName("Tablet manager thread");
+			managerThread.setDaemon(true);
 			managerThread.start();
+		}
 
 		return tabletManager;
 	}
@@ -355,8 +362,10 @@ public class TabletManager implements Runnable {
 		if (!component.isShowing() || SwingUtilities.getWindowAncestor(component) != KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow())
 			return false;
 		
-		//Is this a MOVED or PRESSED event over top of a viable component?
-		if (event.getType() == TabletEvent.Type.MOVED || event.getType() == TabletEvent.Type.PRESSED) {
+		//Is this event relative to non-targeted components?
+		if (event.getType() == TabletEvent.Type.MOVED ||
+			event.getType() == TabletEvent.Type.PRESSED ||
+			event.getType() == TabletEvent.Type.ENTERED) {
 			return component.contains(translate(event, component).getPoint());
 		}
 		
