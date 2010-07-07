@@ -28,155 +28,206 @@ import java.io.Serializable;
 import cello.jtablet.event.TabletEvent;
 
 /**
- * Represents a physical input device. TabletDevice objects are referenced
- * in {@link TabletEvent}s and constructed by the JTablet library itself.
+ * Represents a physical input device. Objects of this class describe
+ * the capabilities of a tablet. When a tablet does something interesting,
+ * a {@link TabletEvent} is posted. Each TabletEvent references the
+ * instance of this class which produced the event.
  *
  * @author marcello
+ * @since 1.2.5
  */
 public abstract class TabletDevice implements Serializable {
 	
 	/**
-	 * TabletDevice objects may only be constructed by JTablet itself.
-	 * Typically one would obtain a reference to a TabletDevice object
-	 * though a {@link TabletEvent}.
-	 * 
-	 * {@link TabletManager} objects will typically contain concrete
-	 * subclasses of TabletDevice that they can construct on demand
-	 * in response to the detection of a tablet.
-	 */
-	protected TabletDevice() {}
-	
-	/**
-	 * Tablet devices
+	 * Describes the type of tablet that this device is.
+	 *
+	 * @author marcello
+	 * @since 1.2.5
 	 */
 	public enum Type {
-		/** A mouse-style device */
+		/**
+		 * A mouse-style device. Examples include the system mouse
+		 * device, "puck" tablet devices, etc.
+		 *
+		 * @since 1.2.5
+		 */
 		MOUSE,
-		/** The tip on a stylus */
+
+		/**
+		 * The tip-end of a tablet pen.
+		 *
+		 * @since 1.2.5
+		 */
 		STYLUS,
-		/** The eraser on a stylus */
+
+		/**
+		 * The eraser-end of a tablet pen.
+		 *
+		 * @since 1.2.5
+		 */
 		ERASER,
-		/** An unknown input device */
+
+		/**
+		 * An unknown input device.
+		 *
+		 * @since 1.2.5
+		 */
 		UNKNOWN
 	};
 	
-
 	/**
-	 * Support result returned by various getSupport() methods
+	 * This enum is used by various {@code getSupport} methods
+	 * to describe if a given feature is supported by an individual
+	 * device.
+	 *
+	 * @since 1.2.5
 	 */
 	public static enum Support {
 		/**
 		 * This feature is not supported
+		 *
+		 * @since 1.2.5
 		 */
 		NO,
+
 		/**
 		 * It is unknown whether or not this feature is supported
+		 *
+		 * @since 1.2.5
 		 */
 		UNKNOWN,
+
 		/**
 		 * This feature is supported
+		 *
+		 * @since 1.2.5
 		 */
 		YES
 	};
 
 	/**
-	 * Returns this device's type (such as stylus pen tip, stylus eraser, mouse cursor, or other).
+	 * Returns this device's type (such as stylus pen tip, stylus
+	 * eraser, mouse cursor, etc).
 	 *
 	 * @return the device's type
+	 * @since 1.2.5
 	 */
 	public abstract Type getType();
 
 	/**
-	 * Returns whether this device supports floating point coordinates.
-	 * 
+	 * Returns whether this device can report its on-screen
+	 * coordinates with sub-pixel precision.
+	 *
 	 * @see TabletEvent#getFloatX()
 	 * @see TabletEvent#getFloatY()
 	 * @see TabletEvent#getPoint2D()
 	 * @return floating point support
+	 * @since 1.2.5
 	 */
 	public Support getFloatSupport() {
 		return Support.UNKNOWN;
 	}
 	
 	/**
-	 * Returns whether this device supports buttons.
+	 * Returns whether this device has buttons and can report
+	 * when they change state.
 	 * 
 	 * @see TabletEvent#getRawTabletButtonMask()
 	 * @see TabletEvent#getModifiersEx()
 	 * @return button support
+	 * @since 1.2.5
 	 */
 	public Support getButtonSupport() {
 		return Support.UNKNOWN;
 	}
 	
 	/**
-	 * Returns whether this device supports unique IDs.
+	 * Returns whether this device reports a unique ID.
 	 *
 	 * @see TabletDevice#getUniqueIdSupport()
 	 * @return unique ID support
+	 * @since 1.2.5
 	 */
 	public Support getUniqueIdSupport() {
 		return Support.UNKNOWN;
 	}
 	
 	/**
-	 * Returns whether this device supports pressure sensitivity.
+	 * Returns whether this device can sense and report the
+	 * amount of pressure being used. Note that devices without
+	 * explicit pressure support <i>may</i> return 100% pressure
+	 * when the primary button is pressed (for convenience),
+	 * regardless of what this method returns.
 	 *
 	 * @see TabletEvent#getPressure()
 	 * @return pressure sensitivity support
+	 * @since 1.2.5
 	 */
 	public Support getPressureSupport() {
 		return Support.UNKNOWN;
 	}
 	
 	/**
-	 * Returns whether this device supports tilt orientation.
+	 * Returns whether this device can sense and report the
+	 * amount of tilt from the vertical axis.
 	 *
 	 * @see TabletEvent#getTiltX()
 	 * @see TabletEvent#getTiltY()
 	 * @return tilt (from the vertical axis) support
+	 * @since 1.2.5
 	 */
 	public Support getTiltSupport() {
 		return Support.UNKNOWN;
 	}
 	
 	/**
-	 * Returns whether this device supports side pressure. (E.g. the side wheel on a Wacom airbrush tool.)
+	 * Returns whether this device can sense and can report the
+	 * amount of "side pressure" (e.g. the side wheel on a Wacom
+	 * airbrush tool).
 	 *
 	 * @see TabletEvent#getSidePressure()
 	 * @return side pressure support
+	 * @since 1.2.5
 	 */
 	public Support getSidePressureSupport() {
 		return Support.UNKNOWN;
 	}
 	
 	/**
-	 * Returns whether this device supports axis rotation.
+	 * Returns whether this device can sense and report the amount
+	 * it is rotated about its own axis.
 	 * 
 	 * @see TabletEvent#getRotation()
-	 * @return rotation (around the axis of the stylus) support 
+	 * @return rotation (around the axis of the stylus) support
+	 * @since 1.2.5
 	 */
 	public Support getRotationSupport() {
 		return Support.UNKNOWN;
 	}
 	
 	/**
-	 * Returns the device's name
+	 * Returns the name of the device. This name may be provided by
+	 * the system, or any identifier created by the {@link TabletDriver}.
 	 *
 	 * @return the name of this device
+	 * @since 1.2.5
 	 */
 	public String getName() {
 		return getType().name();
 	}
 	
 	/**
-	 * Returns the unique physical device ID. This can be used to uniquely identify a physical stylus on tablets that 
-	 * support it (see {@link TabletDevice#getUniqueIdSupport()}, otherwise a non-unique id may be returned.
+	 * Returns the unique physical device ID. This can be used to
+	 * uniquely identify a physical stylus on tablets that support
+	 * it.
 	 * 
-	 * <p>When supported, this id for a pen will be consistent across sessions, and even tablets/computers. 
+	 * <p>When supported, this id for a pen will be consistent across
+	 * sessions, and even tablets/computers. If not supported, a non-
+	 * unique ID may be returned.</p>
 	 * 
 	 * @see TabletDevice#getUniqueIdSupport()
 	 * @return the unique id
+	 * @since 1.2.5
 	 */
 	public String getUniqueId() {
 		return getName();

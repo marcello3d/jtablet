@@ -32,14 +32,16 @@ import cello.jtablet.TabletDevice;
 
 
 /**
- * An event that indicates cursor input occurred on the given component. This class extends {@link MouseEvent} and 
- * provides a similar and extended API for accessing tablet events.
+ * An event that indicates cursor input occurred on the given component. This
+ * class extends {@link MouseEvent} and  provides a similar and extended API
+ * for accessing tablet events.
  * 
- * <p>You likely will not be constructing this class yourself.
+ * <p>You likely will not be constructing this class yourself.</p>
  * 
  * <p><b>Implementation Note:</b> {@link #isPopupTrigger()} is unsupported.</p>
  * 
  * @author Marcello
+ * @since 1.2.5
  */
 public class TabletEvent extends MouseEvent implements Serializable {
 	
@@ -65,23 +67,24 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	/**
 	 * Constructs a new {@linkplain TabletEvent} with all the trimmings... 
 	 * yourself.
-	 * @param source
-	 * @param type
-	 * @param when
-	 * @param device
-	 * @param x 
-	 * @param y 
-	 * @param modifiers
-	 * @param button 
-	 * @param pressure
-	 * @param tiltX 
-	 * @param tiltY 
-	 * @param sidePressure 
-	 * @param rotation 
-	 * @param deltaX 
-	 * @param deltaY 
-	 * @param zoom 
-	 * @param rawTabletButtonMask 
+	 *
+	 * @param source the component which "sensed" (if creating for adding to the {@link TabletManager} event queue) or is "targeted at" (if creating for reception by a {@link TabletListener})
+	 * @param type the specific kind of event this is
+	 * @param when the time this event occurred
+	 * @param device the {@link TabletDevice} which generated this event
+	 * @param x the horizontal location of this event relative to the {@code source} component
+	 * @param y the vertical location of this event relative to the {@code source} component
+	 * @param modifiers the modifier keys down during event (e.g. shift, ctrl, alt, meta) Either extended {@code _DOWN_MASK} or old {@code _MASK} modifiers should be used, but both models should not be mixed in one event. Use of the extended modifiers is preferred.
+	 * @param button which of the Java-defined buttons have changed state. {@code NOBUTTON}, {@code BUTTON1}, {@code BUTTON2} or {@code BUTTON3}.
+	 * @param pressure the amount of pressure sensed by the {@code device}
+	 * @param tiltX the tilt angle (in radians) along the x-axis sensed by the {@code device}
+	 * @param tiltY the tilt angle (in radians) along the y-axis sensed by the {@code device}
+	 * @param sidePressure the amount of side pressure sensed by the {@code device}
+	 * @param rotation the amount of barrel rotation (in radians) sensed by the {@code device}
+	 * @param deltaX the amount of horizontal scrolling sensed by the {@code device} (from e.g. a mousewheel or multitouch)
+	 * @param deltaY the amount of vertical scrolling sensed by the {@code device} (from e.g. a mousewheel or multitouch)
+	 * @param zoom the degree of zoom factor sensed by the {@code device} (from e.g. a multitouch gesture)
+	 * @param rawTabletButtonMask the state of all the {@code device}'s buttons
 	 */
 	public TabletEvent(Component source, Type type, long when, int modifiers, 
 						TabletDevice device, float x, float y, float pressure,
@@ -109,9 +112,10 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	
 	/**
 	 * Wrap a {@link MouseEvent} as a TabletEvent.
-	 * @param e
-	 * @param type 
-	 * @param device 
+	 *
+	 * @param e the source event to base this off of
+	 * @param type the more-precise type of tablet event this is
+	 * @param device the device which generated this event
 	 */
 	public TabletEvent(MouseEvent e, Type type, TabletDevice device) {
 		super(e.getComponent(),e.getID(), e.getWhen(), e.getModifiersEx(), e.getX(), e.getY(), e.getClickCount(), e.isPopupTrigger(), e.getButton());
@@ -133,12 +137,13 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 	/**
 	 * Wrap a {@link MouseEvent} as a TabletEvent.
-	 * @param e
-	 * @param type 
-	 * @param device 
-	 * @param c 
-	 * @param x 
-	 * @param y 
+	 *
+	 * @param e the source event to base this off of
+	 * @param type the more-precise type of tablet event this is
+	 * @param device the device which generated this event
+	 * @param c the component which "sensed" (if creating for adding to the {@link TabletManager} event queue) or is "targeted at" (if creating for reception by a {@link TabletListener})
+	 * @param x the horizontal location of this event relative to the {@code source} component
+	 * @param y the vertical location of this event relative to the {@code source} component
 	 */
 	public TabletEvent(MouseEvent e, Type type, TabletDevice device, Component c, float x, float y) {
 		super(c, e.getID(), e.getWhen(), e.getModifiersEx(), (int)x, (int)y, e.getClickCount(), e.isPopupTrigger(), e.getButton());
@@ -161,20 +166,20 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 	/**
 	 * Constructs a new {@linkplain TabletEvent} with all the trimmings...
-	 * @param source
-	 * @param type
-	 * @param when
-	 * @param modifiers
-	 * @param rawTabletButtonMask 
-	 * @param device
-	 * @param x
-	 * @param y
-	 * @param pressure
-	 * @param tiltX
-	 * @param tiltY
-	 * @param sidePressure
-	 * @param rotation
-	 * @param button
+	 * @param source the component which "sensed" (if creating for adding to the {@link TabletManager} event queue) or is "targeted at" (if creating for reception by a {@link TabletListener})
+	 * @param type the specific kind of event this is
+	 * @param when the time this event occurred
+	 * @param modifiers the modifier keys down during event (e.g. shift, ctrl, alt, meta) Either extended {@code _DOWN_MASK} or old {@code _MASK} modifiers should be used, but both models should not be mixed in one event. Use of the extended modifiers is preferred.
+	 * @param rawTabletButtonMask the state of all the {@code device}'s buttons
+	 * @param device the {@link TabletDevice} which generated this event
+	 * @param x the horizontal location of this event relative to the {@code source} component
+	 * @param y the vertical location of this event relative to the {@code source} component
+	 * @param pressure the amount of pressure sensed by the {@code device}
+	 * @param tiltX the tilt angle (in radians) along the x-axis sensed by the {@code device}
+	 * @param tiltY the tilt angle (in radians) along the y-axis sensed by the {@code device}
+	 * @param sidePressure the amount of side pressure sensed by the {@code device}
+	 * @param rotation the amount of barrel rotation (in radians) sensed by the {@code device}
+	 * @param button which of the Java-defined buttons have changed state. {@code NOBUTTON}, {@code BUTTON1}, {@code BUTTON2} or {@code BUTTON3}.
 	 */
 	public TabletEvent(Component source, Type type, long when, int modifiers, int rawTabletButtonMask, 
 			TabletDevice device, 
@@ -188,14 +193,15 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 	/**
 	 * Constructs a new {@linkplain TabletEvent} with some of the trimmings...
-	 * @param source
-	 * @param type
-	 * @param when
-	 * @param modifiers
-	 * @param rawTabletButtonMask 
-	 * @param device
-	 * @param x
-	 * @param y
+	 *
+	 * @param source the component which "sensed" (if creating for adding to the {@link TabletManager} event queue) or is "targeted at" (if creating for reception by a {@link TabletListener})
+	 * @param type the specific kind of event this is
+	 * @param when the time this event occurred
+	 * @param modifiers the modifier keys down during event (e.g. shift, ctrl, alt, meta) Either extended {@code _DOWN_MASK} or old {@code _MASK} modifiers should be used, but both models should not be mixed in one event. Use of the extended modifiers is preferred.
+	 * @param rawTabletButtonMask the state of all the {@code device}'s buttons
+	 * @param device the {@link TabletDevice} which generated this event
+	 * @param x the horizontal location of this event relative to the {@code source} component
+	 * @param y the vertical location of this event relative to the {@code source} component
 	 */
 	public TabletEvent(Component source, Type type, long when, int modifiers, int rawTabletButtonMask, 
 			TabletDevice device, float x, float y) {
@@ -203,17 +209,19 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 	/**
 	 * Constructs a new {@linkplain TabletEvent} with some of the trimmings...
-	 * @param source
-	 * @param type
-	 * @param when
-	 * @param modifiers
-	 * @param device
-	 * @param x
-	 * @param y
-	 * @param rotation
-	 * @param deltaX
-	 * @param deltaY
-	 * @param zoom
+	 *
+	 * @param source the component which "sensed" (if creating for adding to the {@link TabletManager} event queue) or is "targeted at" (if creating for reception by a {@link TabletListener})
+	 * @param type the specific kind of event this is
+	 * @param when the time this event occurred
+	 * @param modifiers the modifier keys down during event (e.g. shift, ctrl, alt, meta) Either extended {@code _DOWN_MASK} or old {@code _MASK} modifiers should be used, but both models should not be mixed in one event. Use of the extended modifiers is preferred.
+	 * @param rawTabletButtonMask the state of all the {@code device}'s buttons
+	 * @param device the {@link TabletDevice} which generated this event
+	 * @param x the horizontal location of this event relative to the {@code source} component
+	 * @param y the vertical location of this event relative to the {@code source} component
+	 * @param rotation the amount of barrel rotation (in radians) sensed by the {@code device}
+	 * @param deltaX the amount of horizontal scrolling sensed by the {@code device} (from e.g. a mousewheel or multitouch)
+	 * @param deltaY the amount of vertical scrolling sensed by the {@code device} (from e.g. a mousewheel or multitouch)
+	 * @param zoom the degree of zoom factor sensed by the {@code device} (from e.g. a multitouch gesture)
 	 */
 	public TabletEvent(Component source, Type type, long when, int modifiers, TabletDevice device,
 			float x, float y, 
@@ -224,14 +232,15 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 	/**
 	 * Constructs a new {@linkplain TabletEvent} with some of the trimmings...
-	 * @param source
-	 * @param type
-	 * @param when
-	 * @param device
-	 * @param modifiers
-	 * @param x
-	 * @param y
-	 * @param button
+	 *
+	 * @param source the component which "sensed" (if creating for adding to the {@link TabletManager} event queue) or is "targeted at" (if creating for reception by a {@link TabletListener})
+	 * @param type the specific kind of event this is
+	 * @param when the time this event occurred
+	 * @param device the {@link TabletDevice} which generated this event
+	 * @param modifiers the modifier keys down during event (e.g. shift, ctrl, alt, meta) Either extended {@code _DOWN_MASK} or old {@code _MASK} modifiers should be used, but both models should not be mixed in one event. Use of the extended modifiers is preferred.
+	 * @param x the horizontal location of this event relative to the {@code source} component
+	 * @param y the vertical location of this event relative to the {@code source} component
+	 * @param button which of the Java-defined buttons have changed state. {@code NOBUTTON}, {@code BUTTON1}, {@code BUTTON2} or {@code BUTTON3}.
 	 */
 	public TabletEvent(Component source, Type type, long when, TabletDevice device, int modifiers, 
 			float x, float y,
@@ -292,41 +301,59 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 	private static final int ID_START = RESERVED_ID_MAX + 1200;
 	/**
-	 * This enum is used to specify the possible types of a {@link TabletEvent}.
+	 * This enum is used to specify the possible types of a
+	 * {@link TabletEvent}.
+	 *
+	 * @since 1.2.5
 	 */
 	public static enum Type {
 		/** 
 		 * Button or stylus tip pressed.
+		 *
+		 * @since 1.2.5
 		 */
 		PRESSED			( MOUSE_PRESSED ),
 		
 		/** 
 		 * Button or stylus tip released.
+		 *
+		 * @since 1.2.5
 		 */
 		RELEASED		( MOUSE_RELEASED ),
 		
 		/** 
 		 * Cursor enters proximity and/or component.
+		 *
+		 * @since 1.2.5
 		 */
 		ENTERED			( MOUSE_ENTERED ),
 		
 		/** 
 		 * Cursor exits proximity and/or component.
+		 *
+		 * @since 1.2.5
 		 */
 		EXITED			( MOUSE_EXITED ),
 		
 		/** 
-		 * Cursor moved with no button pressed. 
+		 * Cursor moved with no button pressed.
+		 *
+		 * @since 1.2.5
 		 */
 		MOVED			( MOUSE_MOVED ),
 		
 		/** 
 		 * Cursor moved with button pressed.
+		 *
+		 * @since 1.2.5
 		 */
 		DRAGGED			( MOUSE_DRAGGED ),
 		
 		/** 
-		 * Level changed. This occurs when the stylus changes pressure or tilt, but does not move.
+		 * Level changed. This occurs when the stylus changes
+		 * pressure or tilt, but does not move.
+		 *
+		 * @since 1.2.5
 		 */
 		LEVEL_CHANGED	( ID_START ),
 		
@@ -334,30 +361,42 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		 * Mouse wheel scroll or multi-touch scroll (on Mac OS X).
 		 * @see TabletEvent#getScrollX()
 		 * @see TabletEvent#getScrollY()
+		 *
+		 * @since 1.2.5
 		 */
 		SCROLLED		( ID_START+1 ),
 		
 		// gesture events...
 		
 		/** 
-		 * Zoom gesture (pinching on a Mac OS X multi-touch device). Use {@link TabletEvent#getZoomFactor()} to get the
-		 * zoom factor amount.
-		 * @see TabletEvent#getZoomFactor() 
+		 * Zoom gesture (pinching on a Mac OS X multi-touch device).
+		 * Use {@link TabletEvent#getZoomFactor()} to get the zoom
+		 * factor amount.
+		 *
+		 * @see TabletEvent#getZoomFactor()
+		 * @since 1.2.5
 		 */
 		ZOOMED			( ID_START+2 ),
 		
 		/** 
-		 * Rotate gesture (rotating two fingers on a Mac OS X multi-touch device). Use {@link TabletEvent#getRotation()}
+		 * Rotate gesture (rotating two fingers on a Mac OS X
+		 * multi-touch device). Use {@link TabletEvent#getRotation()}
 		 * to get the rotation amount.
-		 * @see TabletEvent#getRotation() 
+		 *
+		 * @see TabletEvent#getRotation()
+		 * @since 1.2.5
 		 */
 		ROTATED			( ID_START+3 ),
 		
 		/** 
-		 * Swipe gesture (moving three fingers on a Mac OS X multi-touch device). Use {@link TabletEvent#getScrollX()}
-		 * and {@link TabletEvent#getScrollY()} to get the swipe direction.
+		 * Swipe gesture (moving three fingers on a Mac OS X
+		 * multi-touch device). Use {@link TabletEvent#getScrollX()}
+		 * and {@link TabletEvent#getScrollY()} to get the swipe
+		 * direction.
+		 *
 		 * @see TabletEvent#getScrollX()
-		 * @see TabletEvent#getScrollY() 
+		 * @see TabletEvent#getScrollY()
+		 * @since 1.2.5
 		 */
 		SWIPED			( ID_START+4 );
 		
@@ -368,7 +407,9 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		}
 		/**
 		 * Returns the AWTEvent id associated with this event type.
+		 *
 		 * @return the id
+		 * @since 1.2.5
 		 */
 		public int getId() {
 			return id;
@@ -379,6 +420,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * Triggers this event on the given {@link TabletListener}.
 	 * 
 	 * @param listener the listener to trigger on
+	 * @since 1.2.5
 	 */
 	public void fireEvent(TabletListener listener) {
 		if (type == null) {
@@ -418,9 +460,11 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 	
 	/**
-	 * Returns the fractional {@link Point2D} of the mouse/tablet cursor (if available).
+	 * Returns the fractional {@link Point2D} of the mouse/tablet
+	 * cursor (if available).
 	 * 
 	 * @return the (possibly) fractional point
+	 * @since 1.2.5
 	 */
 	public Point2D.Float getPoint2D() {
 		return new Point2D.Float(x,y);
@@ -428,21 +472,29 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 	
 	/**
-	 * Returns the fractional x position of the mouse/tablet cursor (if available). 
-	 * <p>You can determine if the current device supports fractional points with 
-	 * {@link TabletDevice#getFloatSupport()} via {@link #getDevice()}.
+	 * Returns the fractional x position of the mouse/tablet
+	 * cursor (if available).
+	 *
+	 * <p>You can determine if the current device supports fractional
+	 * points with {@link TabletDevice#getFloatSupport()}
+	 * via {@link #getDevice()}.</p>
 	 * 
 	 * @return the (possibly) fractional x coordinate
+	 * @since 1.2.5
 	 */
 	public float getFloatX() {
 		return x;
 	}
 	/**
-	 * Returns the fractional y position of the mouse/tablet cursor (if available).
-	 * <p>You can determine if the current device supports fractional points with 
-	 * {@link TabletDevice#getFloatSupport()} via {@link #getDevice()}.
+	 * Returns the fractional y position of the mouse/tablet cursor
+	 * (if available).
+	 *
+	 * <p>You can determine if the current device supports fractional
+	 * points with {@link TabletDevice#getFloatSupport()}
+	 * via {@link #getDevice()}.</p>
 	 * 
 	 * @return the (possibly) fractional y coordinate
+	 * @since 1.2.5
 	 */
 	public float getFloatY() {
 		return y;
@@ -451,30 +503,36 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	/**
 	 * Returns the current pressure value of the tablet pressure. 
 	 * 
-	 * <p>You can determine if the current device supports pressure with {@link TabletDevice#getPressureSupport()} via 
-	 * {@link #getDevice()}.
+	 * <p>You can determine if the current device supports pressure
+	 * with {@link TabletDevice#getPressureSupport()} via
+	 * {@link #getDevice()}.</p>
+	 *
 	 * @see TabletDevice#getPressureSupport()
 	 * @return the pressure from 0 to 1
+	 * @since 1.2.5
 	 */
 	public float getPressure() {
 		return pressure;
 	}
 
 	/**
-	 * Returns the tablet device associated with this event. You can determine capabilities available by inspecting the
-	 * device object.
+	 * Returns the tablet device associated with this event. You can
+	 * determine capabilities available by inspecting the device object.
 	 * 
 	 * @see TabletDevice 
 	 * @return the device
+	 * @since 1.2.5
 	 */
 	public TabletDevice getDevice() {
 		return device;
 	}
 
 	/**
-	 * Returns the {@link Type} for this event. 
+	 * Returns the {@link Type} for this event.
+	 *
 	 * @see Type
 	 * @return the event type
+	 * @since 1.2.5
 	 */
 	public Type getType() {
 		return type;
@@ -482,12 +540,15 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 
 	/**
-	 * Returns the current tablet side pressure. (E.g. the side wheel on a Wacom airbrush tool.)  
+	 * Returns the current tablet side pressure. (E.g. the side
+	 * wheel on a Wacom airbrush tool.)
 	 * 
-	 * <p>You can determine if the current device supports side pressure with 
-	 * {@link TabletDevice#getSidePressureSupport()} via {@link #getDevice()}.
+	 * <p>You can determine if the current device supports side
+	 * pressure with  {@link TabletDevice#getSidePressureSupport()}
+	 * via {@link #getDevice()}.</p>
 	 * 
 	 * @return side pressure from 0 to 1.
+	 * @since 1.2.5
 	 */
 	public float getSidePressure() {
 		return sidePressure;
@@ -497,10 +558,12 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	/**
 	 * Returns the current horizontal tilt angle in radians.
 	 * 
-	 * <p>You can determine if the current device supports side pressure with 
-	 * {@link TabletDevice#getTiltSupport()} via {@link #getDevice()}.
+	 * <p>You can determine if the current device supports side
+	 * pressure with {@link TabletDevice#getTiltSupport()} via
+	 * {@link #getDevice()}.</p>
 	 * 
 	 * @return tilt X in radians
+	 * @since 1.2.5
 	 */
 	public float getTiltX() {
 		return tiltX;
@@ -510,33 +573,39 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	/**
 	 * Returns the current horizontal tilt angle in radians.
 	 * 
-	 * <p>You can determine if the current device supports side pressure with 
-	 * {@link TabletDevice#getTiltSupport()} via {@link #getDevice()}.
+	 * <p>You can determine if the current device supports side
+	 * pressure with  {@link TabletDevice#getTiltSupport()} via
+	 * {@link #getDevice()}.</p>
 	 * 
 	 * @return tilt Y in radians
+	 * @since 1.2.5
 	 */
 	public float getTiltY() {
 		return tiltY;
 	}
 	
 	/**
-	 * Returns either the rotational position of a tablet, or the rotational amount for a {@link Type#ROTATED} gesture 
-	 * event.
+	 * Returns either the rotational position of a tablet, or the
+	 * rotational amount for a {@link Type#ROTATED} gesture event.
 	 * 
-	 * <p>You can determine if the current device supports side pressure with 
-	 * {@link TabletDevice#getRotationSupport()} via {@link #getDevice()}.
+	 * <p>You can determine if the current device supports rotation
+	 * with {@link TabletDevice#getRotationSupport()} via
+	 * {@link #getDevice()}.
 	 * 
 	 * @return rotation in radians
+	 * @since 1.2.5
 	 */
 	public float getRotation() {
 		return rotation;
 	}
 
 	/**
-	 * Returns the raw tablet button mask independent of any user mapping with regards to "left" or "right." This may 
-	 * return zero for emulated devices.
+	 * Returns the raw tablet button mask independent of any user
+	 * mapping with regards to "left" or "right." This may return
+	 * zero for emulated devices.
 	 *  
 	 * @return a bitset given by the tablet driver
+	 * @since 1.2.5
 	 */
 	public int getRawTabletButtonMask() {
 		return rawTabletButtonMask;
@@ -544,24 +613,33 @@ public class TabletEvent extends MouseEvent implements Serializable {
 
 
 	/**
-	 * Returns the amount scrolled in the x direction for a {@link Type#SCROLLED} gesture event.
+	 * Returns the amount scrolled in the x direction for a
+	 * {@link Type#SCROLLED} gesture event.
+	 *
 	 * @return the amount scrolled in the x direction
+	 * @since 1.2.5
 	 */
 	public float getScrollX() {
 		return scrollX;
 	}
 
 	/**
-	 * Returns the amount scrolled in the y direction for a {@link Type#SCROLLED} gesture event.
+	 * Returns the amount scrolled in the y direction for a
+	 * {@link Type#SCROLLED} gesture event.
+	 *
 	 * @return the amount scrolled in the y direction
+	 * @since 1.2.5
 	 */
 	public float getScrollY() {
 		return scrollY;
 	}
 
 	/**
-	 * Returns the magnification amount for a {@link Type#ZOOMED} gesture event. 
+	 * Returns the magnification amount for a {@link Type#ZOOMED}
+	 * gesture event.
+	 *
 	 * @return the zoom
+	 * @since 1.2.5
 	 */
 	public float getZoomFactor() {
 		return zoomFactor;
@@ -569,13 +647,15 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	
 
 	/**
-	 * Returns a copy of this {@linkplain TabletEvent} with the given component and coordinates.
+	 * Returns a copy of this {@linkplain TabletEvent} with the given
+	 * component and coordinates.
 	 * 
 	 * @see #withPoint(float, float)
-	 * @param component
+	 * @param component component for the new event
 	 * @param x x-coordinate
 	 * @param y y-coordinate
 	 * @return a new {@linkplain TabletEvent} with the new component and coordinates
+	 * @since 1.2.5
 	 */
 	public TabletEvent withPoint(Component component, float x, float y) {
 		return new TabletEvent(component, type, getWhen(), getModifiersEx(), 
@@ -586,43 +666,54 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 
 	/**
-	 * Returns a copy of this {@linkplain TabletEvent} with the given coordinates.
+	 * Returns a copy of this {@linkplain TabletEvent} with the given
+	 * coordinates.
+	 *
 	 * @see #withPoint(Component, float, float)
 	 * @param x x-coordinate
 	 * @param y y-coordinate
 	 * @return a new {@linkplain TabletEvent} with the new coordinates
+	 * @since 1.2.5
 	 */
 	public TabletEvent withPoint(float x, float y) {
 		return withPoint(getComponent(), x, y);
 	}
 
 	/**
-	 * Returns a copy of this {@linkplain TabletEvent} with translated coordinates.
+	 * Returns a copy of this {@linkplain TabletEvent} with translated
+	 * coordinates.
 	 * 
 	 * @see #translated(float, float)
 	 * @param c component for translated event
 	 * @param deltaX the amount to translate the x-coordinate
 	 * @param deltaY the amount to translate the y-coordinate
 	 * @return a new {@linkplain TabletEvent} with the new component and coordinates
+	 * @since 1.2.5
 	 */
 	public TabletEvent translated(Component c, float deltaX, float deltaY) {
 		return withPoint(c, x+deltaX, y+deltaY);
 	}
 
 	/**
-	 * Returns a copy of this {@linkplain TabletEvent} with translated coordinates.
+	 * Returns a copy of this {@linkplain TabletEvent} with translated
+	 * coordinates.
+	 *
 	 * @see #translated(Component, float, float)
 	 * @param deltaX the amount to translate the x-coordinate
 	 * @param deltaY the amount to translate the y-coordinate
 	 * @return a new {@linkplain TabletEvent} with the new coordinates
+	 * @since 1.2.5
 	 */
 	public TabletEvent translated(float deltaX, float deltaY) {
 		return translated(getComponent(), deltaX, deltaY);
 	}
 	/**
-	 * Returns a copy of this {@linkplain TabletEvent} with a new event {@link Type}.
+	 * Returns a copy of this {@linkplain TabletEvent} with a new
+	 * event {@link Type}.
+	 *
 	 * @param type the new event type
 	 * @return a new {@linkplain TabletEvent} with the given type
+	 * @since 1.2.5
 	 */
 	public TabletEvent withType(Type type) {
 		return new TabletEvent((Component)source, type, getWhen(), getModifiersEx(), 
@@ -633,13 +724,15 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 
 	/**
-	 * Constructs a {@linkplain TabletEvent} based on another with a new component and coordinates.
+	 * Constructs a {@linkplain TabletEvent} based on another with a
+	 * new component and coordinates.
 	 * 
 	 * @see #withPoint(float, float)
-	 * @param original 
-	 * @param newComponent
+	 * @param original the original tablet event to base the new one on
+	 * @param newComponent the component for the new event
 	 * @param newX x-coordinate
 	 * @param newY y-coordinate
+	 * @since 1.2.5
 	 */
 	public TabletEvent(TabletEvent original, Component newComponent, float newX, float newY) {
 		this(newComponent, original.type, original.getWhen(), original.getModifiersEx(), 
@@ -650,19 +743,25 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	}
 
 	/**
-	 * Constructs a {@linkplain TabletEvent} based on another with new coordinates.
-	 * @param original 
+	 * Constructs a {@linkplain TabletEvent} based on another with
+	 * new coordinates.
+	 *
 	 * @see #withPoint(Component, float, float)
+	 * @param original the original tablet event to base the new one on
 	 * @param newX x-coordinate
 	 * @param newY y-coordinate
+	 * @since 1.2.5
 	 */
 	public TabletEvent(TabletEvent original, float newX, float newY) {
 		this(original, original.getComponent(), newX, newY);
 	}
 	/**
-	 * Constructs a {@linkplain TabletEvent} based on another with a new event {@link Type}.
-	 * @param original 
+	 * Constructs a {@linkplain TabletEvent} based on another with
+	 * a new event {@link Type}.
+	 *
+	 * @param original the original tablet event to base the new one on
 	 * @param newType the new event type
+	 * @since 1.2.5
 	 */
 	public TabletEvent(TabletEvent original, Type newType) {
 		this(original.getComponent(), newType, original.getWhen(), original.getModifiersEx(), 

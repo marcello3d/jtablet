@@ -24,9 +24,10 @@
 package cello.jtablet.event;
 
 /**
- * A convenience class that implements {@link TabletListener} as a funnel to a single abstract method you can implement
- * to handle all events. Override and implement the {@link #handleEvent(TabletEvent)} method to receive all events in 
- * one place.
+ * A convenience class that implements {@link TabletListener} as a funnel
+ * to a single abstract method you can implement to handle all events.
+ * Override and implement the {@link #handleEvent(TabletEvent)} method
+ * to receive all events in  one place.
  * 
  * <p>Example:
  * <pre>{@link TabletListener} listener = new {@link TabletFunneler}() {
@@ -35,9 +36,10 @@ package cello.jtablet.event;
  *     }		
  * }
  * </pre>
- * 
+ * </p>
  * 
  * @author marcello
+ * @since 1.2.5
  */
 
 public abstract class TabletFunneler implements TabletListener {
@@ -70,7 +72,8 @@ public abstract class TabletFunneler implements TabletListener {
 		handleEvent(ev);
 	}
 	/**
-	 * Override this method to receive all possible {@link TabletEvent}s that would go to this listener.
+	 * Override this method to receive all possible {@link TabletEvent}s
+	 * that would go to this listener.
 	 * @param ev
 	 */
 	protected abstract void handleEvent(TabletEvent ev);

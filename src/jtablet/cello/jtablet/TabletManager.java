@@ -47,15 +47,16 @@ import cello.jtablet.impl.TabletDriver;
 
 
 /**
- * <p>{@code TabletManager} is responsible for consuming events from any
- * attached tablet, filtering them as needed, and then forwarding the
- * remaining events to interested {@link cello.jtablet.event.TabletListener}s.</p>
+ * <p>{@link TabletManager} is the central hub of the JTablet architecture.
+ * {@link TabletDriver}s send the events they observe here where they are
+ * massaged, filtered, and finally forwarded to appropriate {@link TabletListener}s.</p>
  *
- * <p>{@code TabletManager} relies on {@link cello.jtablet.driver.TabletDriver}s
- * to obtain events from native libraries. Rather than creating instances
- * of the necessary drivers yourself, JTablet handles everything in the background.
- * All that is required to start listening for {@link cello.jtablet.event.TabletEvent}s
- * is to register a {@link java.awt.Component} to receive them.</p>
+ * <p>The {@link TabletManager} is also responsible for automatically creating
+ * and starting the {@link TabletDriver}s. It is this behavior that makes
+ * JTablet so easy to use. Only two things are required to begin receiving
+ * {@link TabletEvent}s: declaring your class a {@link TabletListener}, and
+ * calling {@link TabletManager}.{@link TabletManager#addTabletListener(Component, TabletListener) addTabletListener}
+ * to add it as a listener.
  * 
  * <p>Example usage:
  * <pre>
@@ -70,6 +71,7 @@ import cello.jtablet.impl.TabletDriver;
  * 
  * @see TabletListener
  * @author marcello
+ * @since 1.2.5
  */
 public class TabletManager implements Runnable {
 	
@@ -80,7 +82,10 @@ public class TabletManager implements Runnable {
 	
 	/**
 	 * To obtain a reference to a TabletManager, call the static
-	 * {@link TabletManager}.{@link TabletManager#getDefaultManager()} method.
+	 * {@link TabletManager}.{@link TabletManager#getDefaultManager()}
+	 * method.
+	 *
+	 * @since 1.2.5
 	 */
 	protected TabletManager() {
 		//Add all known drivers to our set of drivers
@@ -103,11 +108,12 @@ public class TabletManager implements Runnable {
 	 * Returns a shared tablet manager with the default settings.
 	 *
 	 * @return the TabletManager for the whole system
+	 * @since 1.2.5
 	 */
 	public static TabletManager getDefaultManager() {
 		if (managerThread.getState() == Thread.State.NEW)
 			managerThread.start();
-		
+
 		return tabletManager;
 	}
 	
@@ -121,7 +127,16 @@ public class TabletManager implements Runnable {
 	public void removeTabletListener(Component component, TabletListener listener) { removeTabletListener(listener); }
 	
 	/**
-	 * Get the status of all drivers.
+	 * Get the "best" status of all drivers known to the {@link TabletManager}.
+	 *
+	 * <p>This method has been deprecated because it only allows for the
+	 * state of a single {@link TabletDriver} to be made known to the
+	 * application. It has been replaced with the {@link TabletManager#getDrivers()}
+	 * method. You can obtain the status of all drivers by iterating though
+	 * the returned collection and calling {@link TabletDriver#getStatus()}
+	 * on each object.
+	 *
+	 * @since 1.2.5
 	 */
 	@Deprecated
 	public DriverStatus getDriverStatus() {
@@ -140,15 +155,13 @@ public class TabletManager implements Runnable {
 	
 	
 	/**
-	 * Adds a {@link TabletListener} to the entire screen. This works very much like adding a {@link MouseListener} and 
+	 * Adds a TabletListener to the entire screen. This works very
+	 * much like adding a {@link MouseListener} and
 	 * {@link MouseMotionListener} on the component, meaning:
 	 * <ul>
 	 * 	<li>Events will have coordinates relative to the screen</li>
 	 * 	<li>Enter and exit events will occur when the tablet stylus enters/exits proximity</li>
 	 * </ul>
-	 * <p><b>Implementation Note:</b> behavior for this method is undefined when working with mouse input (i.e. no 
-	 * native library was loaded or the user is not using the tablet). Please use 
-	 * {@link #addTabletListener(Component, TabletListener)} when working with on-screen components.</p>
 	 *
 	 * <p><b>Implementation Note:</b> behavior for this method is
 	 * undefined when working with mouse input (i.e. no native library
@@ -159,13 +172,15 @@ public class TabletManager implements Runnable {
 	 * @see TabletListener
 	 * @see #addTabletListener(Component, TabletListener)
 	 * @param listener the listener to add
+	 * @since 1.2.5
 	 */
 	public static void addTabletListener(TabletListener listener) {
 		addTabletListener(listener, ScreenComponent.INSTANCE);
 	}
 	
 	/**
-	 * Adds a TabletListener to a specific Component. This works very much like adding a {@link MouseListener} and 
+	 * Adds a TabletListener to a specific Component. This works very
+	 * much like adding a {@link MouseListener} and
 	 * {@link MouseMotionListener} on the component, meaning:
 	 * <ul>
 	 * 	<li>Events will have coordinates relative to the component</li>
@@ -184,8 +199,9 @@ public class TabletManager implements Runnable {
 	 * </ul>
 	 *
 	 * @see TabletListener
-	 * @param component component to add the listener to
 	 * @param listener the listener to send events to
+	 * @param component component to add the listener to
+	 * @since 1.2.5
 	 * @param component component to add the listener to
 	 */
 	public static void addTabletListener(TabletListener listener, Component component) {
@@ -203,11 +219,14 @@ public class TabletManager implements Runnable {
 	}
 	
 	/**
-	 * Removes a TabletListener previously added with {@link #addTabletListener(TabletListener)} or
-	 * {@link #addTabletListener(TabletListener, Component)}. It is safe to  call this method
-	 * if the specified listener has not been added (or already removed).
+	 * Removes a TabletListener previously added with
+	 * {@link #addTabletListener(TabletListener)} or
+	 * {@link #addTabletListener(TabletListener, Component)}. It is
+	 * safe to  call this method if the specified listener has not
+	 * been added (or already removed).
 	 *
 	 * @param listener the listener to remove
+	 * @since 1.2.5
 	 */
 	public static void removeTabletListener(TabletListener listener) {
 		synchronized (TabletManager.listeners) {
@@ -217,8 +236,22 @@ public class TabletManager implements Runnable {
 	}
 	
 	/**
-	 * Inserts the given event into the event queue. The event will be processed by the
-	 * by TabletManager and possibly relayed to listeners.
+	 * Inserts the given event into the event queue. The event will
+	 * be processed by the by TabletManager and possibly relayed
+	 * to listeners.
+	 *
+	 * <p>Users of the JTablet API should have no use for this method.
+	 * It is designed specifically for use by {@link TabletDriver}s.
+	 * That said, if there <i>is</i> some esoteric reason you want
+	 * to inject an event into JTablet, this would be the place.</p>
+	 *
+	 * <p>Note that for now, all events posted <b>must</b> be in screen
+	 * space (that is, with {@link ScreenComponent#INSTANCE} as
+	 * the component).</p>
+	 *
+	 * @see TabletManager#translate(cello.jtablet.event.TabletEvent, java.awt.Component)
+	 * @param event the event to add into the event queue
+	 * @since 1.2.5
 	 */
 	public static void postTabletEvent(TabletEvent event) {
 		if (event.getComponent() != ScreenComponent.INSTANCE)
@@ -251,8 +284,10 @@ public class TabletManager implements Runnable {
 	}
 		
 	/**
-	 * Drains events from the event queue, and notifies {@TabletListener}s
-	 * of events of interest.
+	 * Drains all events from the event queue, notifying the appropriate
+	 * listeners.
+	 *
+	 * @since 1.2.5
 	 */
 	protected void drainEventQueue() {
 	synchronized (TabletManager.listeners) {
@@ -295,8 +330,14 @@ public class TabletManager implements Runnable {
 	}
 	
 	/**
-	 * This method determines whether or not the given listener
-	 * should recieve the given event.
+	 * This method determines if a component should receive an event.
+	 * While this method is very simplistic at the moment, it probably
+	 * needs to be beefed up to handle the fact that there may be lots
+	 * of near-duplicate events.
+	 *
+	 * @param event the event in question
+	 * @param component the component in question
+	 * @since 1.2.5
 	 */
 	protected boolean shouldRecieve(TabletEvent event, Component component) {
 		//Screen listeners recieve *everything*

@@ -45,17 +45,14 @@ import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletEvent.Type;
 
 /**
- * The {@code MouseDriver} is a driver which acts as a wrapper for Java's
- * mouse event system. Though limited in ability, it allows a graceful
- * fallback for applications if no other {@link TabletDriver} is supported.
- * Though it does not support pressure data, applications will still recieve
- * X and Y positions with which to draw.
- *
- * If executed with sufficient permission (e.g. as part of a signed applet),
- * the {@code MouseDriver} will listen for mouse events on the entire screen
- * -- not just the application's GUI.
+ * The is a driver which acts as a wrapper for Java's mouse event system.
+ * Though limited in ability, it allows a graceful fallback for applications
+ * if no other {@link TabletDriver} is supported. Though it does not support
+ * pressure data, applications will still receive X and Y positions with
+ * which to draw.
  *
  * @author marcello
+ * @since 1.2.5
  */
 public class MouseDriver implements TabletDriver {
 
@@ -64,6 +61,8 @@ public class MouseDriver implements TabletDriver {
 	 * events produced by Java, transforming them into
 	 * {@link TabletEvent}s, and passing them on to the
 	 * {@link TabletManager}.
+	 *
+	 * @since 1.2.5
 	 */
 	protected class MagicListener implements MouseListener, MouseMotionListener, MouseWheelListener, AWTEventListener {
 		

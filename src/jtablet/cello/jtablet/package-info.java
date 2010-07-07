@@ -23,7 +23,8 @@
 
 
 /**
- * Provides classes for accessing the tablet and attaching listeners to AWT components.
+ * This package provides classes for accessing the tablet and attaching
+ * listeners to AWT components.
  */
 package cello.jtablet;
 

@@ -26,11 +26,12 @@ package cello.jtablet.event;
 import java.awt.event.MouseAdapter;
 
 /**
- * This class is a convenience class that implements {@link TabletListener} as empty methods. You can use it to only
- * implement methods you care about.
+ * This class is a convenience class that implements {@link TabletListener}
+ * as empty methods. You can use it to only implement methods you care about.
  * 
  * @see MouseAdapter 
  * @author marcello
+ * @since 1.2.5
  */
 public abstract class TabletAdapter implements TabletListener {
 	public void cursorEntered(TabletEvent ev) {}

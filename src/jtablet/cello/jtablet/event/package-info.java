@@ -22,7 +22,8 @@
  */
 
 /**
- * Provides interfaces and classes for dealing with tablet events on AWT components.
+ * Provides interfaces and classes for dealing with tablet events on AWT
+ * components.
  * 
  * @see cello.jtablet.event.TabletListener 
  */

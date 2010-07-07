@@ -1,5 +1,5 @@
 /*!
- * Copyright (c) 2009 Jason Gerecke (killertofu@gmail.com)
+ * Copyright (c) 2010 Jason Gerecke (killertofu@gmail.com)
  * 
  * This software is provided 'as-is', without any express or implied
  * warranty. In no event will the authors be held liable for any damages
@@ -26,18 +26,19 @@ package cello.jtablet.impl;
 import cello.jtablet.DriverStatus;
 
 /**
- * {@code TabletDriver}s are responsible for using a library to obtain
+ * TabletDrivers are responsible for using a library to obtain
  * access to any tablet devices which may be present on the system.
  * Most drivers will communicate with a native library to obtain tablet
  * events, though there is no strict requirement. For instance, the
  * {@MouseDriver} uses Java's own API to have the user's mouse emulate
  * a limited tablet.
  *
- * All {@code TabletDriver}s execute in their own thread, and should
- * be singletons. There should be no need for multiple instances of
- * a single driver running on the same system.
+ * All TabletDrivers execute in their own thread, and should be
+ * singletons. There should be no need for multiple instances of a
+ * single driver running on the same system.
  * 
  * @author Jason Gerecke
+ * @since 1.2.5
  */
 public interface TabletDriver extends Runnable {
 	
@@ -45,6 +46,8 @@ public interface TabletDriver extends Runnable {
 	 * Calling the {@code TabletDriver}'s {@link TabletDriver.load()}
 	 * method causes the driver to attempt to load any native code
 	 * that it relies on.
+	 *
+	 * @since 1.2.5
 	 */
 	public void load();
 	
@@ -54,6 +57,9 @@ public interface TabletDriver extends Runnable {
 	 * it nevertheless can be helpful for debugging to know what is
 	 * going on with the driver. This method provides the necessary
 	 * insight.
+	 *
+	 * @return the status of the driver
+	 * @since 1.2.5
 	 */
 	public DriverStatus getStatus();
 }
