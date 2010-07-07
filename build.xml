@@ -178,7 +178,7 @@
 			<outjar file="${dir.dist}/${dist.version}/jtablet.jar" />
 		</proguard>
 		
-		<delete file="${dir.dist}/${dist.version}/jtablet.original.jar" />
+		<!--<delete file="${dir.dist}/${dist.version}/jtablet.original.jar" />-->
 	</target>
 	
 	
