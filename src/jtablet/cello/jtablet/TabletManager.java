@@ -28,12 +28,14 @@ import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.SwingUtilities;
@@ -41,7 +43,7 @@ import javax.swing.SwingUtilities;
 import cello.jtablet.event.TabletAdapter;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
-import cello.jtablet.impl.MouseDriver;
+import cello.jtablet.impl.TabletDriver;
 
 
 /**
@@ -72,17 +74,23 @@ import cello.jtablet.impl.MouseDriver;
 public class TabletManager implements Runnable {
 	
 	protected static Queue<TabletEvent> events = new ConcurrentLinkedQueue<TabletEvent>();
-	protected static Map<TabletListener, Component> listeners = Collections.synchronizedMap(new HashMap<TabletListener, Component>());
+	protected static Map<Component, Set<TabletListener>> listeners = Collections.synchronizedMap(new WeakHashMap<Component, Set<TabletListener>>());
 	protected static Map<TabletDevice, Set<Component>> targets = new HashMap<TabletDevice, Set<Component>>();
-	protected static MouseDriver m = new MouseDriver();
+	protected static Set<TabletDriver> drivers = new HashSet<TabletDriver>();
 	
 	/**
 	 * To obtain a reference to a TabletManager, call the static
 	 * {@link TabletManager}.{@link TabletManager#getDefaultManager()} method.
 	 */
 	protected TabletManager() {
-		TabletManager.m.load();
-		new Thread(TabletManager.m).start();
+		//Add all known drivers to our set of drivers
+		//and have them load themselves up
+		drivers.add(new cello.jtablet.impl.MouseDriver());
+		for (TabletDriver d : drivers) {
+			d.load();
+			if (d.getStatus().getState() == DriverStatus.State.LOADED)
+			    new Thread(d).start();
+		}
 	}
 	
 	/**
@@ -104,7 +112,7 @@ public class TabletManager implements Runnable {
 	}
 	
 	@Deprecated
-	public void addScreenTabletListener(TabletListener listener) { System.out.println("HITHERE"); addTabletListener(listener); }
+	public void addScreenTabletListener(TabletListener listener) { addTabletListener(listener); }
 	@Deprecated
 	public void removeScreenTabletListener(TabletListener listener) { removeTabletListener(listener); }
 	@Deprecated
@@ -115,7 +123,20 @@ public class TabletManager implements Runnable {
 	/**
 	 * Get the status of all drivers.
 	 */
-	public DriverStatus getDriverStatus() { return TabletManager.m.getStatus(); }
+	@Deprecated
+	public DriverStatus getDriverStatus() {
+		DriverStatus bestStatus = new DriverStatus(DriverStatus.State.UNSUPPORTED_OS);
+		for (TabletDriver d : drivers) {
+		    if (d.getStatus().getState().ordinal() < bestStatus.getState().ordinal())
+			bestStatus = d.getStatus();
+		}
+
+		return bestStatus;
+	}
+
+	public Collection<TabletDriver> getDrivers() {
+		return drivers;
+	}
 	
 	
 	/**
@@ -129,14 +150,18 @@ public class TabletManager implements Runnable {
 	 * native library was loaded or the user is not using the tablet). Please use 
 	 * {@link #addTabletListener(Component, TabletListener)} when working with on-screen components.</p>
 	 *
+	 * <p><b>Implementation Note:</b> behavior for this method is
+	 * undefined when working with mouse input (i.e. no native library
+	 * native library was loaded or the user is not using the tablet).
+	 * Please use  {@link #addTabletListener(Component, TabletListener)}
+	 * when working with on-screen components.</p>
+	 *
 	 * @see TabletListener
 	 * @see #addTabletListener(Component, TabletListener)
 	 * @param listener the listener to add
 	 */
 	public static void addTabletListener(TabletListener listener) {
-		synchronized (TabletManager.listeners) {
-			TabletManager.listeners.put(listener, null);
-		}
+		addTabletListener(listener, ScreenComponent.INSTANCE);
 	}
 	
 	/**
@@ -161,13 +186,19 @@ public class TabletManager implements Runnable {
 	 * @see TabletListener
 	 * @param component component to add the listener to
 	 * @param listener the listener to send events to
+	 * @param component component to add the listener to
 	 */
 	public static void addTabletListener(TabletListener listener, Component component) {
 		if (component == null)
-			throw new NullPointerException();
-		
+			throw new IllegalArgumentException("Tried addding a TabletListener with 'null' component!");
+
 		synchronized (TabletManager.listeners) {
-			TabletManager.listeners.put(listener, component);
+			Set<TabletListener> l = TabletManager.listeners.get(component);
+			if (l == null) {
+				l = new HashSet<TabletListener>();
+				TabletManager.listeners.put(component, l);
+			}
+			l.add(listener);
 		}
 	}
 	
@@ -180,7 +211,8 @@ public class TabletManager implements Runnable {
 	 */
 	public static void removeTabletListener(TabletListener listener) {
 		synchronized (TabletManager.listeners) {
-			TabletManager.listeners.remove(listener);
+			for (Set<TabletListener> set : TabletManager.listeners.values())
+				set.remove(listener);
 		}
 	}
 	
@@ -189,6 +221,9 @@ public class TabletManager implements Runnable {
 	 * by TabletManager and possibly relayed to listeners.
 	 */
 	public static void postTabletEvent(TabletEvent event) {
+		if (event.getComponent() != ScreenComponent.INSTANCE)
+			throw new IllegalArgumentException("All events posted to TabletManager must be in screen space. Use ScreenComponent.INSTANCE.");
+
 		TabletManager.events.offer(event);
 	}
 	
@@ -196,6 +231,12 @@ public class TabletManager implements Runnable {
 	 * When the TabletManager thread is started, it will begin draining
 	 * the event queue and notifying {@TabletListener}s of {@link TabletEvent}s
 	 * of interest.
+	 * 
+	 * <p>Users of the JTablet API should not call this method. The static
+	 * {@link TabletManager}.{@link TabletManager#getDefaultManager()}
+	 * method will return an already-running TabletManager.</p>
+	 *
+	 * @since 1.2.5
 	 */
 	public void run() {
 		try {
@@ -216,85 +257,166 @@ public class TabletManager implements Runnable {
 	protected void drainEventQueue() {
 	synchronized (TabletManager.listeners) {
 	synchronized (TabletManager.events) {
-		Set<Map.Entry<TabletListener,Component>> entries = TabletManager.listeners.entrySet();
+		
 		while (TabletManager.events.peek() != null) {
+
 			TabletEvent event = TabletManager.events.remove();
-			System.out.print("-");
-			for (Map.Entry<TabletListener,Component> entry : entries) {
-				
-				if (shouldRecieve(event, entry.getKey(), entry.getValue())) {
-					TabletEvent translatedEvent = event.translated(0,0); //Make a clone
-					
-					if (entry.getValue() != null) {
-						System.out.print("T");
-						Point point = entry.getValue().getLocationOnScreen();
-						System.out.print(">   " + translatedEvent.getX() + ", " + translatedEvent.getY() + "\t" + point);
-						translatedEvent = translatedEvent.translated(entry.getValue(), -point.x, -point.y);
-						System.out.println("\t" + translatedEvent.getPoint());
-					}
-					System.out.print(":");
-					updateTarget(entry.getValue(), translatedEvent);
-					translatedEvent.fireEvent(entry.getKey());
-				}
-			}
+			
+			for (Component component : TabletManager.listeners.keySet())
+			    if (shouldRecieve(event, component))
+				fireEvents(event, component);
 		}
 	}
 	}
+	}
+
+	/**
+	 * Translates the X,Y coordinates of an event from screen space to
+	 * to the target component's space.
+	 *
+	 * <p>Note that the event's coordinates <b>must</b> be in screen
+	 * space for this method to work correctly. We assume that this
+	 * won't be a problem since {@link TabletManager#postTabletEvent(cello.jtablet.event.TabletEvent)}
+	 * throws an exception if you attempt to add an event to the queue
+	 * which isn't relative to {@link ScreenComponent#INSTANCE}.</p>
+	 *
+	 * <p>This restriction could be relaxed in the future if there is a
+	 * good reason, but for now we don't bother.</p>
+	 *
+	 * @see TabletManager#postTabletEvent(cello.jtablet.event.TabletEvent)
+	 * @param event the event whose coordinates should be translated from screen space
+	 * @param component the component whose coordinate space the returned event should be in
+	 * @return an event translated from screen space to component space
+	 * @since 1.2.5
+	 */
+	protected TabletEvent translate(TabletEvent event, Component component) {
+		Point point = component.getLocationOnScreen();
+		return event.translated(component, -point.x, -point.y);
 	}
 	
 	/**
 	 * This method determines whether or not the given listener
 	 * should recieve the given event.
 	 */
-	protected boolean shouldRecieve(TabletEvent event, TabletListener listener, Component component) {
-		//1: Screen listeners recieve *everything*
-		if (component == null) {
-			System.out.print("s");
+	protected boolean shouldRecieve(TabletEvent event, Component component) {
+		//Screen listeners recieve *everything*
+		if (component == ScreenComponent.INSTANCE) {
 			return true;
 		}
 		
-		//2: Is the component targeted by the event's device?
-		if (isTargeted(component, event.getDevice())) {
+		//Is the component targeted by the event's device?
+		Set<Component> components = targets.get(event.getDevice());
+		if (components != null && components.contains(component)) {
 			return true;
 		}
 		
-		//3: Is the component on screen and in the focused window?
+		//Is the component off screen or not in the focused window?
 		if (!component.isShowing() || SwingUtilities.getWindowAncestor(component) != KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow())
 			return false;
 		
-		//3: Is this a MOVED or PRESSED event over top of a viable component?
+		//Is this a MOVED or PRESSED event over top of a viable component?
 		if (event.getType() == TabletEvent.Type.MOVED || event.getType() == TabletEvent.Type.PRESSED) {
-			Point point = component.getLocationOnScreen();
-			TabletEvent newEvent = event.translated(component, -point.x, -point.y);
-			System.out.println("~" + newEvent.getPoint() + "~");
-			return component.contains(newEvent.getPoint());
+			return component.contains(translate(event, component).getPoint());
 		}
 		
 		return false;
 	}
-	
-	protected boolean isTargeted(Component component, TabletDevice device) {
-		Set<Component> components = targets.get(device);
-		return components != null && components.contains(component);
-	}
-	
-	
-	
-	protected void updateTarget(Component component, TabletEvent event) {
+
+	/**
+	 * Fires the given event -- as well as any needed supplementary
+	 * events -- to listeners registered with the event's component.
+	 *
+	 * <p>Because {@link TabletDriver}s are decoupled from the location
+	 * of components on screen, there is no way for them to create
+	 * the necessary {@link TabletDevice.Type#ENTERED} and
+	 * {@link TabletDevice.Type#EXITED} events. This method keeps
+	 * track of "targeted" components which should receive events,
+	 * and creates the necessary additional events as components
+	 * are (de)targeted.</p>
+	 *
+	 * @param event the event to fire (and base any additional needed events on)
+	 * @param component the component a listener must be registered with to receive these events
+	 * @since 1.2.5
+	 */
+	protected void fireEvents(TabletEvent event, Component component) {
+		if (component == ScreenComponent.INSTANCE) {
+			fire(event);
+			return;
+		}
+
 		Set<Component> components = targets.get(event.getDevice());
 		if (components == null) {
 			components = new HashSet<Component>();
 			targets.put(event.getDevice(), components);
 		}
-		
+
+		TabletEvent translated = translate(event, component);
 		switch (event.getType()) {
+			/**
+			 * If the cursor has moved or been pressed, we
+			 * need to check to see if the component is
+			 * already targeted, and possibly fire an ENTER
+			 * or EXIT event as necessary.
+			 */
+			case MOVED:
 			case PRESSED:
-				components.add(component);
+				if (component.contains(translated.getPoint())) {
+					if (!components.contains(component)) {
+						components.add(component);
+						fire(translated.withType(TabletEvent.Type.ENTERED));
+					}
+
+					fire(translated);
+				}
+				else if (components.contains(component)) {
+					components.remove(component);
+					fire(translated);
+					fire(translated.withType(TabletEvent.Type.EXITED));
+				}
 				break;
+
+			/**
+			 * If the cursor has been released, we need to
+			 * remove all targets that are no longer under
+			 * the pointer and notify them of the exit.
+			 */
 			case RELEASED:
-				components.remove(component);
+				if (component.contains(translated.getPoint())) {
+					fire(translated);
+				}
+				else if (components.contains(component)) {
+					components.remove(component);
+					fire(translated);
+					fire(translated.withType(TabletEvent.Type.EXITED));
+				}
+				break;
+
+			/**
+			 * All other cases (DRAG, LEVEL_CHANGE, SCROLL, etc)
+			 * we assume do not change the components which are
+			 * already listening, and should only be directed to
+			 * them.
+			 */
+			default:
+				if (components.contains(component))
+					fire(translated);
 				break;
 		}
+	}
+
+	/**
+	 * Fires an event to all listeners of the event's component.
+	 * No checks of any kind are done by this method -- this is
+	 * the last method used by TabletManager on each event in the
+	 * queue.
+	 *
+	 * @param event the event to deliver to all listeners
+	 *        which are registered to the event's component
+	 * @since 1.2.5
+	 */
+	protected void fire(TabletEvent event) {
+		for (TabletListener l : TabletManager.listeners.get(event.getComponent()))
+			event.fireEvent(l);
 	}
 }
 

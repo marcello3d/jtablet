@@ -39,6 +39,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import cello.jtablet.DriverStatus;
+import cello.jtablet.ScreenComponent;
 import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletEvent.Type;
@@ -57,52 +58,42 @@ import cello.jtablet.event.TabletEvent.Type;
  * @author marcello
  */
 public class MouseDriver implements TabletDriver {
-	
-	private static class ScreenComponent extends java.awt.Component {
-		private static final Point POINT = new Point(0,0);
-		private java.awt.GraphicsConfiguration getMainScreen() {
-			java.awt.GraphicsDevice[] gs = java.awt.GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
-			if (gs.length > 0) {
-				return gs[0].getDefaultConfiguration();
-			}
-			return null;
-		}
-		@Override
-		public Point getLocationOnScreen() {
-			return POINT;
-		}
-		@Override
-		public java.awt.Rectangle bounds() {
-			return getMainScreen().getBounds();
-		}
-		@Override
-		public java.awt.Rectangle getBounds(java.awt.Rectangle rv) {
-			if (rv == null) {
-				return bounds();
-			}
-			rv.setBounds(bounds());
-			return rv;
-		}
-		@Override
-		public String toString() {
-			return getClass().getSimpleName();
-		}
-	}
-	
+
+	/**
+	 * This class is responsible for listening for all mouse-related
+	 * events produced by Java, transforming them into
+	 * {@link TabletEvent}s, and passing them on to the
+	 * {@link TabletManager}.
+	 */
 	protected class MagicListener implements MouseListener, MouseMotionListener, MouseWheelListener, AWTEventListener {
-		ScreenComponent SCREEN_COMPONENT = new ScreenComponent();
 		
-		private void fire(TabletEvent event) {
-			if (event != null) {
-				System.out.println(event.getPoint());
-				TabletManager.postTabletEvent(event);
-			}
-			else {
-				System.out.print("_");
+		public void eventDispatched(AWTEvent event) {
+			if (event instanceof MouseWheelEvent) {
+				post(transform((MouseWheelEvent)event));
+			} else if (event instanceof MouseEvent) {
+				post(transform((MouseEvent)event));
 			}
 		}
+
+		public void mouseClicked(MouseEvent e)         { return;             }
+		public void mouseEntered(MouseEvent e)         { post(transform(e)); }
+		public void mouseExited(MouseEvent e)          { post(transform(e)); }
+		public void mousePressed(MouseEvent e)         { post(transform(e)); }
+		public void mouseReleased(MouseEvent e)        { post(transform(e)); }
+		public void mouseDragged(MouseEvent e)         { post(transform(e)); }
+		public void mouseMoved(MouseEvent e)           { post(transform(e)); }
+		public void mouseWheelMoved(MouseWheelEvent e) { post(transform(e)); }
 		
-		private TabletEvent translateEvent(MouseEvent e) {
+		/**
+		 * Transforms a MouseEvent into a TabletEvent for use by
+		 * the rest of JTablet. This method maintains as much
+		 * information about the original event as possible.
+		 *
+		 * @param e the event to transform
+		 * @return a TabletEvent with much the same information as the source MouseEvent
+		 */
+		private TabletEvent transform(MouseEvent e) {
+			System.out.print("~");
 			TabletEvent.Type type = null;
 			switch (e.getID()) {
 				case MouseEvent.MOUSE_PRESSED:  type = Type.PRESSED;  break;
@@ -114,19 +105,25 @@ public class MouseDriver implements TabletDriver {
 				default:                        type = null;          break;
 			}
 			
-			if (type != null) {
-				Point componentLocationOnScreen = e.getComponent().getLocationOnScreen();
-				Point src = (Point)componentLocationOnScreen.clone();
-				src.translate(e.getX(), e.getY());
-				System.out.println(e.getX() + ", " + e.getY() + "\t" + componentLocationOnScreen + "\t" + src);
-				return new TabletEvent(e, type, MouseDevice.INSTANCE, SCREEN_COMPONENT, componentLocationOnScreen.x + e.getX(), componentLocationOnScreen.y + e.getY());
-			}
-			else {
-				return null;
-			}
+			Point componentLocationOnScreen = e.getComponent().getLocationOnScreen();
+			return new TabletEvent(e,
+				type,
+				MouseDevice.INSTANCE,
+				ScreenComponent.INSTANCE,
+				componentLocationOnScreen.x + e.getX(),
+				componentLocationOnScreen.y + e.getY()
+			);
 		}
-		
-		private TabletEvent translateEvent(MouseWheelEvent e) {
+
+		/**
+		 * Transforms a MouseWheelEvent into a TabletEvent for use by
+		 * the rest of JTablet. This method maintains as much
+		 * information about the original event as possible.
+		 *
+		 * @param e the event to transform
+		 * @return a TabletEvent with much the same information as the source MouseWheelEvent
+		 */
+		private TabletEvent transform(MouseWheelEvent e) {
 			float deltaX=0, deltaY=0;
 			
 			if ((e.getModifiersEx() & InputEvent.SHIFT_DOWN_MASK) != 0)
@@ -135,7 +132,7 @@ public class MouseDriver implements TabletDriver {
 				deltaY = -e.getWheelRotation()*e.getScrollAmount();
 			
 			return new TabletEvent(
-				e.getComponent(),
+				ScreenComponent.INSTANCE,
 				TabletEvent.Type.SCROLLED,
 				e.getWhen(),
 				e.getModifiersEx(),
@@ -148,51 +145,62 @@ public class MouseDriver implements TabletDriver {
 				0
 			);
 		}
-		
-		public void eventDispatched(AWTEvent event) {
-			System.out.print("*");
-			if (event instanceof MouseWheelEvent) {
-				fire(translateEvent((MouseWheelEvent)event));
-			} else if (event instanceof MouseEvent) {
-				fire(translateEvent((MouseEvent)event));
-			}
+
+		/**
+		 * Posts the given event in the TabletManager's event queue
+		 * for processing.
+		 *
+		 * @param event the event to send
+		 */
+		private void post(TabletEvent event) {
+			if (event.getType() != null &&
+				event.getType() != Type.ENTERED &&
+				event.getType() != Type.EXITED)
+				TabletManager.postTabletEvent(event);
+			else
+			    return; //I think proguard breaks this class unless this is here...
 		}
-		
-		public void mouseClicked(MouseEvent e)         { return;                  }
-		public void mouseEntered(MouseEvent e)         { fire(translateEvent(e)); }
-		public void mouseExited(MouseEvent e)          { fire(translateEvent(e)); }
-		public void mousePressed(MouseEvent e)         { fire(translateEvent(e)); }
-		public void mouseReleased(MouseEvent e)        { fire(translateEvent(e)); }
-		public void mouseDragged(MouseEvent e)         { fire(translateEvent(e)); }
-		public void mouseMoved(MouseEvent e)           { fire(translateEvent(e)); }
-		public void mouseWheelMoved(MouseWheelEvent e) { fire(translateEvent(e)); }
-		
 	}
 	
 	protected MagicListener listener = new MagicListener();
 	protected DriverStatus status;
-	
+
+	/**
+	 * Loads the driver in preparation of its running. While no
+	 * native code is called by this method, it does still attempt
+	 * to grab as much pointer data as possible. If the necessary
+	 * permissions exist, the driver will be able to listen to all
+	 * AWT mouse events -- even those from other applications running
+	 * in the same JVM.
+	 */
 	public void load() {
 		try {
-			//Try to listen to the mouse anywhere on screen
 			AccessController.doPrivileged(new PrivilegedAction<Void>() {
 				public Void run() {
 					Toolkit.getDefaultToolkit().addAWTEventListener(listener, AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.MOUSE_WHEEL_EVENT_MASK);
 					return null;
 				}
 			});
-			
+
 			status = new DriverStatus(DriverStatus.State.LOADED);
 		}
 		catch (AccessControlException ex) {
 			System.err.println("MouseDriver does not have \"listenToAllAWTEvents\" permission. Falling back to frame listening.");
-			status = new DriverStatus(DriverStatus.State.NATIVE_EXCEPTION);
+			status = new DriverStatus(DriverStatus.State.UNEXPECTED_EXCEPTION, ex);
 		}
 	}
 	
 	public void run() {
+		/**  This code does not work for some reason...
+		     It sure would be nice to just listen to all frames
+		     as a fallback...
+		     
+		     PS: Be sure to switch the status state to LOADED
+		     in the catch block of the load() method if you're
+		     going to do any testing...
+		     
 		try {
-			if (status.getState() != DriverStatus.State.LOADED) {
+			if (status.getThrowable() != null) {
 				while (true) {
 					for (Frame f : Frame.getFrames()) {
 						f.addMouseListener(listener);
@@ -206,6 +214,7 @@ public class MouseDriver implements TabletDriver {
 		catch (InterruptedException e) {
 			System.err.println("MouseDriver thread interrupted. Exiting thread.");
 		}
+		*/
 	}
 	
 	public DriverStatus getStatus() {
