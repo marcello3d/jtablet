@@ -160,6 +160,28 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 				else if (name.contains("pad"))    { type = Type.UNKNOWN; }
 				else                              { type = Type.STYLUS;  }
 			}
+			else if (name.contains("WP8060U")) {
+				buttonSupport       = TabletDevice.Support.YES;
+				pressureSupport     = TabletDevice.Support.YES;
+				rotationSupport     = TabletDevice.Support.NO;
+				sidePressureSupport = TabletDevice.Support.NO;
+				tiltSupport         = TabletDevice.Support.NO;
+				
+				type = Type.STYLUS;
+			}
+			else if (name.toLowerCase().contains("tablet")) {
+				//Fall-though case for devices which are probably
+				//tablets, but which we do not support specifically
+				//  ** Be sure to leave this as the final case **
+				
+				buttonSupport       = TabletDevice.Support.YES;
+				pressureSupport     = TabletDevice.Support.YES;
+				rotationSupport     = TabletDevice.Support.NO;
+				sidePressureSupport = TabletDevice.Support.NO;
+				tiltSupport         = TabletDevice.Support.NO;
+				
+				type = Type.UNKNOWN;
+			}
 			
 			return new XInputDevice(device, type, name, uniqueId,
 			   floatSupport, buttonSupport, uniqueIdSupport,
@@ -433,7 +455,7 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 			}
 		}
 	}
-	
+	/*
 	public void addTabletListener(Component c, TabletListener l) {
 		super.addTabletListener(c, l);
 		mouseListener.addTabletListener(c, l);
@@ -452,4 +474,5 @@ public class XInputTabletManager extends ScreenTabletManager implements NativeTa
 		super.removeScreenTabletListener(l);
 		mouseListener.removeScreenTabletListener(l);
 	}
+	*/
 }
