@@ -47,7 +47,8 @@ public class JTablet {
     private boolean pollModeLatest = true;
     
     private final ConcurrentLinkedQueue<JTabletCursor> cursorQueue = new ConcurrentLinkedQueue<JTabletCursor>();
-    
+    private final boolean legacyBugWorkaround;
+
 
     /**
      * @throws JTabletException 
@@ -67,8 +68,18 @@ public class JTablet {
      */
     @Deprecated
     public JTablet(boolean fullControl) throws JTabletException {
-		System.out.println("JTablet loaded("+getVersion()+")");
+		System.out.println("JTablet 2 compatibility mode driver loaded ("+getVersion()+")");
     	TabletManager.getDefaultManager().addScreenTabletListener(tabletListener);
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+        boolean legacyBugWorkaround = false;
+        for (StackTraceElement ste : stackTraceElements) {
+            if (ste.getClassName().contains("paintchat")) {
+                System.err.println("Detected Paintchat. legacy workaround enabled");
+                legacyBugWorkaround = true;
+                break;
+            }
+        }
+        this.legacyBugWorkaround = legacyBugWorkaround;
     }
 
 
@@ -185,6 +196,9 @@ public class JTablet {
     @Deprecated
     public synchronized boolean poll() throws JTabletException {
         if (cursorQueue.isEmpty()) {
+            if (legacyBugWorkaround) {
+                return true;
+            }
             return false;
         }
         currentCursor = cursorQueue.poll();

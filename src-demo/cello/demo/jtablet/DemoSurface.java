@@ -9,6 +9,8 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.NoninvertibleTransformException;
@@ -60,6 +62,13 @@ public class DemoSurface extends JComponent {
 		
 		// Add listener that sucks tablet events into a queue
 		TabletManager.getDefaultManager().addTabletListener(this, eventQueue);	
+		
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				requestFocus();
+			}
+		});
 	}
 	
 	/**
@@ -371,6 +380,6 @@ public class DemoSurface extends JComponent {
 	}
 
 	public String toString() {
-		return getClass().getSimpleName()+"@"+hashCode();
+		return getClass().getSimpleName()+"@"+hashCode()+"["+getBounds()+"]";
 	}
 }

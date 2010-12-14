@@ -53,7 +53,7 @@
 	<property name="impl.title"             value="JTablet 2"/>
 	<property name="impl.vendor"            value="Cellosoft"/>
 	<property name="impl.vendor.id"         value="cello"/>
-	<property name="impl.version"           value="1.2.5-alpha"/>
+	<property name="impl.version"           value="1.2.6-alpha"/>
 	
 	<condition property="platform" value="osx">
 		<and>
