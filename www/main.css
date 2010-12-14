@@ -115,3 +115,6 @@ ul.download small {
 	padding: 10pt 5pt 30pt;
 	clear:both;
 }
+li {
+    padding-bottom: 3pt;
+}
