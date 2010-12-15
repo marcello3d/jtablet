@@ -1,5 +1,4 @@
 build
 dist
-.svn
-src-gen
 bin
+*.eml
