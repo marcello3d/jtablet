@@ -18,7 +18,7 @@
 			<arg value="jnilib"/>
 		</exec>
 		<copy tofile="${dist.version}/libjtablet2.jnilib">
-			<fileset dir="${src.gen.native}/osx/build/Release">
+			<fileset dir="${src.gen.native}/osx/build">
 				<include name="*.jnilib"/>
 			</fileset>
 		</copy>
