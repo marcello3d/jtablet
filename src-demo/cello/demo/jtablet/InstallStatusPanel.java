@@ -70,6 +70,9 @@ public class InstallStatusPanel extends JPanel {
 		DriverStatus status = TabletManager.getDefaultManager().getDriverStatus();
 		driverStatus.setText(status.getState().toString());
 		Throwable throwable = status.getThrowable();
+        if (throwable != null) {
+            throwable.printStackTrace();
+        }
 		driverException.setText(throwable == null ? "null" : throwable.toString());
 	}
 
