@@ -2,3 +2,4 @@ build
 dist
 bin
 *.eml
+.idea/workspace.xml
