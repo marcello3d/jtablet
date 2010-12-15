@@ -22,12 +22,17 @@
 	<property name="src.jpen.package"       value="cello.repackaged.jpen"/>
 	<property name="src.jpen.package_"      value="cello_repackaged_jpen"/>
 	
-	<property name="src.gen.native"         location="src-gen/native"/>
+	<property name="src.gen.native"         location="${build}/src-gen/native"/>
 	<property name="src.demo"               location="src-demo"/>
 	<property name="src.installer"          location="src-installer"/>
-	<property name="src.jpen"               location="../jpen/src/main/java"/>
-	<property name="src.jpen.native"        location="../jpen/src/main/c"/>
-	<property name="src.jpen.resources"     location="../jpen/src/main/resources"/>
+
+
+    <property name="jpen.svn.url"           value="https://jpen.svn.sourceforge.net/svnroot/jpen/trunk/src/main"/>
+    <property name="jpen.svn.name"          value="jpen-svn"/>
+    <property name="jpen.svn.path"          location="${build}/${jpen.svn.name}"/>
+    <property name="src.jpen"               location="${jpen.svn.path}/java"/>
+	<property name="src.jpen.native"        location="${jpen.svn.path}/c"/>
+	<property name="src.jpen.resources"     location="${jpen.svn.path}/resources"/>
 	
 	
 	<property name="build.version.file"     location="${build}/svn.version"/>
@@ -88,9 +93,22 @@
 		<!--<exec executable="svnversion" spawn="false" dir="." outputproperty="svn.version" errorproperty="svn.version.error"></exec>-->
 		<property name="svn.version" value="dev"/>
 	</target>
+
+    <target name="jpen" depends="init">
+        <mkdir dir="${jpen.svn.path}"/>
+        <exec
+            executable="svn"
+            spawn="false"
+            dir="${jpen.svn.path}"
+            failonerror="true">
+            <arg value="checkout"/>
+            <arg value="${jpen.svn.url}"/>
+            <arg value="."/>
+        </exec>
+    </target>
 	
 	<target name="jtabletjpen.gen.java" 
-	        depends="init" 
+	        depends="jpen"
 	        description="repackage jpen java source for jtablet" >
 		
 		<mkdir dir="${src.gen.java}"/>
@@ -107,6 +125,16 @@
 			<replacefilter
 			        token="package jpen;"
 			        value="package ${src.jpen.package};"/>
+            <replacefilter
+                    token="final class XiDevice"
+                    value="public class XiDevice"/>
+            <replacefilter
+                    token="final class WintabAccess"
+                    value="public class WintabAccess"/>
+            <replacefilter
+                    token="final class CocoaAccess"
+                    value="public class CocoaAccess"/>
+
 		</replace>
 	</target>
 	<target name="jtabletjpen.compile.java" 
@@ -127,7 +155,7 @@
 	
 	<target 
 	        name="jtabletjpen.gen.native" 
-	        depends="init" 
+	        depends="jpen"
 	        description="repackage jpen native source for jtablet" >
 		<mkdir dir="${src.gen.native}"/>
 		<copy todir="${src.gen.native}">
