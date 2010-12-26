@@ -23,10 +23,6 @@
 
 package cello.jtablet.impl.jpen;
 
-import java.awt.event.MouseEvent;
-import java.util.HashMap;
-import java.util.Map;
-
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
@@ -36,6 +32,10 @@ import cello.jtablet.impl.NativeLoaderException;
 import cello.jtablet.impl.NativeTabletManager;
 import cello.jtablet.impl.ScreenTabletManager;
 import cello.repackaged.jpen.provider.osx.CocoaAccess;
+
+import java.awt.event.MouseEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author marcello
@@ -323,16 +323,16 @@ public class CocoaTabletManager extends ScreenTabletManager implements NativeTab
 
 		private int getMouseEventModifiers(int cocoaModifierFlags) {
 			int modifiers = 0;
-			if ((cocoaModifierFlags & NS_MODIFIER_ControlKeyMask)!=0) {
+			if ((cocoaModifierFlags & NS_MODIFIER_ControlKeyMask) != 0) {
 				modifiers |= MouseEvent.CTRL_DOWN_MASK;
 			}
-			if ((cocoaModifierFlags & NS_MODIFIER_ShiftKeyMask)!=0) {
+			if ((cocoaModifierFlags & NS_MODIFIER_ShiftKeyMask) != 0) {
 				modifiers |= MouseEvent.SHIFT_DOWN_MASK;
 			}
-			if ((cocoaModifierFlags & NS_MODIFIER_AlternateKeyMask)!=0) {
+			if ((cocoaModifierFlags & NS_MODIFIER_AlternateKeyMask) != 0) {
 				modifiers |= MouseEvent.ALT_DOWN_MASK;
 			}
-			if ((cocoaModifierFlags & NS_MODIFIER_CommandKeyMask)!=0) {
+			if ((cocoaModifierFlags & NS_MODIFIER_CommandKeyMask) != 0) {
 				modifiers |= MouseEvent.META_DOWN_MASK;
 			}
 			return modifiers;
@@ -344,21 +344,18 @@ public class CocoaTabletManager extends ScreenTabletManager implements NativeTab
 
 	private static class CocoaDevice extends AbstractTabletDevice {
 		protected CocoaDevice(Type type, String name, String uniqueId,
-				Support floatSupport, Support buttonSupport,
-				Support uniqueIdSupport, Support pressureSupport,
-				Support rotationSupport, Support sidePressureSupport,
-				Support tiltSupport) {
-			super(type, name, uniqueId, floatSupport, buttonSupport, uniqueIdSupport,
-					pressureSupport, rotationSupport, sidePressureSupport, tiltSupport);
+                              Support floatSupport, Support buttonSupport,
+                              Support uniqueIdSupport, Support pressureSupport,
+                              Support rotationSupport, Support sidePressureSupport,
+                              Support tiltSupport) {
+			super(type, name, uniqueId, floatSupport, buttonSupport, uniqueIdSupport, pressureSupport, rotationSupport,
+                  sidePressureSupport, tiltSupport);
 		}
 	}
-
-	@Override
 	protected void start() {
 		ca.enable();
 	}
 
-	@Override
 	protected void stop() {
 		ca.disable();
 	}

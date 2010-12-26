@@ -114,20 +114,7 @@ public class TabletEvent extends MouseEvent implements Serializable {
 	 * @param device 
 	 */
 	public TabletEvent(MouseEvent e, Type type, TabletDevice device) {
-		super(e.getComponent(),e.getID(), e.getWhen(), e.getModifiersEx(), e.getX(), e.getY(), e.getClickCount(), e.isPopupTrigger(), e.getButton());
-		this.x = e.getX();
-		this.y = e.getY();
-		this.type = type;
-		this.pressure = (e.getModifiersEx() & BUTTON1_DOWN_MASK) != 0 ? 1.0f : 0;
-		this.tiltX = 0;
-		this.tiltY = 0;
-		this.sidePressure = 0;
-		this.rotation = 0;
-		this.device = device;
-		this.scrollX = 0;
-		this.scrollY = 0;
-		this.zoomFactor = 0;
-		this.rawTabletButtonMask = 0;
+        this(e,type,device,e.getComponent(), e.getX(), e.getY());
 	} 
 
 
@@ -145,8 +132,9 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.x = x;
 		this.y = y;
 		this.type = type;
-		this.pressure = (e.getModifiersEx() & BUTTON1_DOWN_MASK) != 0 ? 1.0f : 0;
-		this.tiltX = 0;
+        int modifiersEx = e.getModifiersEx();
+        this.pressure = (modifiersEx & BUTTON1_DOWN_MASK) != 0 ? 1.0f : 0;
+        this.tiltX = 0;
 		this.tiltY = 0;
 		this.sidePressure = 0;
 		this.rotation = 0;
@@ -154,7 +142,9 @@ public class TabletEvent extends MouseEvent implements Serializable {
 		this.scrollX = 0;
 		this.scrollY = 0;
 		this.zoomFactor = 0;
-		this.rawTabletButtonMask = 0;
+		this.rawTabletButtonMask = ((modifiersEx & BUTTON1_DOWN_MASK) != 0 ? 1 : 0)|
+                                   ((modifiersEx & BUTTON2_DOWN_MASK) != 0 ? 2 : 0)|
+                                   ((modifiersEx & BUTTON3_DOWN_MASK) != 0 ? 4 : 0);
 	} 
 
 
