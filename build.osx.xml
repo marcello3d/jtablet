@@ -16,9 +16,14 @@
 	    	dir="${src.gen.native}/osx">
 			<arg value="-target"/>
 			<arg value="jnilib"/>
+			<arg value="-configuration"/>
+			<arg value="Release"/>
+			<arg value="OBJROOT=build"/>
+			<arg value="SYMROOT=build"/>
+			<arg value="DSTROOT=build"/>
 		</exec>
 		<copy tofile="${dist.version}/libjtablet2.jnilib">
-			<fileset dir="${src.gen.native}/osx/build">
+			<fileset dir="${src.gen.native}/osx/build/Release">
 				<include name="*.jnilib"/>
 			</fileset>
 		</copy>

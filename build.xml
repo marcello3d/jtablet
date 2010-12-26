@@ -82,19 +82,14 @@
 	
 	<import file="build.${platform}.xml" />
 	
-	<target name="init" depends="svn.version">
+	<target name="init">
 		<tstamp/>
-		<property name="dist.version" value="${dist}/${DSTAMP}-${svn.version}"/>
+		<property name="dist.version" value="${dist}/${DSTAMP}"/>
 		<mkdir dir="${dist.version}"/>
+        <available file="${jpen.svn.path}" property="jpen.checked-out"/>
 	</target>
 	
-	<target name="svn.version">
-		<!-- Sets the build version for the current build -->
-		<!--<exec executable="svnversion" spawn="false" dir="." outputproperty="svn.version" errorproperty="svn.version.error"></exec>-->
-		<property name="svn.version" value="dev"/>
-	</target>
-
-    <target name="jpen" depends="init">
+    <target name="jpen" depends="init" unless="jpen.checked-out">
         <mkdir dir="${jpen.svn.path}"/>
         <exec
             executable="svn"
@@ -118,24 +113,28 @@
 				<exclude name="demo/**" />
 			</fileset>
 		</copy>
-		<replace dir="${src.gen.java}">
-			<replacefilter
-			        token=" jpen."
-			        value=" ${src.jpen.package}."/>
-			<replacefilter
-			        token="package jpen;"
-			        value="package ${src.jpen.package};"/>
-            <replacefilter
-                    token="final class XiDevice"
-                    value="public class XiDevice"/>
-            <replacefilter
-                    token="final class WintabAccess"
-                    value="public class WintabAccess"/>
-            <replacefilter
-                    token="final class CocoaAccess"
-                    value="public class CocoaAccess"/>
 
-		</replace>
+        <!-- rename package -->
+        <replace dir="${src.gen.java}">
+            <replacefilter
+                    token=" jpen."
+                    value=" ${src.jpen.package}."/>
+            <replacefilter
+                    token="package jpen;"
+                    value="package ${src.jpen.package};"/>
+        </replace>
+        
+        <!-- make access classes public -->
+        <replaceregexp
+                match=".*class (XiBus|XiDevice|WintabAccess|CocoaAccess)"
+                replace="public class \1">
+          <fileset dir="${src.gen.java}">
+              <include name="**/XiBus.java"/>
+              <include name="**/XiDevice.java"/>
+              <include name="**/WintabAccess.java"/>
+              <include name="**/CocoaAccess.java"/>
+          </fileset>
+        </replaceregexp>
 	</target>
 	<target name="jtabletjpen.compile.java" 
 	        depends="jtabletjpen.gen.java, jtablet.uninstall" 
@@ -200,7 +199,7 @@
 	</target>
 	
 	
-	<target name="jtablet.jar.original" depends="svn.version,jtablet.compile">
+	<target name="jtablet.jar.original" depends="jtablet.compile">
 		<copy todir="${build.jtablet}">
 			<fileset dir="${build.jtablet.jpen}">
 				<include name="**/*" />
@@ -287,7 +286,7 @@
 	</target>
 	
 	
-	<target name="jtablet-thin.jar.original" depends="svn.version, jtablet.thin.compile, jtabletjpen.compile.java">
+	<target name="jtablet-thin.jar.original" depends="jtablet.thin.compile, jtabletjpen.compile.java">
 		<copy todir="${build.jtablet.thin}">
 			<fileset dir="${build.jtablet.jpen}">
 				<include name="**/*" />
@@ -307,7 +306,7 @@
 				<attribute name="Implementation-Title" 		value="${impl.title}"/>
 				<attribute name="Implementation-Vendor" 	value="${impl.vendor}"/>
 				<attribute name="Implementation-Vendor-Id" 	value="${impl.vendor.id}"/>
-				<attribute name="Implementation-Version" 	value="${impl.version}_${DSTAMP}_${svn.version}-thin"/>
+				<attribute name="Implementation-Version" 	value="${impl.version}_${DSTAMP}-thin"/>
 				<section name="cello/jtablet/impl/">
 					<attribute name="Sealed" value="true"/>
 				</section>
@@ -442,11 +441,11 @@
 			</fileset>
 		</copy>
 		<tar 
-		        destfile="${dist.version}/jtablet2-${impl.version}-${DSTAMP}-${svn.version}.tar" 
+		        destfile="${dist.version}/jtablet2-${impl.version}-${DSTAMP}.tar"
 		        basedir="${dist.version}/developer-release" />
 		<gzip 
-		        destfile="${dist.version}/jtablet2-${impl.version}-${DSTAMP}-${svn.version}.tgz" 
-		        src="${dist.version}/jtablet2-${impl.version}-${DSTAMP}-${svn.version}.tar"/>
+		        destfile="${dist.version}/jtablet2-${impl.version}-${DSTAMP}.tgz"
+		        src="${dist.version}/jtablet2-${impl.version}-${DSTAMP}.tar"/>
 	</target>
 	
 	<target name="clean" description="clean up" >
