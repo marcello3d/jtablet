@@ -29,6 +29,7 @@ import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletFunneler;
 import cello.jtablet.event.TabletListener;
+import cello.jtablet.installer.JTabletExtension;
 
 /**
  * This class is provided as a compatibility wrapper for old 0.9.x-based JTablet applications/applets.
@@ -179,7 +180,7 @@ public class JTablet {
      */
     @Deprecated
     public static String getLibraryVersion() {
-    	return "0.9.9-jtablet2compatibility";
+    	return "0.9.9-compatible-jtablet2_" + JTabletExtension.getInstalledVersion();
     }
 
     /**
