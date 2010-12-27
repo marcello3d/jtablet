@@ -30,13 +30,13 @@ import java.awt.GraphicsEnvironment;
 import java.awt.KeyboardFocusManager;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.HierarchyEvent;
-import java.awt.event.HierarchyListener;
+import java.awt.Window;
+import java.awt.event.InputEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -74,8 +74,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 	 * A fake component used because MouseEvent requires a real component.
 	 */
 	private static class ScreenComponent extends Component {
-		private static final Point POINT = new Point(0,0);
-		private GraphicsConfiguration getMainScreen() {
+        private GraphicsConfiguration getMainScreen() {
 			GraphicsDevice[] gs = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
 			if (gs.length > 0) {
 				return gs[0].getDefaultConfiguration();
@@ -84,7 +83,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 		}
 		@Override
 		public Point getLocationOnScreen() {
-			return POINT;
+			return new Point(0,0);
 		}
 		@Override
 		public Rectangle bounds() {
@@ -141,10 +140,14 @@ public abstract class ScreenTabletManager extends TabletManager {
 					pressed = true;
 				}
 				for (TabletListener l : screenListeners) {
-					ev.fireEvent(l);
+                    try {
+					    ev.fireEvent(l);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 				}
 				for (ComponentManager cm : componentManagers.values()) {
-					cm.fireScreenTabletEvent(ev);
+					cm.dispatchScreenTabletEvent(ev);
 				}
 				if (ev.getType() == TabletEvent.Type.RELEASED) {
 					pressed = false;
@@ -184,26 +187,51 @@ public abstract class ScreenTabletManager extends TabletManager {
 
 
 	/**
-	 * This is a hacked container that pretends to be a HierarchyListener so that it can associated with a Component.
-	 * Why HierarchyListener? The events aren't called very often, it doesn't have many methods, and the listener isn't
-	 * used all that often.
+	 * This listener serves two purposes. One is to link the Tablet listeners to
 	 */
-	private static class TabletListenerManager implements HierarchyListener, Iterable<TabletListener> {
-		List<TabletListener> listeners = new ArrayList<TabletListener>();
-		public void hierarchyChanged(HierarchyEvent e) {}
+	private static class TabletListenerManager implements MouseListener {
+		public boolean mouseOver = false;
+
+		private final List<TabletListener> listeners = new ArrayList<TabletListener>();
+
+        public boolean add(TabletListener l) {
+            return listeners.add(l);
+        }
 		public void remove(TabletListener l) {
 			listeners.remove(l);
 		}
 		public boolean isEmpty() {
 			return listeners.isEmpty();
 		}
-		public Iterator<TabletListener> iterator() {
-			return listeners.iterator();
-		}
-		public boolean add(TabletListener l) {
-			return listeners.add(l);
-		}
-	}
+
+        public boolean isMouseOver() {
+            return mouseOver;
+        }
+
+        public void mouseEntered(MouseEvent e) {
+            mouseOver = true;
+        }
+        // To deal with mouse enter/exit doesn't always get called, so we need to hack it...
+        public void mousePressed(MouseEvent e) {
+            mouseOver = true;
+        }
+        public void mouseExited(MouseEvent e) {
+            mouseOver = false;
+        }
+        public void mouseClicked(MouseEvent e) {}
+        public void mouseReleased(MouseEvent e) {}
+
+        public void fireEvent(TabletEvent event) {
+            for (TabletListener l : listeners) {
+                try {
+                    event.fireEvent(l);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 	private class ComponentManager {
 		private boolean cursorOver = false;
 		private boolean dragging = false;
@@ -211,24 +239,19 @@ public abstract class ScreenTabletManager extends TabletManager {
 		private final WeakReference<Component> c;
 
 		public ComponentManager(Component c) {
-			this.c = new WeakReference<Component>(c);
-			// We store the concrete reference in the Component itself guised as a HierarchyListener
-			// Then we keep a weak reference in the ComponentManager.
-			// The listeners are then freed when the Component is and we don't leak!
-			TabletListenerManager listeners = new TabletListenerManager();
-			c.addHierarchyListener(listeners);
-			this.listenerManager = new WeakReference<TabletListenerManager>(listeners);
+			// We store the concrete reference to the TabletListeners in a MouseListener.
+			// The listener manager is then freed when the Component is and we don't leak!
+			TabletListenerManager listenerManager = new TabletListenerManager();
+			c.addMouseListener(listenerManager);
+            this.c = new WeakReference<Component>(c);
+			this.listenerManager = new WeakReference<TabletListenerManager>(listenerManager);
 		}
-		
-		private boolean isWindowFocused(Component c) {
-			return SwingUtilities.getWindowAncestor(c) == 
-					KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
-		}
-		
-		public void fireScreenTabletEvent(TabletEvent ev) {
+
+        public void dispatchScreenTabletEvent(TabletEvent ev) {
 			Component c = this.c.get();
-			// Has this component been garbage collected?
-			if (c == null) {
+            TabletListenerManager listenerManager = this.listenerManager.get();
+            // Has this component been garbage collected?
+			if (c == null || listenerManager == null) {
 				cleanup();
 				return;
 			}
@@ -244,31 +267,41 @@ public abstract class ScreenTabletManager extends TabletManager {
 				dragging = cursorOver;
 			}
 			// is this an enter/exit event?
-			// 		getMousePosition() returns null if the mouse cursor is not directly over the component 
-			boolean nowCursorOver = c.contains(newEv.getPoint()) && (isWindowFocused(c) || 
-																		c.getMousePosition() != null);
+			// 		getMousePosition() returns null if the mouse cursor is not directly over the component
+            //      except on out-of-process Java Applets, where it just returns null always.
+            Window windowAncestor = SwingUtilities.getWindowAncestor(c);
+            boolean plugin2Frame = windowAncestor.getClass().getName().startsWith("sun.plugin2.main.client.PluginEmbeddedFrame");
+
+            boolean windowFocused = windowAncestor == KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+            Point mousePosition = c.getMousePosition();
+
+            boolean nowCursorOver = c.contains(newEv.getPoint()) && (windowFocused ||
+                                                                     mousePosition != null ||
+                                                                     (plugin2Frame && listenerManager.isMouseOver() &&
+                                                                             windowAncestor.isFocused()));
+
 			boolean activeComponent = (cursorOver && !pressed) || dragging;
-			if (cursorOver != nowCursorOver) {
+            if (cursorOver != nowCursorOver) {
 				TabletEvent enterExitEvent = newEv.withType(nowCursorOver ? 
 																TabletEvent.Type.ENTERED : 
 																TabletEvent.Type.EXITED);
 				if (nowCursorOver) {
 					// Send two events, one with the enter/exit event, the second with the mouse move
-					fireEvent(enterExitEvent);
+                    listenerManager.fireEvent(enterExitEvent);
 
-					if (activeComponent) {
-						fireEvent(newEv);
-					}
+                    if (activeComponent) {
+                        listenerManager.fireEvent(newEv);
+                    }
 				} else {
 					// Java only sends an exit event, no mouse motion event, in this case
 					// My hypothesis is that move events only occur within the bounds of the component
-					fireEvent(enterExitEvent);
-				}
+                    listenerManager.fireEvent(enterExitEvent);
+                }
 
 				cursorOver = nowCursorOver;
 			} else if (activeComponent) {
-				fireEvent(newEv);
-			}
+                listenerManager.fireEvent(newEv);
+            }
 			if (ev.getType() == TabletEvent.Type.RELEASED) {
 				dragging = false;
 			}
@@ -280,16 +313,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 			return c.isShowing();
 		}
 
-		private void fireEvent(TabletEvent event) {
-			TabletListenerManager listenerManager = this.listenerManager.get();
-			if (listenerManager != null) {
-				for (TabletListener l : listenerManager) {
-					event.fireEvent(l);
-				}
-			}
-		}
-
-		/**
+        /**
 		 * @param l listener to remove.
 		 * @return false if the this is the last TabletListener to be removed
 		 */
@@ -300,7 +324,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 				
 				if (listenerManager.isEmpty()) {
 					Component component = c.get();
-					component.removeHierarchyListener(listenerManager);
+					component.removeMouseListener(listenerManager);
 					componentManagers.remove(component);
 					cleanup();
 				}
@@ -309,6 +333,7 @@ public abstract class ScreenTabletManager extends TabletManager {
 		}
 
 		private void cleanup() {
+            System.out.println("cleaning up component");
 			stopIfNeeded();
 		}
 
@@ -320,7 +345,6 @@ public abstract class ScreenTabletManager extends TabletManager {
 		}
 
 	}
-
 
 	private TabletDevice lastDevice = SystemDevice.INSTANCE;
 	private boolean lastProximity = false;
@@ -367,6 +391,23 @@ public abstract class ScreenTabletManager extends TabletManager {
 		lastY = y;
 		lastDevice = device;
 	}
+
+    /**
+     *
+     * @param when when the event took place
+     * @param keyModifiers key modifiers in the {@link InputEvent#getModifiersEx} format
+     * @param x x-coordinate
+     * @param y y-coordinate
+     * @param pressure pressure values [0,1.0]
+     * @param tiltX horizontal tilt in radians [-PI/2, PI/2]
+     * @param tiltY vertical tilt in radians [-PI/2, PI/2]
+     * @param sidePressure pressure value of side input [0, 1.0]
+     * @param rotation rotation around barrel in radians
+     * @param rawTabletButtonMask a bitmask of the raw table button data
+     * @param button the button that was just pressed or released (0, MouseEvent.BUTTON1, MouseEvent.BUTTON2, or MouseEvent.BUTTON3)
+     * @param buttonJustPressed indicates that a button pressed event should fire
+     * @param buttonJustReleased indicates that a button released event should fire
+     */
 	protected void generatePointEvents(long when, int keyModifiers,
 			float x, float y, float pressure, float tiltX, float tiltY,
 			float sidePressure, float rotation, 
@@ -375,25 +416,22 @@ public abstract class ScreenTabletManager extends TabletManager {
 				
 		int buttonMask = lastButtonMask;
 		if (buttonJustPressed || buttonJustReleased) {
-			int mask = 0;
-			//FIXME: Shouldn't this be a bunch of binary ORs
-			//instead of a switch statement? Furthermore,
-			//shouldn't this be determined from rawTabletButtonMask?
+			int changedButtonMaskBit = 0;
 			switch (button) {
 				case MouseEvent.BUTTON1:
-			    	mask = MouseEvent.BUTTON1_DOWN_MASK;
+			    	changedButtonMaskBit = MouseEvent.BUTTON1_DOWN_MASK;
 			    	break;
 				case MouseEvent.BUTTON2:
-			    	mask = MouseEvent.BUTTON2_DOWN_MASK;
+			    	changedButtonMaskBit = MouseEvent.BUTTON2_DOWN_MASK;
 			    	break;
 				case MouseEvent.BUTTON3:
-			    	mask = MouseEvent.BUTTON3_DOWN_MASK;
+			    	changedButtonMaskBit = MouseEvent.BUTTON3_DOWN_MASK;
 			    	break;
 			}
 			if (buttonJustPressed) {
-				buttonMask |= mask;
+				buttonMask |= changedButtonMaskBit;
 			} else {
-				buttonMask &= ~mask;
+				buttonMask &= ~changedButtonMaskBit;
 			}
 		}
 		
