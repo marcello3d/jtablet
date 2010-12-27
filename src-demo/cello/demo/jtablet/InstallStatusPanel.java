@@ -1,79 +1,62 @@
 package cello.demo.jtablet;
 
+import cello.jtablet.DriverStatus;
+import cello.jtablet.TabletManager;
+import cello.jtablet.installer.JTabletExtension;
+
+import javax.swing.JLabel;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
-import cello.jtablet.DriverStatus;
-import cello.jtablet.TabletManager;
-import cello.jtablet.installer.JTabletExtension;
 
 /**
  * Displays information about the current JTablet installation.
  * 
  * @author marcello
  */
-public class InstallStatusPanel extends JPanel {
-	
-	private JLabel installVersion = new JLabel("Installed version");
-	private JLabel installStatus = new JLabel("Install status ("+DemoApplet.REQUIRED_VERSION+")");
-	private JLabel driverStatus = new JLabel("Driver status");
-	private JLabel driverException = new JLabel("Driver exception");
-	
-	private JLabel labels[] = {
-		installVersion,
-		installStatus,
-		driverStatus,
-		driverException
-	};
-	private Map<JLabel,JLabel> labelPrefixes = new HashMap<JLabel,JLabel>(labels.length);
+public class InstallStatusPanel extends ClearPanel {
 
-	/**
+    /**
 	 * Fills in the install status details.
 	 */
 	public InstallStatusPanel() {
-		super (new GridBagLayout());
+		super(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
 
 		gbc.gridx=0;
 		gbc.gridy=0;
 		gbc.insets = new Insets(5,5,5,5);
-		
-		for (JLabel label : labels) {
-			gbc.gridx=0;
-			gbc.anchor = GridBagConstraints.WEST;
-			gbc.fill = GridBagConstraints.NONE;
-			JLabel label2 = new JLabel(label.getText()+":",JLabel.LEFT);
-			label2.setFont(label2.getFont().deriveFont(Font.BOLD));
-			labelPrefixes.put(label, label2);
-			add(label2, gbc);
-			
-			gbc.gridx=2;
-			gbc.fill = GridBagConstraints.HORIZONTAL;
-//			label.setText("XXXXXXXXX");
-//			label.setPreferredSize(label.getPreferredSize());
-//			label.setMaximumSize(new Dimension(200,200));
-			label.setText("");
-			add(label, gbc);
-			
-			gbc.gridy++;
-		}
-		
-		installVersion.setText(JTabletExtension.getInstalledVersion());
-		installStatus.setText(JTabletExtension.getInstallStatus(DemoApplet.REQUIRED_VERSION).toString());
+
+        addLabel(gbc, "Installed version",
+                      JTabletExtension.getInstalledVersion());
+        addLabel(gbc, "Install status (" + DemoApplet.REQUIRED_VERSION + ")",
+                      JTabletExtension.getInstallStatus(DemoApplet.REQUIRED_VERSION).toString());
+
 		DriverStatus status = TabletManager.getDefaultManager().getDriverStatus();
-		driverStatus.setText(status.getState().toString());
 		Throwable throwable = status.getThrowable();
         if (throwable != null) {
             throwable.printStackTrace();
         }
-		driverException.setText(throwable == null ? "null" : throwable.toString());
+
+        addLabel(gbc, "Driver status", status.getState().toString());
+        addLabel(gbc, "Driver error", throwable == null ? "none" : throwable.toString());
 	}
+
+    private void addLabel(GridBagConstraints gbc, String text, String value) {
+        JLabel valueLabel = new JLabel(value);
+        gbc.gridx=0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.NONE;
+        JLabel label = new JLabel(text+":",JLabel.LEFT);
+        label.setFont(label.getFont().deriveFont(Font.BOLD));
+        add(label, gbc);
+
+        gbc.gridx=2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        add(valueLabel, gbc);
+
+        gbc.gridy++;
+    }
 
 }

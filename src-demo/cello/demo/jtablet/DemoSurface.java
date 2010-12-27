@@ -8,6 +8,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.SystemColor;
 import java.awt.event.InputEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -18,7 +19,9 @@ import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
+import javax.swing.border.BevelBorder;
 
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletManager;
@@ -59,6 +62,10 @@ public class DemoSurface extends JComponent {
 	 */
 	public DemoSurface() {
 		createBackgroundBuffer();
+
+        setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED,
+                                                  SystemColor.control.darker(),
+                                                  SystemColor.control.darker().darker()));
 		
 		// Add listener that sucks tablet events into a queue
 		TabletManager.getDefaultManager().addTabletListener(this, eventQueue);	
@@ -349,34 +356,39 @@ public class DemoSurface extends JComponent {
 	}
 	
 	@Override
-	protected void paintComponent(Graphics g) {
+	protected void paintComponent(Graphics gg) {
 		// Component size changed? update buffer size
 		if (getWidth()>bufferedSurface.getWidth() || getHeight()>bufferedSurface.getHeight()) {
 			BufferedImage old = bufferedSurface;
 			createBackgroundBuffer();
 			bufferedSurfaceGraphics.drawImage(old,0,0,null);
 		}
-		Graphics2D gg = (Graphics2D)g;
-		setSuperSmoothRenderingHints(gg);
-		g.setColor(Color.GRAY);
-		gg.fill(g.getClip());
-		AffineTransform t = gg.getTransform();
-		gg.transform(at);
-		gg.drawImage(bufferedSurface, 0, 0, null);
+		Graphics2D g = (Graphics2D)gg;
+        RenderingHints hints = g.getRenderingHints();
 
-		gg.setTransform(t);
-		gg.setStroke(BASIC_STROKE);
+        setSuperSmoothRenderingHints(g);
+
+        gg.setColor(Color.GRAY);
+		g.fill(gg.getClip());
+		AffineTransform t = g.getTransform();
+		g.transform(at);
+		g.drawImage(bufferedSurface, 0, 0, null);
+
+		g.setTransform(t);
+		g.setStroke(BASIC_STROKE);
 		if (onSurface || dragging) {
-			gg.setColor(Color.LIGHT_GRAY);
-			gg.draw(cursorShape);
+			g.setColor(Color.LIGHT_GRAY);
+			g.draw(cursorShape);
 		}
+
+        g.setRenderingHints(hints);
 	}
 
-	private void setSuperSmoothRenderingHints(Graphics2D gg) {
-		gg.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		gg.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-		gg.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-		gg.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+	private void setSuperSmoothRenderingHints(Graphics2D g) {
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+		g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+		g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 	}
 
 	public String toString() {

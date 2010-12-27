@@ -1,27 +1,25 @@
 package cello.demo.jtablet;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.GridLayout;
-import java.awt.Window;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.text.NumberFormat;
+import cello.jtablet.installer.JTabletExtension;
+import cello.jtablet.installer.JTabletExtension.InstallStatus;
 
 import javax.swing.JApplet;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-
-import cello.jtablet.installer.JTabletExtension;
-import cello.jtablet.installer.JTabletExtension.InstallStatus;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.GridLayout;
+import java.awt.SystemColor;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.text.NumberFormat;
 
 /**
  * A simple sketching surface applet
@@ -39,39 +37,39 @@ public class DemoApplet extends JApplet {
 		
 		Container contentPane = getContentPane();
 		contentPane.setLayout(new BorderLayout());
-		setBackground(Color.WHITE);
+        contentPane.setBackground(SystemColor.control);
 		
 		switch (installStatus) {
 			case INSTALLED:
 			case NOT_INSTALLED:
 				
 				JTabbedPane tabbedPane = new JTabbedPane();
-				
+
+                tabbedPane.addTab("Status", new InstallStatusPanel());
+
+				tabbedPane.addTab("1 Canvas",createDrawingGroup(BorderLayout.EAST));
 		
-		
-				tabbedPane.addTab("1 Component",createDrawingGroup(BorderLayout.EAST));
-		
-				JPanel panel = new JPanel(new GridLayout(1,3,5,5));
-				panel.setBackground(Color.BLACK);
+				ClearPanel panel = new ClearPanel(new GridLayout(1,3,5,5));
+				panel.setOpaque(false);
 				panel.add(createDrawingGroup(BorderLayout.NORTH));
 				panel.add(createDrawingGroup(BorderLayout.NORTH));
 				panel.add(createDrawingGroup(BorderLayout.NORTH));
 				
-				tabbedPane.addTab("3 Components",panel);
+				tabbedPane.addTab("3",panel);
 		
-				panel = new JPanel(new GridLayout(4,4,5,5));
-		//		panel.setBackground(Color.BLACK);
+				panel = new ClearPanel(new GridLayout(4,4,5,5));
+                panel.setOpaque(false);
 				for (int i=0; i<16; i++) {
 					panel.add(new DemoSurface());
 				}
-				tabbedPane.addTab("16 Components",panel);
+				tabbedPane.addTab("16",panel);
 		
 				try {
-					tabbedPane.addTab("Screen Listener",new ScreenTabletListenerLogPanel());
+					tabbedPane.addTab("Screen",new ScreenTabletListenerLogPanel());
 				} catch (UnsupportedOperationException ex) {
 					// do nothing
 				}
-				panel = new JPanel();
+				panel = new ClearPanel();
 				
 				JButton button = new JButton("Garbage collect");
 				button.addActionListener(new ActionListener() {
@@ -124,9 +122,7 @@ public class DemoApplet extends JApplet {
 				
 				tabbedPane.addTab("Misc",panel);
 				
-				tabbedPane.addTab("JTablet Status Diagnostics", new InstallStatusPanel());
-				
-				
+
 				contentPane.add(tabbedPane,BorderLayout.CENTER);
 				break;
 			case UPDATE_REQUIRED:
@@ -138,11 +134,11 @@ public class DemoApplet extends JApplet {
 	}
 
 	private Component createDrawingGroup(String infoPosition) {
-		JPanel panel = new JPanel(new BorderLayout());
+		ClearPanel panel = new ClearPanel(new BorderLayout());
 		DemoSurface demoSurface = new DemoSurface();
 		panel.add(demoSurface,BorderLayout.CENTER);
 		panel.add(new TabletListenerLogPanel(demoSurface),BorderLayout.SOUTH);
-		panel.add(new JScrollPane(new DemoInfoPanel(demoSurface)),infoPosition);
+		panel.add(new DemoInfoPanel(demoSurface),infoPosition);
 		return panel;
 	}
 
@@ -150,12 +146,9 @@ public class DemoApplet extends JApplet {
 		JFrame frame = new JFrame("JTablet Demo");
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.setSize(800,550);
-//		frame.setLocationByPlatform(true);
 		frame.getContentPane().add(createDrawingGroup(BorderLayout.EAST), BorderLayout.CENTER);
 		frame.setVisible(true);
-		frame.addKeyListener(new KeyListener() {
-			public void keyPressed(KeyEvent e) {
-			}
+		frame.addKeyListener(new KeyAdapter() {
 			public void keyReleased(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
 					Component component = e.getComponent();
@@ -167,11 +160,6 @@ public class DemoApplet extends JApplet {
 					}
 				}
 			}
-			public void keyTyped(KeyEvent e) {
-				// TODO Auto-generated method stub
-				
-			}
-			
 		});
 	}
 

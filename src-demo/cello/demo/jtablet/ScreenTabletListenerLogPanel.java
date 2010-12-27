@@ -26,20 +26,45 @@ package cello.demo.jtablet;
 import cello.jtablet.TabletManager;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletFunneler;
+import cello.jtablet.event.TabletListener;
+
+import javax.swing.JCheckBox;
+import java.awt.BorderLayout;
 
 /**
  * Displays a list of events that occur on a given component.
  */
-public class ScreenTabletListenerLogPanel extends AbstractLogPanel {
+public class ScreenTabletListenerLogPanel extends ClearPanel {
 
-	/**
+    private final JCheckBox pauseButton = new JCheckBox("Pause output");
+
+    private class ScreenLogPanel extends AbstractLogPanel {
+        public ScreenLogPanel() {
+            TabletManager.getDefaultManager().addScreenTabletListener(listener);
+        }
+
+        @Override
+        protected void finalize() throws Throwable {
+            TabletManager.getDefaultManager().removeScreenTabletListener(listener);
+            super.finalize();
+        }
+
+        private TabletListener listener = new TabletFunneler() {
+            protected void handleEvent(TabletEvent ev) {
+                if (!pauseButton.isSelected()) {
+                    logMessage(ev.toString());
+                }
+            }
+        };
+    }
+
+    /**
 	 * Constructs a new DemoLogPanel that will listen for screen events.
 	 */
 	public ScreenTabletListenerLogPanel() {
-		TabletManager.getDefaultManager().addScreenTabletListener(new TabletFunneler() {
-			protected void handleEvent(TabletEvent ev) {
-				logMessage(ev.toString());
-			}		
-		});
+        super(new BorderLayout());
+
+        add(new ScreenLogPanel(), BorderLayout.CENTER);
+        add(pauseButton, BorderLayout.SOUTH);
 	}
 }

@@ -1,5 +1,12 @@
 package cello.demo.jtablet;
 
+import cello.jtablet.TabletDevice;
+import cello.jtablet.TabletDevice.Support;
+import cello.jtablet.TabletManager;
+import cello.jtablet.event.TabletEvent;
+import cello.jtablet.event.TabletFunneler;
+
+import javax.swing.JLabel;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -11,21 +18,12 @@ import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-
-import cello.jtablet.TabletDevice;
-import cello.jtablet.TabletManager;
-import cello.jtablet.TabletDevice.Support;
-import cello.jtablet.event.TabletEvent;
-import cello.jtablet.event.TabletFunneler;
-
 /**
  * This panel displays tablet information for  
  * 
  * @author marcello
  */
-public class DemoInfoPanel extends JPanel {
+public class DemoInfoPanel extends ClearPanel {
 
 	private JLabel typeValue = new JLabel("Type");
 	private JLabel xValue = new JLabel("X");
@@ -109,7 +107,7 @@ public class DemoInfoPanel extends JPanel {
 				setText(tiltXValue,			nf.format(Math.toDegrees(ev.getTiltX()))+degree,		device.getTiltSupport());
 				setText(tiltYValue,			nf.format(Math.toDegrees(ev.getTiltY()))+degree,		device.getTiltSupport());
 				setText(rotationValue,		nf.format(Math.toDegrees(ev.getRotation()))+degree,		device.getRotationSupport());
-				setText(rawButtonValue, String.format("%1$#04x", ev.getRawTabletButtonMask()), device.getButtonSupport());
+				setText(rawButtonValue,     String.format("%#04x", ev.getRawTabletButtonMask()), device.getButtonSupport());
 			}
 			private void setText(JLabel label, String value, TabletDevice.Support supported) {
 				if (supported != null) {
