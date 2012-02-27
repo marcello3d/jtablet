@@ -20,27 +20,23 @@
  <div class="contents">
  <p>The demo should load below:</p>
 <script type="text/javascript" src="deployJava.js"></script>
-<script>
-if (deployJava.isPluginInstalled()) {
-deployJava.setInstallerType('kernel');
+<script type="text/javascript">
 deployJava.runApplet(
-	{
-		codebase:	'..',
-	    code:		'cello.demo.jtablet.DemoApplet.class',
-	    archive:	'jtablet2-demo.jar,jtablet2-thin.jar',
-	    width:		"100%", 
-	    height:		540
-	}, 
-	{
-	// parameters
-	
-	}, 
-	'1.5'
+    {
+        codebase:	'..',
+        code:		'cello.demo.jtablet.DemoApplet.class',
+        archive:	'jtablet2-demo.jar,jtablet2-web.jar',
+        width:		"100%",
+        height:		540
+    },
+    {
+    // parameters
+
+    },
+    '1.5'
 );
-} else {
-	document.writeln("<p>Java not detected.</p>");
-}
 </script>
+<embed id="wacom-embed" name="wacom-embed" type="application/x-wacomtabletplugin" hidden="true"></embed>
 <noscript><p>JavaScript is required for this demo.</p></noscript>
  </div>
 </div>

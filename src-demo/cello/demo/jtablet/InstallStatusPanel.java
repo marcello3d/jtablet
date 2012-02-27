@@ -2,11 +2,9 @@ package cello.demo.jtablet;
 
 import cello.jtablet.DriverStatus;
 import cello.jtablet.TabletManager;
-import cello.jtablet.impl.NativeLoaderException;
 import cello.jtablet.installer.JTabletExtension;
 
 import javax.swing.JLabel;
-import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -25,7 +23,8 @@ public class InstallStatusPanel extends ClearPanel {
     /**
 	 * Fills in the install status details.
 	 */
-	public InstallStatusPanel() {
+	@SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+    public InstallStatusPanel() {
 		super(new GridBagLayout());
 		GridBagConstraints gbc = new GridBagConstraints();
 
@@ -47,19 +46,7 @@ public class InstallStatusPanel extends ClearPanel {
 		Throwable throwable = status.getThrowable();
         if (throwable != null) {
             throwable.printStackTrace();
-            if (throwable instanceof NativeLoaderException) {
-                exceptionString = throwable.getMessage();
-                if (exceptionString.startsWith(UnsatisfiedLinkError.class.getName())) {
-                    if (exceptionString.contains("Can't find dependent libraries")) {
-                        exceptionString += "\n\nYour tablet's (WinTab) driver may not installed.";
-                    } else {
-                        exceptionString += "\n\nJTablet is incorrectly installed.";
-                    }
-                    exceptionString += "\n\n(The Java library loaded, but not the native driver).";
-                }
-            } else {
-                exceptionString = throwable.toString();
-            }
+            exceptionString = throwable.toString();
         }
         addLabel(gbc, "Driver error", exceptionString);
 	}

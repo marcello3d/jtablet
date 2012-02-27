@@ -24,6 +24,7 @@
 package cello.jtablet.impl.wacomweb;
 
 import java.applet.Applet;
+import java.util.EnumMap;
 
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Type;
@@ -38,112 +39,174 @@ import netscape.javascript.JSObject;
  * @author marcello
  */
 public class WacomWebPlugin {
-	private final JSObject wacomJavascriptObject;
-    private final JSObject penAPI;
-
+    private final JSObject embedObject;
+    private JSObject penAPI;
+    private EnumMap<Property,String> lastData = new EnumMap<Property, String>(Property.class);
 
     private static JSObject getWacomPluginFromEmbed(Applet applet, String embedName) throws JSException {
+        System.out.println("applet = "+applet);
 		JSObject window = JSObject.getWindow(applet);
+        System.out.println("window = "+window);
 		JSObject document = (JSObject)window.getMember("document");
+        System.out.println("document = "+document);
 		JSObject embeds = (JSObject)document.getMember("embeds");
+        System.out.println("embeds = "+embeds);
 		return (JSObject)embeds.getMember(embedName);
 	}
 	
 	/**
 	 * Constructs a wacomwebplugin wrapper object by searching for an embed object in the same document as the specified 
 	 * Applet.
-	 * @param applet
+	 * @param applet applet requesting this plugin
 	 * @param embedName the html name associated with the wacom plugin object
-	 * @throws JSException
+	 * @throws JSException if something happened in JavaScript land
 	 */
 	public WacomWebPlugin(Applet applet, String embedName) throws JSException {
 		this(getWacomPluginFromEmbed(applet, embedName));
 	}
 	
+    public enum Property {
+            pointerType,
+//            isWacom,
+//            isEraser,
+            pressure,
+//            tangentialPressure,
+//            posX,
+//            posY,
+//            rotationRad,
+//            tiltX,
+//            tiltY,
+//            sysX,
+//            sysY,
+//            tabletModel,
+//            tabletModelID,
+//            version
+    }
+    public static final Property[] PROPERTIES = Property.values();
+    
 	/**
-	 * @param wacomJavascriptObject the JSObject  
+	 * @param embedObject the JSObject
 	 */
-	public WacomWebPlugin(JSObject wacomJavascriptObject) {
-		this.wacomJavascriptObject = wacomJavascriptObject;
-        this.penAPI = (JSObject)wacomJavascriptObject.getMember("penAPI");
+	public WacomWebPlugin(JSObject embedObject) {
+        this.embedObject = embedObject;
+        System.out.println("wacom plugin = " + embedObject);
+        StringBuilder sb = new StringBuilder();
+        sb.append("var api = this.penAPI; this.getAll = function() { return [");
+        boolean first = true;
+        
+        for (Property key : Property.values()) {
+            if (first) {
+                first = false;
+            } else {
+                sb.append(',');
+            }
+            sb.append("api.").append(key.name());
+        }
+
+        sb.append("].join(','); }");
+        System.out.println("executed: "+sb);
+        embedObject.eval(sb.toString());
+                
+        this.penAPI = (JSObject) embedObject.getMember("penAPI");
+        System.out.println("wacom plugin.penAPI = "+penAPI);
 	}
 
-	/**
-	 * @return if a Tablet device is attached
-	 */
-	public boolean isAttached() {
-		return getIntegerAsBoolean(getProperty("isWacom"));
-	}
-	
-	/**
-	 * @return if the last packet came from an eraser device
-	 */
-	public boolean isEraser() {
-		return getIntegerAsBoolean(getProperty("isEraser"));
-	}
+    public EnumMap<Property,String> poll() {
+        Object result = this.embedObject.call("getAll", new Object[0]);
+        System.out.println("result = "+result);
+        if (result instanceof String) {
+            String[] values = ((String) result).split(",");
+            for (int i = 0; i < values.length; i++) {
+                lastData.put(PROPERTIES[i], values[i]);    
+            }
+            return lastData;
+        }
+        return null;
+    }
+    
+//	/**
+//	 * @return if a Tablet device is attached
+//	 */
+//	public boolean isAttached() {
+//		return getIntegerAsBoolean(getProperty(Property.isWacom));
+//	}
+//
+//	/**
+//	 * @return if the last packet came from an eraser device
+//	 */
+//	public boolean isEraser() {
+//		return getIntegerAsBoolean(getProperty(Property.isEraser));
+//	}
 
 	/**
 	 * @return last packet pressure [0.0 ~ 1.0] 
 	 */
 	public float getPressure() {
-		return getValueAsFloat(getProperty("pressure"));
+		return getValueAsFloat(getProperty(Property.pressure));
 	}
-
-	/**
-	 * @return last packet tangential pressure [0.0 ~ 1.0] 
-	 */
-	public float getTangentialPressure() {
-		return getValueAsFloat(getProperty("tangentialPressure"));
-	}
-	/**
-	 * @return last packet tablet x coordinate 
-	 */
-	public long getPosX() {
-		return getValueAsLong(getProperty("posX"));
-	}
-	/**
-	 * @return last packet tablet y coordinate 
-	 */
-	public long getPosY() {
-		return getValueAsLong(getProperty("posY"));
-	}
-
-	/**
-	 * @return last packet stylus rotation in radians
-	 */
-	public float getRotation() {
-		return getValueAsFloat(getProperty("rotationRad"));
-	}
-	/**
-	 * @return last packet horizontal tilt [-1.0 ~ 1.0] 
-	 */
-	public float getTiltX() {
-		return getValueAsFloat(getProperty("tiltX"));
-	}
-	/**
-	 * @return last packet vertical tilt [-1.0 ~ 1.0] 
-	 */
-	public float getTiltY() {
-		return getValueAsFloat(getProperty("tiltY"));
-	}
-	/**
-	 * @return last packet X position in pixel coordinates (to sub-pixel resolution)
-	 */
-	public float getSysX() {
-		return getValueAsFloat(getProperty("syX"));
-	}
-	/**
-     * @return last packet Y position in pixel coordinates (to sub-pixel resolution)
-	 */
-	public float getSysY() {
-		return getValueAsFloat(getProperty("sysY"));
-	}
-	
+//
+//	/**
+//	 * @return last packet tangential pressure [0.0 ~ 1.0]
+//	 */
+//	public float getTangentialPressure() {
+//		return getValueAsFloat(getProperty(Property.tangentialPressure));
+//	}
+//	/**
+//	 * @return last packet tablet x coordinate
+//	 */
+//	public long getPosX() {
+//		return getValueAsLong(getProperty(Property.posX));
+//	}
+//	/**
+//	 * @return last packet tablet y coordinate
+//	 */
+//	public long getPosY() {
+//		return getValueAsLong(getProperty(Property.posY));
+//	}
+//
+//	/**
+//	 * @return last packet stylus rotation in radians
+//	 */
+//	public float getRotation() {
+//		return getValueAsFloat(getProperty(Property.rotationRad));
+//	}
+//	/**
+//	 * @return last packet horizontal tilt [-1.0 ~ 1.0]
+//	 */
+//	public float getTiltX() {
+//		return getValueAsFloat(getProperty(Property.tiltX));
+//	}
+//	/**
+//	 * @return last packet vertical tilt [-1.0 ~ 1.0]
+//	 */
+//	public float getTiltY() {
+//		return getValueAsFloat(getProperty(Property.tiltY));
+//	}
+//	/**
+//	 * @return last packet X position in pixel coordinates (to sub-pixel resolution)
+//	 */
+//	public float getSysX() {
+//		return getValueAsFloat(getProperty(Property.sysX));
+//	}
+//	/**
+//     * @return last packet Y position in pixel coordinates (to sub-pixel resolution)
+//	 */
+//	public float getSysY() {
+//		return getValueAsFloat(getProperty(Property.sysY));
+//	}
+//
+//    public String getTabletModel() {
+//        return (String)getProperty(Property.tabletModel);
+//    }
+//    public String getTabletModelId() {
+//        return (String)getProperty(Property.tabletModelID);
+//    }
+//
 	/**
 	 * @return last packet device type
 	 */
 	public TabletDevice.Type getPointerType() {
-		switch (getValueAsInt(getProperty("pointerType"))) {
+		switch (getValueAsInt(getProperty(Property.pointerType))) {
 			case 1:
 				return Type.STYLUS;
 			case 2:
@@ -155,36 +218,54 @@ public class WacomWebPlugin {
 		}
 	}
 	
-	/**
-	 * @return The version of the plugin in decimal form (eg: 1.1.0.0 is reported as 1100).
-	 */
-	public long getPluginVersion() {
-		return getValueAsLong(getProperty("version"));
-	}
+//	/**
+//	 * @return The version of the plugin in decimal form (eg: 1.1.0.0 is reported as 1100).
+//	 */
+//	public long getPluginVersion() {
+//		return getValueAsLong(getProperty(Property.version));
+//	}
 	
-	private Object getProperty(String propertyName) {
-		return penAPI.getMember(propertyName);
+	private Object getProperty(Property property) {
+        if (lastData.containsKey(property)) {
+            return lastData.get(property);
+        }
+        return penAPI.getMember(property.name());
 	}
 	private long getValueAsLong(Object jsvalue) {
+        if (jsvalue instanceof String) {
+            return Long.parseLong((String) jsvalue);
+        }
 		if (jsvalue instanceof Number) {
 			return ((Number)jsvalue).longValue();
 		}
 		return 0;
 	}
 	private int getValueAsInt(Object jsvalue) {
+        if (jsvalue instanceof String) {
+            return Integer.parseInt((String) jsvalue);
+        }
 		if (jsvalue instanceof Number) {
 			return ((Number)jsvalue).intValue();
 		}
 		return 0;
 	}
 	private float getValueAsFloat(Object jsvalue) {
+        if (jsvalue instanceof String) {
+            return Float.parseFloat((String) jsvalue);
+        }
 		if (jsvalue instanceof Number) {
 			return ((Number) jsvalue).floatValue();
 		}
 		return 0;
 	}
 	private boolean getIntegerAsBoolean(Object jsvalue) {
-		return jsvalue != null && jsvalue instanceof Number && ((Number)jsvalue).intValue() != 0;
+        if (jsvalue instanceof String) {
+            return !jsvalue.equals("0");
+        }
+        if (jsvalue instanceof Number) {
+            return ((Number)jsvalue).intValue() != 0;
+        }
+		return false;
 	}
 		
 }

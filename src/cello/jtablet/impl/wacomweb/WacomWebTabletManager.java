@@ -25,44 +25,31 @@ package cello.jtablet.impl.wacomweb;
 
 import java.applet.Applet;
 import java.awt.Component;
+import java.util.EnumMap;
 
+import cello.jtablet.DriverStatus;
 import cello.jtablet.TabletDevice;
 import cello.jtablet.TabletDevice.Support;
 import cello.jtablet.TabletDevice.Type;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
 import cello.jtablet.impl.AbstractTabletDevice;
-import cello.jtablet.impl.Architecture;
 import cello.jtablet.impl.MouseTabletManager;
-import cello.jtablet.impl.NativeLoaderException;
-import cello.jtablet.impl.NativeTabletManager;
 
 /**
  * Wrapper for wacom web tablet plugin.
  * @author marcello
  */
-public class WacomWebTabletManager extends MouseTabletManager implements NativeTabletManager {
+public class WacomWebTabletManager extends MouseTabletManager {
 
-	private WacomWebPlugin plugin;
+	private WacomWebPlugin plugin = null;
+    private Applet applet;
 
-	public Architecture getArchitecture() {
-		return null;
-	}
+    public WacomWebTabletManager() {
+        System.out.println("Starting up...");
+    }
 
-	public boolean isSystemSupported(String os) {
-		try {
-			Class<?> clazz = Class.forName("netscape.javascript.JSObject");
-			return clazz != null;
-		} catch (ClassNotFoundException e) {
-			return false;
-		}
-	}
-
-	public void load() throws NativeLoaderException {
-		// We can't do anything until we have an Applet to work with 
-	}
-	
-	private Applet getAppletRoot(Component c) {
+    private Applet getAppletRoot(Component c) {
 		while (true) {
 			if (c == null) {
 				return null;
@@ -73,8 +60,9 @@ public class WacomWebTabletManager extends MouseTabletManager implements NativeT
 			c = c.getParent();
 		}
 	}
-	
-	protected MagicListener transformTabletListener(TabletListener l) {
+
+	@Override
+    protected MagicListener makeMagicListener(TabletListener l) {
 		return new ExtremelyMagicListener(l);
 	}
 
@@ -84,25 +72,39 @@ public class WacomWebTabletManager extends MouseTabletManager implements NativeT
 		}
 		@Override
 		protected void fireEvent(TabletEvent ev) {
-			synchronized (plugin) {
-				if (plugin != null) {
-					ev = new TabletEvent(
-						ev.getComponent(), 
-						ev.getType(), 
-						ev.getWhen(), 
-						ev.getModifiersEx(), 
-						0, 
-						getDevice(plugin.getPointerType()), 
-						ev.getX(), 
-						ev.getY(), 
-						plugin.getPressure(), 
-						plugin.getTiltX(), 
-						plugin.getTiltY(), 
-						plugin.getTangentialPressure(), 
-						plugin.getRotation(), 
-						ev.getButton()
-					);
-				}
+            if (applet == null) {
+                System.out.println("Looking for applet from "+ev.getComponent());
+                // Find an applet associated with this component
+                applet = getAppletRoot(ev.getComponent());
+                System.out.println("Applet = "+ applet);
+                if (applet != null) {
+                    plugin = new WacomWebPlugin(applet,"wacom-embed");
+                }
+            }
+            if (plugin != null) {
+                plugin.poll();
+                Type pointerType = plugin.getPointerType();
+                if (pointerType != Type.UNKNOWN) {
+//                    float sysX = plugin.getSysX();
+//                    float sysY = plugin.getSysY();
+                    ev = new TabletEvent(
+                        ev.getComponent(),
+                        ev.getType(),
+                        ev.getWhen(),
+                        ev.getModifiersEx(),
+                        0,
+                        getDevice(pointerType),
+                        ev.getX(),// + (sysX - (int)sysX),
+                        ev.getY(),// + (sysY - (int)sysY),
+                        plugin.getPressure(),
+                        0, //plugin.getTiltX(),
+                        0, //plugin.getTiltY(),
+                        0, //plugin.getTangentialPressure(),
+                        0, //plugin.getRotation(),
+                        ev.getButton()
+                    );
+//                    System.out.println("replaced ev with "+ev);
+                }
 			}
 			super.fireEvent(ev);
 		}
@@ -110,62 +112,57 @@ public class WacomWebTabletManager extends MouseTabletManager implements NativeT
 
 
 	@Override
-	public void addTabletListener(Component c, TabletListener l) {
-		// Find an applet associated with this component
-		Applet a = getAppletRoot(c);
-		if (a != null) {
-			synchronized (this) {
-				if (plugin != null) {
-					plugin = new WacomWebPlugin(a,"wacom-embed");
-				}
-			}
-		}
-		super.addTabletListener(c, l);
+	public void addTabletListener(Component c, TabletListener listener) {
+		super.addTabletListener(c, listener);
 	}
 	
 	protected static class WacomWebTabletDevice extends AbstractTabletDevice {
 		protected WacomWebTabletDevice(
-				Type type, 
-				Support pressureSupport,
-				Support rotationSupport, 
-				Support sidePressureSupport,
-				Support tiltSupport) {
-			super(type, type.name(), null, Support.NO, Support.NO, Support.NO,
+                Type type,
+                Support floatSupport, Support pressureSupport,
+                Support rotationSupport,
+                Support sidePressureSupport,
+                Support tiltSupport) {
+			super(type, type.name(), null, floatSupport, Support.NO, Support.NO,
 					pressureSupport, rotationSupport, sidePressureSupport, tiltSupport);
 		}
 	}
 
 	private static final WacomWebTabletDevice ERASER_DEVICE = new WacomWebTabletDevice(
 		TabletDevice.Type.ERASER,
-		Support.YES,
+        Support.YES,
+        Support.YES,
 		Support.UNKNOWN,
 		Support.UNKNOWN,
 		Support.UNKNOWN
-	);
+    );
 
 	private static final WacomWebTabletDevice STYLUS_DEVICE = new WacomWebTabletDevice(
 		TabletDevice.Type.STYLUS,
-		Support.YES,
+        Support.YES,
+        Support.YES,
 		Support.UNKNOWN,
 		Support.UNKNOWN,
 		Support.UNKNOWN
-	);
+    );
 
 	private static final WacomWebTabletDevice UNKNOWN_DEVICE = new WacomWebTabletDevice(
 		TabletDevice.Type.UNKNOWN,
-		Support.UNKNOWN,
+        Support.UNKNOWN,
+        Support.UNKNOWN,
 		Support.UNKNOWN,
 		Support.UNKNOWN,
 		Support.UNKNOWN
-	);
+    );
 	
 	private static final WacomWebTabletDevice MOUSE_DEVICE = new WacomWebTabletDevice(
 		TabletDevice.Type.MOUSE,
-		Support.NO,
+        Support.UNKNOWN,
+        Support.NO,
 		Support.NO,
 		Support.NO,
 		Support.NO
-	);
+    );
 	
 	protected TabletDevice getDevice(Type type) {
 		switch (type) {
@@ -180,4 +177,11 @@ public class WacomWebTabletManager extends MouseTabletManager implements NativeT
 		}
 		return null;
 	}
+
+    @Override
+    public DriverStatus getDriverStatus() {
+        return plugin != null ?
+                new DriverStatus(DriverStatus.State.WEB_PLUGIN) :
+                new DriverStatus(DriverStatus.State.NOT_INSTALLED);
+    }
 }

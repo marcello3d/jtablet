@@ -37,7 +37,12 @@ public class DriverStatus {
 		 * JTablet isn't able to handle the given OS.
 		 */
 		UNSUPPORTED_OS,
-		
+
+        /**
+         * JTablet is using the web plugin
+         */
+        WEB_PLUGIN,
+
 		/**
 		 * JTablet isn't installed on this system.
 		 */

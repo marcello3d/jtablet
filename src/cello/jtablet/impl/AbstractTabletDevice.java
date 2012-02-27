@@ -25,10 +25,14 @@ public abstract class AbstractTabletDevice extends TabletDevice {
 	
 
 	protected AbstractTabletDevice(Type type, String name,
-			String uniqueId, Support floatSupport,
-			Support buttonSupport, Support uniqueIdSupport,
-			Support pressureSupport, Support rotationSupport,
-			Support sidePressureSupport, Support tiltSupport) {
+			String uniqueId,
+            Support floatSupport,
+			Support buttonSupport,
+            Support uniqueIdSupport,
+			Support pressureSupport,
+            Support rotationSupport,
+			Support sidePressureSupport,
+            Support tiltSupport) {
 		super();
 		this.type = type;
 		this.name = name;

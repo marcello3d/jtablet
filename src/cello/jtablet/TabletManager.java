@@ -30,7 +30,7 @@ import java.awt.event.MouseMotionListener;
 import cello.jtablet.event.TabletAdapter;
 import cello.jtablet.event.TabletEvent;
 import cello.jtablet.event.TabletListener;
-import cello.jtablet.impl.TabletManagerImpl;
+import cello.jtablet.impl.wacomweb.WacomWebTabletManager;
 
 /**
  * {@code TabletManager} is responsible for detecting interesting
@@ -76,7 +76,7 @@ public abstract class TabletManager {
 	/**
 	 * Static singleton TabletManager to be used by the entire system.
 	 */
-	private static TabletManager tabletManager = new TabletManagerImpl();
+	private static TabletManager tabletManager = new WacomWebTabletManager();
 	
 	/**
 	 * Returns a shared tablet manager with the default settings.

@@ -58,7 +58,7 @@ public abstract class TabletDevice implements Serializable {
 		ERASER,
 		/** An unknown input device */
 		UNKNOWN
-	};
+	}
 	
 
 	/**
@@ -77,7 +77,7 @@ public abstract class TabletDevice implements Serializable {
 		 * This feature is supported
 		 */
 		YES
-	};
+	}
 
 	/**
 	 * Returns this device's type (such as stylus pen tip, stylus eraser, mouse cursor, or other).

@@ -64,12 +64,12 @@ public class MouseTabletManager extends TabletManager {
 	
 	private MouseEvent lastEvent;
 	
-	public void addTabletListener(Component c, TabletListener l) {
-		synchronized (l) {
-			MagicListener magicListener = listenerMap.get(l);
+	public void addTabletListener(Component c, TabletListener listener) {
+		synchronized (this) {
+			MagicListener magicListener = listenerMap.get(listener);
 			if (magicListener == null) {
-				magicListener = new MagicListener(l);
-				listenerMap.put(l,magicListener);
+				magicListener = makeMagicListener(listener);
+				listenerMap.put(listener,magicListener);
 			}
 			magicListener.increment();
 			c.addMouseListener(magicListener);
@@ -77,8 +77,13 @@ public class MouseTabletManager extends TabletManager {
 			c.addMouseWheelListener(magicListener);
 		}
 	}
-	public void removeTabletListener(Component c, TabletListener listener) {
-		synchronized (listener) {
+
+    protected MagicListener makeMagicListener(TabletListener l) {
+        return new MagicListener(l);
+    }
+
+    public void removeTabletListener(Component c, TabletListener listener) {
+		synchronized (this) {
 			MagicListener magicListener = listenerMap.get(listener);
 			if (magicListener != null) {
 				c.removeMouseListener(magicListener);
@@ -130,7 +135,7 @@ public class MouseTabletManager extends TabletManager {
 			if (!firingEvents) {
 				return;
 			}
-			TabletEvent.Type type = null;
+			TabletEvent.Type type;
 			switch (e.getID()) {
 				case MouseEvent.MOUSE_PRESSED:
 					type = Type.PRESSED;
