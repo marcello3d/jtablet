@@ -39,9 +39,10 @@ import netscape.javascript.JSObject;
  */
 public class WacomWebPlugin {
 	private final JSObject wacomJavascriptObject;
+    private final JSObject penAPI;
 
 
-	private static JSObject getWacomPluginFromEmbed(Applet applet, String embedName) throws JSException {
+    private static JSObject getWacomPluginFromEmbed(Applet applet, String embedName) throws JSException {
 		JSObject window = JSObject.getWindow(applet);
 		JSObject document = (JSObject)window.getMember("document");
 		JSObject embeds = (JSObject)document.getMember("embeds");
@@ -64,6 +65,7 @@ public class WacomWebPlugin {
 	 */
 	public WacomWebPlugin(JSObject wacomJavascriptObject) {
 		this.wacomJavascriptObject = wacomJavascriptObject;
+        this.penAPI = (JSObject)wacomJavascriptObject.getMember("penAPI");
 	}
 
 	/**
@@ -124,6 +126,18 @@ public class WacomWebPlugin {
 	public float getTiltY() {
 		return getValueAsFloat(getProperty("tiltY"));
 	}
+	/**
+	 * @return last packet X position in pixel coordinates (to sub-pixel resolution)
+	 */
+	public float getSysX() {
+		return getValueAsFloat(getProperty("syX"));
+	}
+	/**
+     * @return last packet Y position in pixel coordinates (to sub-pixel resolution)
+	 */
+	public float getSysY() {
+		return getValueAsFloat(getProperty("sysY"));
+	}
 	
 	/**
 	 * @return last packet device type
@@ -149,7 +163,7 @@ public class WacomWebPlugin {
 	}
 	
 	private Object getProperty(String propertyName) {
-		return wacomJavascriptObject.getMember(propertyName);
+		return penAPI.getMember(propertyName);
 	}
 	private long getValueAsLong(Object jsvalue) {
 		if (jsvalue instanceof Number) {
