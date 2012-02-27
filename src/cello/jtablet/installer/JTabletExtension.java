@@ -11,8 +11,6 @@ import java.net.URL;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
-import cello.jtablet.impl.PluginConstant;
-
 /**
  * This class provides a system for JTablet version compatibility for Applets and Applications. Even if you are bundling 
  * JTablet in your product, an older version of JTablet installed as an extension will override and potentially conflict
@@ -175,10 +173,7 @@ public class JTabletExtension {
 	}
 
 	private static Package getInstalledPackage() {
-		if (!PluginConstant.IS_PLUGIN) {
-			return null;
-		}
-		Package p = JTabletExtension.class.getPackage();
+        Package p = JTabletExtension.class.getPackage();
 		if (p == null) {
 			return null;
 		}
