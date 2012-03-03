@@ -27,7 +27,7 @@
 	<property name="src.installer"          location="src-installer"/>
 
 
-    <property name="jpen.svn.url"           value="https://jpen.svn.sourceforge.net/svnroot/jpen/trunk/src/main"/>
+    <property name="jpen.svn.url"           value="http://jpen.svn.sourceforge.net/svnroot/jpen/trunk/src/main"/>
     <property name="jpen.svn.name"          value="jpen-svn"/>
     <property name="jpen.svn.path"          location="${build}/${jpen.svn.name}"/>
     <property name="src.jpen"               location="${jpen.svn.path}/java"/>
