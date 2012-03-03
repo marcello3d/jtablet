@@ -25,8 +25,9 @@
 </div>
 <h3>Step 1: Download JTablet 2 (v1.2.5)</h3>
 <ul class="download">
-  <li><a href="jtablet2/release/JTabletSetup-1.2.5-alpha.exe">Windows</a> <small>(XP or later)</small></li>
-  <li><a href="jtablet2/release/JTablet-1.2.5-alpha.pkg">Mac OS X</a> <small>(Leopard and Snow Leopard only)</small></li>
+  <li><a href="jtablet2/release/JTabletSetup-1.2.5-alpha.exe">Windows</a> <small>v1.2.5 for XP or later</small></li>
+    <li><a href="jtablet2/release/JTablet-1.2.6-alpha.pkg">Mac OS X</a> <small>v1.2.6 for <b>Snow Leopard and Lion</b></small></li>
+  <li><a href="jtablet2/release/JTablet-1.2.5-alpha.pkg">Mac OS X</a> <small>v1.2.5 for <b>Leopard only</b></small></li>
   </ul>
 <h3>Step 2: Test JTablet</h3>
 <p>Make sure everything works.</p>
@@ -45,16 +46,15 @@
 
 <div class="section">
 <div class="subheader">
-<h2>Mac OS X support</h2>
+<h2>Mac OS X notes</h2>
 </div>
 <div class="contents">
-<p>Out-of-process Java applets (like on OS X Lion or recent versions of Safari, Google Chrome, and Firefox) are 
-    currently unsupported by JTablet.</p>
-<p>On Leopard and Snow Leopard, you can enable in-process applets through the <b>Java Preferences</b> app.</p>
+<p>Modern browsers run Java in a separate process, preventing JTablet from accessing your tablet normally. To
+    overcome this, JTablet 2 must talk directly to Mac OS X to get the tablet information. This is a little finicky, so
+    if you have trouble, uninstall the JTablet 2 alpha.</p>
 <p>JTablet is open source, if you'd like to contribute, check out the <a href="develop.html">developer's page</a>.</p>
 </div>
 </div>
-
 
 <div class="section">
 <div class="subheader">
