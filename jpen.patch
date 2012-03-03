@@ -1,0 +1,961 @@
+Index: c/osx/WacomAccess.m
+===================================================================
+--- c/osx/WacomAccess.m	(revision 297)
++++ c/osx/WacomAccess.m	(working copy)
+@@ -44,8 +44,7 @@
+ 					   (Ptr) &tdSig,
+ 					   sizeof(tdSig),
+ 					   &driverTarget);
+-	if(err)
+-	{
++	if (err) {
+ 		AEDisposeDesc(&driverTarget);
+ 		return err;
+ 	}
+@@ -56,25 +55,27 @@
+ 							 kAutoGenerateReturnID,
+ 							 kAnyTransactionID,
+ 							 &aeSend);
+-	if(err)
+-	{
++	if (err) {
+ 		AEDisposeDesc(&driverTarget);
+ 		return err;
+ 	}
+ 	
+-	err = AEPutParamPtr ( &aeSend, keyAEData,
++	err = AEPutParamPtr (&aeSend, 
++                         keyAEData,
+ 						 typeEnumeration,
+ 						 &tabletEventType,
+ 						 sizeof(tabletEventType)); // Add what type of event to send.
+ 	
++	if (err) {
++		AEDisposeDesc(&driverTarget);
++		return err;
++	}
++
+ 	// Finally send the event
+-	err = AESend(&aeSend,	// The complete AE we created above
+-				 NULL,
+-				 kAEWaitReply,
+-				 kAEHighPriority,
+-				 kDefaultTimeOut,
+-				 NULL,
+-				 NULL);
++	err = AESendMessage(&aeSend,	// The complete AE we created above
++                        NULL,
++                        kAEWaitReply,
++                        kDefaultTimeOut);
+ 	
+ 	AEDisposeDesc(&aeSend);
+ 	
+Index: c/osx/osx_push_provider.m
+===================================================================
+--- c/osx/osx_push_provider.m	(revision 297)
++++ c/osx/osx_push_provider.m	(working copy)
+@@ -1,75 +1,84 @@
+ /* [{
+-Copyright 2008 Brien Colwell <xcolwell at users.sourceforge.net>
+-Copyright 2009 Marcello Bastea-Forte <marcello at cellosoft.com>
++ Copyright 2008 Brien Colwell <xcolwell at users.sourceforge.net>
++ Copyright 2009 Marcello Bastea-Forte <marcello at cellosoft.com>
++ 
++ This file is part of jpen.
++ 
++ jpen is free software: you can redistribute it and/or modify
++ it under the terms of the GNU Lesser General Public License as published by
++ the Free Software Foundation, either version 3 of the License,
++ or (at your option) any later version.
++ 
++ jpen is distributed in the hope that it will be useful,
++ but WITHOUT ANY WARRANTY; without even the implied warranty of
++ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ GNU Lesser General Public License for more details.
++ 
++ You should have received a copy of the GNU Lesser General Public License
++ along with jpen.  If not, see <http://www.gnu.org/licenses/>.
++ 
++ This file incorporates work covered by the following copyright and  
++ permission notice:
++ 
++ Copyright 2006 Jerry Huxtable
++ 
++ Licensed under the Apache License, Version 2.0 (the "License");
++ you may not use this file except in compliance with the License.
++ You may obtain a copy of the License at
++ 
++ http://www.apache.org/licenses/LICENSE-2.0
++ 
++ Unless required by applicable law or agreed to in writing, software
++ distributed under the License is distributed on an "AS IS" BASIS,
++ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ See the License for the specific language governing permissions and
++ limitations under the License.
++ }] */
+ 
+-This file is part of jpen.
+-
+-jpen is free software: you can redistribute it and/or modify
+-it under the terms of the GNU Lesser General Public License as published by
+-the Free Software Foundation, either version 3 of the License,
+-or (at your option) any later version.
+-
+-jpen is distributed in the hope that it will be useful,
+-but WITHOUT ANY WARRANTY; without even the implied warranty of
+-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-GNU Lesser General Public License for more details.
+-
+-You should have received a copy of the GNU Lesser General Public License
+-along with jpen.  If not, see <http://www.gnu.org/licenses/>.
+-
+-This file incorporates work covered by the following copyright and  
+-permission notice:
+-
+-	Copyright 2006 Jerry Huxtable
+-	
+-	Licensed under the Apache License, Version 2.0 (the "License");
+-	you may not use this file except in compliance with the License.
+-	You may obtain a copy of the License at
+-	
+-		 http://www.apache.org/licenses/LICENSE-2.0
+-	
+-	Unless required by applicable law or agreed to in writing, software
+-	distributed under the License is distributed on an "AS IS" BASIS,
+-	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+-	See the License for the specific language governing permissions and
+-	limitations under the License.
+-}] */
+-
+ /*
+-Based on code by Jerry Huxtable. See http://www.jhlabs.com/java/tablet/ .
++ Based on code by Jerry Huxtable. See http://www.jhlabs.com/java/tablet/ .
+  Also based on code from 
+  http://mxr.mozilla.org/mozilla/source/widget/src/cocoa/nsChildView.h
+  http://firefox-3.1.sourcearchive.com/lines/3.1~b2plus-pbuild1plus-pnobinonly/nsChildView_8mm-source.html
+-*/
++ */
+ 
+ #import <jni.h>
+ #import <Cocoa/Cocoa.h>
+ #import <Carbon/Carbon.h>
+ #import <objc/runtime.h>
++#include <ApplicationServices/ApplicationServices.h>
+ #import "JRSwizzle.h"
+ #import "../nativeBuild/osx-BuildNumber.h"
+ #import "WacomAccess.h"
+-//#include "NSDate_Additions.h"
+ 
+ /* these are not defined in 10.5 */
+-#if MAC_OS_X_VERSION_MAX_ALLOWED == MAC_OS_X_VERSION_10_5
++#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_5
+ enum {
+     NSEventTypeGesture          = 29,
+     NSEventTypeMagnify          = 30,
+     NSEventTypeSwipe            = 31,
+     NSEventTypeRotate           = 18,
+     NSEventTypeBeginGesture     = 19,
+-    NSEventTypeEndGesture       = 20
++    NSEventTypeEndGesture       = 20,
++    
++    NSEventMaskGesture          = 1 << NSEventTypeGesture,
++    NSEventMaskMagnify          = 1 << NSEventTypeMagnify,
++    NSEventMaskSwipe            = 1U << NSEventTypeSwipe,
++    NSEventMaskRotate           = 1 << NSEventTypeRotate,
++    NSEventMaskBeginGesture     = 1 << NSEventTypeBeginGesture,
++    NSEventMaskEndGesture       = 1 << NSEventTypeEndGesture
+ };
++#endif
++
+ @interface NSEvent (JPen)
+ - (CGFloat)magnification;       
+ - (CGFloat)deviceDeltaX;
+-- (CGFloat)deviceDeltaY;
++- (CGFloat)deviceDeltaY;    
++- (CGFloat)scrollingDeltaX;
++- (CGFloat)scrollingDeltaY;
+ - (EventRef)_eventRef;
+ @end
+ 
+-#endif
+-
+ /* Our global variables */
+ static JavaVM *g_jvm;
+ static jobject g_object;
+@@ -86,7 +95,8 @@
+ static jboolean watchScrollEvents = false;
+ static jboolean watchGestureEvents = false;
+ static jboolean watchingEvents = true;
+-static double systemStartTime = 0;
++static CFMachPortRef eventTap = 0;
++static CFRunLoopSourceRef eventTapRunLoopSource = 0;
+ 
+ /*
+  ** A subclass of NSApplication which overrides sendEvent and calls back into Java with the event data for mouse events.
+@@ -95,15 +105,12 @@
+ - (void) JPen_sendEvent:(NSEvent *)event;
+ @end
+ 
+-JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
+-{
++JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved) {
+ 	g_jvm = vm;
+-	
+ 	return JNI_VERSION_1_4;
+ }
+ 
+-static jint GetJNIEnv(JNIEnv **env, bool *mustDetach)
+-{
++static jint GetJNIEnv(JNIEnv **env, bool *mustDetach) {
+     jint getEnvErr = JNI_OK;
+     *mustDetach = false;
+     if (g_jvm) {
+@@ -120,20 +127,19 @@
+ 
+ 
+ bool throwException(JNIEnv *env, const char *message) {
+-//	env->ExceptionDescribe();
+-//	env->ExceptionClear();
++    //	env->ExceptionDescribe();
++    //	env->ExceptionClear();
+ 	
+-//	jclass newExcCls = env->FindClass("cello/tablet/JTabletException");
+-//	if (newExcCls == 0) // Unable to find the new exception class, give up.
+-//		return false;
+-//	
+-//	env->ThrowNew(newExcCls, message);
++    //	jclass newExcCls = env->FindClass("cello/tablet/JTabletException");
++    //	if (newExcCls == 0) // Unable to find the new exception class, give up.
++    //		return false;
++    //	
++    //	env->ThrowNew(newExcCls, message);
+ 	return true;
+ }
+ 
+ 
+ static NSPoint getLocation(NSEvent *event) {
+-	
+ 	NSPoint location = [event locationInWindow];
+ 	
+ 	// Transform to screen coordinates...
+@@ -143,22 +149,20 @@
+ 		
+ 		location.x += f.origin.x;
+ 		location.y += f.origin.y;
+-	}	
++	}
+ 	
+-	
+-	
+ 	// Flip Y axis 
+ 	
+ 	// At this point the location is relative to the bottom left of the main screen 
+ 	// (the actual bottom left is 0,1, not 0,0, 
+ 	//  so we can flip with screen.height - y and get 0,0 as the top-left corner)
+ 	
+-		// Note: [NSScreen mainScreen] references the screen that has keyboard focus, 
+-		//  You need [NSScreen screens][0] for the origin/menubar screen
+-		// see http://developer.apple.com/mac/library/documentation/Cocoa/Reference/ApplicationKit/Classes/NSScreen_Class/Reference/Reference.html#//apple_ref/doc/uid/20000333-mainScreen
+-		// and http://developer.apple.com/mac/library/documentation/Cocoa/Reference/ApplicationKit/Classes/NSScreen_Class/Reference/Reference.html#//apple_ref/doc/uid/20000333-screens
+-		// the documentation recommends against caching this
+-		NSScreen *originScreen = [[NSScreen screens] objectAtIndex:0];
++    // Note: [NSScreen mainScreen] references the screen that has keyboard focus, 
++    //  You need [NSScreen screens][0] for the origin/menubar screen
++    // see http://developer.apple.com/mac/library/documentation/Cocoa/Reference/ApplicationKit/Classes/NSScreen_Class/Reference/Reference.html#//apple_ref/doc/uid/20000333-mainScreen
++    // and http://developer.apple.com/mac/library/documentation/Cocoa/Reference/ApplicationKit/Classes/NSScreen_Class/Reference/Reference.html#//apple_ref/doc/uid/20000333-screens
++    // the documentation recommends against caching this
++    NSScreen *originScreen = [[NSScreen screens] objectAtIndex:0];
+ 	
+ 	location.y = [originScreen frame].size.height - location.y;
+ 	
+@@ -171,7 +175,7 @@
+ 	// not the new point for the device entering proximity	
+ 	//NSPoint location = getLocation(event);
+ 	(*env)->CallVoidMethod(env, g_object, g_methodID_prox,
+-						   [event timestamp]+systemStartTime,
++						   [event timestamp],
+ 						   [event modifierFlags],
+ 						   [event capabilityMask],
+ 						   [event deviceID],
+@@ -188,16 +192,13 @@
+ 	
+ }
+ 
+-
+-@implementation NSApplication (JPen)
+-- (void) JPen_sendEvent:(NSEvent *)event
+-{			
++static void handleEvent(NSEvent *event) {
+ 	if (watchingEvents) {
+ 		JNIEnv *env;
+ 		bool shouldDetach = false;
+ 		
+-		if (GetJNIEnv(&env, &shouldDetach) == JNI_OK) {			
+-			switch ( [event type] ) {
++		if (GetJNIEnv(&env, &shouldDetach) == JNI_OK) {
++			switch ([event type]) {
+ 				case NSTabletProximity:
+ 					if (watchProximityEvents) {
+ 						postProximityEvent(env, event);
+@@ -217,28 +218,33 @@
+ 						// I discovered that you can get the underlying Carbon event that the Cocoa event maps to,
+ 						// and it can be checked for being of type "kEventMouseScroll" to determine whether deviceDeltaX
+ 						// is actually available.
+-						if ([event respondsToSelector:@selector(_eventRef)] && 
+-							[event respondsToSelector:@selector(deviceDeltaX)]) {
+-							EventRef theCarbonEvent = [event _eventRef];
+-							useDeviceDelta = theCarbonEvent && GetEventKind(theCarbonEvent) == kEventMouseScroll;
+-						}
+-						if (useDeviceDelta) {
+-							dx = [event deviceDeltaX];
+-							dy = [event deviceDeltaY];
++                        if ([event respondsToSelector:@selector(scrollingDeltaX)]) {
++                            dx = [event scrollingDeltaX];
++                            dy = [event scrollingDeltaY];
+ 						} else {
+-							dx = [event deltaX];
+-							dy = [event deltaY];
+-						}
++                            if ([event respondsToSelector:@selector(_eventRef)] && 
++                                [event respondsToSelector:@selector(deviceDeltaX)]) {
++                                EventRef theCarbonEvent = [event _eventRef];
++                                useDeviceDelta = theCarbonEvent && GetEventKind(theCarbonEvent) == kEventMouseScroll;
++                            }
++                            if (useDeviceDelta) {
++                                dx = [event deviceDeltaX];
++                                dy = [event deviceDeltaY];
++                            } else {
++                                dx = [event deltaX];
++                                dy = [event deltaY];
++                            }
++                        }
+ 						if (dx != 0 || dy != 0) {
+ 							NSPoint location = getLocation(event);
+ 							(*env)->CallVoidMethod(env, g_object, g_methodID_scroll,
+-												[event timestamp]+systemStartTime,
+-												[event modifierFlags],
+-												location.x,
+-												location.y,
+-												useDeviceDelta,
+-												dx,
+-												dy
++                                                   [event timestamp],
++                                                   [event modifierFlags],
++                                                   location.x,
++                                                   location.y,
++                                                   useDeviceDelta,
++                                                   dx,
++                                                   dy
+ 												   );
+ 						}
+ 						
+@@ -250,7 +256,7 @@
+ 						if (magnification != 0) {
+ 							NSPoint location = getLocation(event);
+ 							(*env)->CallVoidMethod(env, g_object, g_methodID_magnify,
+-												   [event timestamp]+systemStartTime,
++												   [event timestamp],
+ 												   [event modifierFlags],
+ 												   location.x,
+ 												   location.y,
+@@ -267,7 +273,7 @@
+ 						if (dx != 0 || dy != 0) {
+ 							NSPoint location = getLocation(event);		
+ 							(*env)->CallVoidMethod(env, g_object, g_methodID_swipe,
+-												   [event timestamp]+systemStartTime,
++												   [event timestamp],
+ 												   [event modifierFlags],
+ 												   location.x,
+ 												   location.y,
+@@ -284,7 +290,7 @@
+ 						if (rotation != 0) {
+ 							NSPoint location = getLocation(event);		
+ 							(*env)->CallVoidMethod(env, g_object, g_methodID_rotate,
+-												   [event timestamp]+systemStartTime,
++												   [event timestamp],
+ 												   [event modifierFlags],
+ 												   location.x,
+ 												   location.y,
+@@ -319,7 +325,7 @@
+ 							break;
+ 							//postProximityEvent(env, event);
+ 						}
+-						
++                        
+ 						NSPoint location = getLocation(event);				
+ 						NSPoint tilt;
+ 						if (tablet) {
+@@ -328,7 +334,7 @@
+ 						
+ 						(*env)->CallVoidMethod( env, g_object, g_methodID,
+ 											   [event type],
+-											   [event timestamp]+systemStartTime,
++											   [event timestamp],
+ 											   [event modifierFlags],
+ 											   location.x,
+ 											   location.y,
+@@ -355,6 +361,12 @@
+ 			NSLog(@"Couldn't attach to JVM");
+ 		}
+ 	}
++}
++
++
++@implementation NSApplication (JPen)
++- (void) JPen_sendEvent:(NSEvent *)event {	
++    handleEvent(event);
+     
+ 	// believe it or not, this is not recursive... when we swap NSApplication's sendEvent method with this one, 
+ 	// JPen_sendEvent points to the original NSApplication sendEvent
+@@ -393,6 +405,29 @@
+ 	updateWatchingEvents();
+ }
+ 
++static CGEventRef jpenEventTapCallback(CGEventTapProxy proxy, CGEventType type, CGEventRef event, void *refcon) {
++    // according to stackoverflow, may need to handle kCGEventTapDisabledByTimeout
++    // http://stackoverflow.com/questions/2969110/cgeventtapcreate-breaks-down-mysteriously-with-key-down-events
++    if (type == kCGEventTapDisabledByTimeout) {
++        CGEventTapEnable(eventTap, true);
++    } else {
++        handleEvent([NSEvent eventWithCGEvent:event]);
++    }
++    return event;
++}
++
++static bool isAppletInSeparateProcess() {
++    // This is such a miserable hack
++    for (NSString *argument in [[NSProcessInfo processInfo] arguments]) {
++        if ([argument isEqualToString:@"sun.plugin2.main.client.PluginMain"] ||
++            [argument rangeOfString:@"Java Applet"].location != NSNotFound ||
++            [argument rangeOfString:@"Resources/PluginProcess.icns"].location != NSNotFound) {
++            return true;
++        }
++    }
++    return false;
++}
++
+ /*
+  ** Start up: use jrswizzle to subclass the NSApplication object on the fly.
+  */
+@@ -400,88 +435,82 @@
+ 	// Don't startup multiple times
+ 	if (g_object) {
+ 		return;
+-	}
+-	
+-	// Swap the original sendEvent method with our custom one so we can monitor events
+-	NSError *error = nil;
+-	[NSApplication jr_swizzleMethod:@selector(sendEvent:)
+-						 withMethod:@selector(JPen_sendEvent:)
+-							  error:&error];
+-	if (error != nil) {
+-		NSLog(@"error overriding [NSApplication sendEvent]: %@", [error description]);
+-		throwException(env,"Error initializing event monitor");
+-	} else {
+-//		NSDate *startDate = [[NSDate alloc] initWithDateOfSystemStartup];
+-//		systemStartTime = [startDate timeIntervalSince1970];
+-//		[startDate release];
+-		
+-		g_object = (*env)->NewGlobalRef( env, this );
+-		g_class = (*env)->GetObjectClass( env, this );
+-		g_class = (*env)->NewGlobalRef( env, g_class );
+-		if ( g_class != (jclass)0 ) {
+-			g_methodID =	     (*env)->GetMethodID( env, g_class, "postEvent",		  "(IDIFFZIIIIFFFFF)V" );
+-			g_methodID_prox =    (*env)->GetMethodID( env, g_class, "postProximityEvent", "(DIIIZIIIIIJII)V" );
+-			g_methodID_scroll =  (*env)->GetMethodID( env, g_class, "postScrollEvent",    "(DIFFZFF)V" );
+-			g_methodID_magnify = (*env)->GetMethodID( env, g_class, "postMagnifyEvent",   "(DIFFF)V" );
+-			g_methodID_swipe =   (*env)->GetMethodID( env, g_class, "postSwipeEvent",     "(DIFFFF)V" );
+-			g_methodID_rotate =  (*env)->GetMethodID( env, g_class, "postRotateEvent",    "(DIFFF)V" );
+-		}
+-		ResendLastTabletEventofType(eEventProximity);
+-	}
++	}    
++    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
++    if (isAppletInSeparateProcess()) {
++        NSLog(@"Detected out-of-process Java Plugin mode");
++        eventTap = CGEventTapCreate(kCGSessionEventTap,
++                                    kCGTailAppendEventTap,
++                                    kCGEventTapOptionListenOnly,
++                                    CGEventMaskBit(kCGEventMouseMoved)
++                                    | CGEventMaskBit(kCGEventLeftMouseDown)
++                                    | CGEventMaskBit(kCGEventLeftMouseUp)
++                                    | CGEventMaskBit(kCGEventRightMouseDown)
++                                    | CGEventMaskBit(kCGEventRightMouseUp)
++                                    | CGEventMaskBit(kCGEventMouseMoved)
++                                    | CGEventMaskBit(kCGEventLeftMouseDragged)
++                                    | CGEventMaskBit(kCGEventRightMouseDragged)
++                                    | CGEventMaskBit(kCGEventScrollWheel)
++                                    | CGEventMaskBit(kCGEventTabletPointer)
++                                    | CGEventMaskBit(kCGEventTabletProximity)
++                                    | CGEventMaskBit(kCGEventOtherMouseDown)
++                                    | CGEventMaskBit(kCGEventOtherMouseUp)
++                                    | CGEventMaskBit(kCGEventOtherMouseDragged),
++                                    &jpenEventTapCallback,
++                                    NULL);
++        eventTapRunLoopSource = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, eventTap, 0);
++        
++        // Add the source to the current RunLoop
++        CFRunLoopAddSource(CFRunLoopGetMain(), eventTapRunLoopSource, kCFRunLoopDefaultMode);
++    } else {
++        // Swap the original sendEvent method with our custom one so we can monitor events
++        NSError *error = nil;
++        if (![NSApplication jr_swizzleMethod:@selector(sendEvent:)
++                                  withMethod:@selector(JPen_sendEvent:)
++                                       error:&error]) {
++            NSLog(@"JPen Error overriding [NSApplication sendEvent]: %@", error);
++            throwException(env,"Error initializing event monitor");
++        }
++    }
++    
++    g_object = (*env)->NewGlobalRef( env, this );
++    g_class = (*env)->GetObjectClass( env, this );
++    g_class = (*env)->NewGlobalRef( env, g_class );
++    if (g_class) {
++        g_methodID =	     (*env)->GetMethodID( env, g_class, "postEvent",		  "(IDIFFZIIIIFFFFF)V" );
++        g_methodID_prox =    (*env)->GetMethodID( env, g_class, "postProximityEvent", "(DIIIZIIIIIJII)V" );
++        g_methodID_scroll =  (*env)->GetMethodID( env, g_class, "postScrollEvent",    "(DIFFZFF)V" );
++        g_methodID_magnify = (*env)->GetMethodID( env, g_class, "postMagnifyEvent",   "(DIFFF)V" );
++        g_methodID_swipe =   (*env)->GetMethodID( env, g_class, "postSwipeEvent",     "(DIFFFF)V" );
++        g_methodID_rotate =  (*env)->GetMethodID( env, g_class, "postRotateEvent",    "(DIFFF)V" );
++    } else {
++        NSLog(@"error getting reference to this");
++        throwException(env,"Could not get reference to this");
++    }
++    ResendLastTabletEventofType(eEventProximity);
++    
++    [pool release];
+ }
+ 
+ /*
+  ** Shut down: release our data.
+  */
+ JNIEXPORT void JNICALL Java_jpen_provider_osx_CocoaAccess_shutdown(JNIEnv *env, jobject this) {
+-    if ( g_object )
++    if (g_object) {
+         (*env)->DeleteGlobalRef( env, g_object );
+-    if ( g_class )
++        g_object = NULL;
++    }
++    if (g_class) {
+         (*env)->DeleteGlobalRef( env, g_class );
+-    g_object = NULL;
+-    g_class = NULL;
++        g_class = NULL;
++    }
++    if (eventTapRunLoopSource) {
++        CFRunLoopRemoveSource(CFRunLoopGetMain(), eventTapRunLoopSource, kCFRunLoopDefaultMode);
++        CFRelease(eventTapRunLoopSource);
++        eventTapRunLoopSource = NULL;
++    }
++    if (eventTap) {
++        CFRelease(eventTap);
++        eventTap = NULL;
++    }
+ }
+-
+-
+-// CONSTANTS
+-
+-//JNIEXPORT jintArray Java_jpen_provider_osx_CocoaAccess_getPointingDeviceTypes(JNIEnv *env, jobject this) {
+-//	jint a[4];
+-//	a[0] = NSUnknownPointingDevice;
+-//	a[1] = NSPenPointingDevice;
+-//	a[2] = NSCursorPointingDevice;
+-//	a[3] = NSEraserPointingDevice;
+-//	
+-//	jintArray types = (*env)->NewIntArray(env, 4);
+-//	(*env)->SetIntArrayRegion(env, types, 0, 4, (jint*) a);
+-//	
+-//	return types;
+-//	
+-//	//NSUnknownPointingDevice = NX_TABLET_POINTER_UNKNOWN,
+-//	//NSPenPointingDevice     = NX_TABLET_POINTER_PEN,
+-//	//NSCursorPointingDevice  = NX_TABLET_POINTER_CURSOR,
+-//	//NSEraserPointingDevice  = NX_TABLET_POINTER_ERASER
+-//}
+-//
+-//// NOTE: also want this for button masks
+-//
+-//JNIEXPORT jintArray Java_jpen_provider_osx_CocoaAccess_getButtonMasks(JNIEnv *env, jobject this) {
+-//	jint a[3];
+-//	a[0] = NSPenTipMask;
+-//	a[1] = NSPenLowerSideMask;
+-//	a[2] = NSPenUpperSideMask;
+-//	
+-//	jintArray types = (*env)->NewIntArray(env, 3);
+-//	(*env)->SetIntArrayRegion(env, types, 0, 3, (jint*) a);
+-//	
+-//	return types;
+-//	
+-//	//NSPenTipMask =       NX_TABLET_BUTTON_PENTIPMASK,
+-//	//NSPenLowerSideMask = NX_TABLET_BUTTON_PENLOWERSIDEMASK,
+-//	//NSPenUpperSideMask = NX_TABLET_BUTTON_PENUPPERSIDEMASK
+-//}
+-//
+-
+-
+-
+-
+Index: c/osx/JPen-JNI-MacOSX.xcodeproj/project.pbxproj
+===================================================================
+--- c/osx/JPen-JNI-MacOSX.xcodeproj/project.pbxproj	(revision 297)
++++ c/osx/JPen-JNI-MacOSX.xcodeproj/project.pbxproj	(working copy)
+@@ -3,14 +3,11 @@
+ 	archiveVersion = 1;
+ 	classes = {
+ 	};
+-	objectVersion = 42;
++	objectVersion = 46;
+ 	objects = {
+ 
+ /* Begin PBXBuildFile section */
+ 		AD2E423110EB21260036410B /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD2E423010EB21260036410B /* Carbon.framework */; };
+-		AD466FC5110C3DBC004B89F4 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDC2546A0EC52A7A00984EE2 /* Cocoa.framework */; };
+-		AD466FC6110C3DBC004B89F4 /* JavaVM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDC2546B0EC52A7A00984EE2 /* JavaVM.framework */; };
+-		AD466FC7110C3DBC004B89F4 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AD2E423010EB21260036410B /* Carbon.framework */; };
+ 		ADDE1A4D11324FA100226E22 /* osx-BuildNumber.h in Headers */ = {isa = PBXBuildFile; fileRef = ADDE1A4C11324FA100226E22 /* osx-BuildNumber.h */; };
+ 		ADDE1A5511324FAB00226E22 /* JRSwizzle.h in Headers */ = {isa = PBXBuildFile; fileRef = ADDE1A4E11324FAB00226E22 /* JRSwizzle.h */; };
+ 		ADDE1A5611324FAB00226E22 /* JRSwizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = ADDE1A4F11324FAB00226E22 /* JRSwizzle.m */; };
+@@ -19,31 +16,12 @@
+ 		ADDE1A5911324FAB00226E22 /* osx_push_provider.m in Sources */ = {isa = PBXBuildFile; fileRef = ADDE1A5211324FAB00226E22 /* osx_push_provider.m */; };
+ 		ADDE1A5A11324FAB00226E22 /* WacomAccess.h in Headers */ = {isa = PBXBuildFile; fileRef = ADDE1A5311324FAB00226E22 /* WacomAccess.h */; };
+ 		ADDE1A5B11324FAB00226E22 /* WacomAccess.m in Sources */ = {isa = PBXBuildFile; fileRef = ADDE1A5411324FAB00226E22 /* WacomAccess.m */; };
++		ADDF421B1501E1E6002C3BB6 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = ADDF421A1501E1E6002C3BB6 /* ApplicationServices.framework */; };
+ 		FDC2546C0EC52A7A00984EE2 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDC2546A0EC52A7A00984EE2 /* Cocoa.framework */; };
+ 		FDC2546D0EC52A7A00984EE2 /* JavaVM.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDC2546B0EC52A7A00984EE2 /* JavaVM.framework */; };
+ /* End PBXBuildFile section */
+ 
+ /* Begin PBXCopyFilesBuildPhase section */
+-		AD466FC8110C3DBC004B89F4 /* Copy Files to Java Extensions */ = {
+-			isa = PBXCopyFilesBuildPhase;
+-			buildActionMask = 12;
+-			dstPath = "~/Library/Java/Extensions";
+-			dstSubfolderSpec = 0;
+-			files = (
+-			);
+-			name = "Copy Files to Java Extensions";
+-			runOnlyForDeploymentPostprocessing = 0;
+-		};
+-		AD466FCA110C3DBC004B89F4 /* Copy Files to SVN Directory */ = {
+-			isa = PBXCopyFilesBuildPhase;
+-			buildActionMask = 12;
+-			dstPath = "/Users/marcello/Documents/workspace-marcello/jpen/users/marcello3d/osx-build";
+-			dstSubfolderSpec = 0;
+-			files = (
+-			);
+-			name = "Copy Files to SVN Directory";
+-			runOnlyForDeploymentPostprocessing = 0;
+-		};
+ 		AD614C9D0FA610F400266935 /* Copy Files to Java Extensions */ = {
+ 			isa = PBXCopyFilesBuildPhase;
+ 			buildActionMask = 12;
+@@ -77,26 +55,17 @@
+ 		ADDE1A5311324FAB00226E22 /* WacomAccess.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WacomAccess.h; sourceTree = "<group>"; };
+ 		ADDE1A5411324FAB00226E22 /* WacomAccess.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WacomAccess.m; sourceTree = "<group>"; };
+ 		ADDE1A5C11324FB100226E22 /* libjpen-2-3.jnilib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libjpen-2-3.jnilib"; sourceTree = BUILT_PRODUCTS_DIR; };
+-		ADDE1A5D11324FB100226E22 /* libjpen-2-3-tiger.jnilib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libjpen-2-3-tiger.jnilib"; sourceTree = BUILT_PRODUCTS_DIR; };
++		ADDF421A1501E1E6002C3BB6 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = System/Library/Frameworks/ApplicationServices.framework; sourceTree = SDKROOT; };
+ 		FDC2546A0EC52A7A00984EE2 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+ 		FDC2546B0EC52A7A00984EE2 /* JavaVM.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaVM.framework; path = /System/Library/Frameworks/JavaVM.framework; sourceTree = "<absolute>"; };
+ /* End PBXFileReference section */
+ 
+ /* Begin PBXFrameworksBuildPhase section */
+-		AD466FC4110C3DBC004B89F4 /* Frameworks */ = {
+-			isa = PBXFrameworksBuildPhase;
+-			buildActionMask = 2147483647;
+-			files = (
+-				AD466FC5110C3DBC004B89F4 /* Cocoa.framework in Frameworks */,
+-				AD466FC6110C3DBC004B89F4 /* JavaVM.framework in Frameworks */,
+-				AD466FC7110C3DBC004B89F4 /* Carbon.framework in Frameworks */,
+-			);
+-			runOnlyForDeploymentPostprocessing = 0;
+-		};
+ 		FDC254490EC5286700984EE2 /* Frameworks */ = {
+ 			isa = PBXFrameworksBuildPhase;
+ 			buildActionMask = 2147483647;
+ 			files = (
++				ADDF421B1501E1E6002C3BB6 /* ApplicationServices.framework in Frameworks */,
+ 				FDC2546C0EC52A7A00984EE2 /* Cocoa.framework in Frameworks */,
+ 				FDC2546D0EC52A7A00984EE2 /* JavaVM.framework in Frameworks */,
+ 				AD2E423110EB21260036410B /* Carbon.framework in Frameworks */,
+@@ -143,7 +112,6 @@
+ 			isa = PBXGroup;
+ 			children = (
+ 				ADDE1A5C11324FB100226E22 /* libjpen-2-3.jnilib */,
+-				ADDE1A5D11324FB100226E22 /* libjpen-2-3-tiger.jnilib */,
+ 			);
+ 			name = Products;
+ 			sourceTree = "<group>";
+@@ -158,6 +126,7 @@
+ 		FDC2546E0EC52A9A00984EE2 /* Frameworks */ = {
+ 			isa = PBXGroup;
+ 			children = (
++				ADDF421A1501E1E6002C3BB6 /* ApplicationServices.framework */,
+ 				FDC2546A0EC52A7A00984EE2 /* Cocoa.framework */,
+ 				FDC2546B0EC52A7A00984EE2 /* JavaVM.framework */,
+ 				AD2E423010EB21260036410B /* Carbon.framework */,
+@@ -168,13 +137,6 @@
+ /* End PBXGroup section */
+ 
+ /* Begin PBXHeadersBuildPhase section */
+-		AD466FBA110C3DBC004B89F4 /* Headers */ = {
+-			isa = PBXHeadersBuildPhase;
+-			buildActionMask = 2147483647;
+-			files = (
+-			);
+-			runOnlyForDeploymentPostprocessing = 0;
+-		};
+ 		FDC254470EC5286700984EE2 /* Headers */ = {
+ 			isa = PBXHeadersBuildPhase;
+ 			buildActionMask = 2147483647;
+@@ -189,25 +151,6 @@
+ /* End PBXHeadersBuildPhase section */
+ 
+ /* Begin PBXNativeTarget section */
+-		AD466FB9110C3DBC004B89F4 /* jnilib-tiger */ = {
+-			isa = PBXNativeTarget;
+-			buildConfigurationList = AD466FCC110C3DBC004B89F4 /* Build configuration list for PBXNativeTarget "jnilib-tiger" */;
+-			buildPhases = (
+-				AD466FBA110C3DBC004B89F4 /* Headers */,
+-				AD466FBF110C3DBC004B89F4 /* Sources */,
+-				AD466FC4110C3DBC004B89F4 /* Frameworks */,
+-				AD466FC8110C3DBC004B89F4 /* Copy Files to Java Extensions */,
+-				AD466FCA110C3DBC004B89F4 /* Copy Files to SVN Directory */,
+-			);
+-			buildRules = (
+-			);
+-			dependencies = (
+-			);
+-			name = "jnilib-tiger";
+-			productName = "jpen-2";
+-			productReference = ADDE1A5D11324FB100226E22 /* libjpen-2-3-tiger.jnilib */;
+-			productType = "com.apple.product-type.library.dynamic";
+-		};
+ 		FDC2544A0EC5286700984EE2 /* jnilib */ = {
+ 			isa = PBXNativeTarget;
+ 			buildConfigurationList = FDC254500EC5287400984EE2 /* Build configuration list for PBXNativeTarget "jnilib" */;
+@@ -232,28 +175,27 @@
+ /* Begin PBXProject section */
+ 		FDC252A40EC51E7600984EE2 /* Project object */ = {
+ 			isa = PBXProject;
++			attributes = {
++				LastUpgradeCheck = 0420;
++			};
+ 			buildConfigurationList = FDC252A70EC51E7600984EE2 /* Build configuration list for PBXProject "JPen-JNI-MacOSX" */;
+-			compatibilityVersion = "Xcode 2.4";
++			compatibilityVersion = "Xcode 3.2";
++			developmentRegion = English;
+ 			hasScannedForEncodings = 0;
++			knownRegions = (
++				en,
++			);
+ 			mainGroup = FDC252A20EC51E7600984EE2;
+ 			productRefGroup = FDC252BF0EC51FEA00984EE2 /* Products */;
+ 			projectDirPath = "";
+ 			projectRoot = "";
+ 			targets = (
+ 				FDC2544A0EC5286700984EE2 /* jnilib */,
+-				AD466FB9110C3DBC004B89F4 /* jnilib-tiger */,
+ 			);
+ 		};
+ /* End PBXProject section */
+ 
+ /* Begin PBXSourcesBuildPhase section */
+-		AD466FBF110C3DBC004B89F4 /* Sources */ = {
+-			isa = PBXSourcesBuildPhase;
+-			buildActionMask = 2147483647;
+-			files = (
+-			);
+-			runOnlyForDeploymentPostprocessing = 0;
+-		};
+ 		FDC254480EC5286700984EE2 /* Sources */ = {
+ 			isa = PBXSourcesBuildPhase;
+ 			buildActionMask = 2147483647;
+@@ -268,118 +210,58 @@
+ /* End PBXSourcesBuildPhase section */
+ 
+ /* Begin XCBuildConfiguration section */
+-		AD466FCD110C3DBC004B89F4 /* Debug */ = {
++		FDC252A50EC51E7600984EE2 /* Debug */ = {
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
+-				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "ppc i386 ppc64 x86_64";
+-				COPY_PHASE_STRIP = NO;
+-				DYLIB_COMPATIBILITY_VERSION = 1;
+-				DYLIB_CURRENT_VERSION = 1;
+-				EXECUTABLE_EXTENSION = jnilib;
+-				EXECUTABLE_PREFIX = lib;
+-				GCC_DYNAMIC_NO_PIC = NO;
+-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+-				GCC_MODEL_TUNING = G5;
+-				GCC_OPTIMIZATION_LEVEL = 0;
+-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+-				HEADER_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks/JavaVM.framework/Headers";
+-				INSTALL_PATH = /usr/local/lib;
+-				OTHER_LDFLAGS = (
+-					"-framework",
+-					Foundation,
+-					"-framework",
+-					AppKit,
+-				);
+-				PREBINDING = NO;
+-				PRODUCT_NAME = "jpen-2";
+-				ZERO_LINK = YES;
+-			};
+-			name = Debug;
+-		};
+-		AD466FCE110C3DBC004B89F4 /* Release */ = {
+-			isa = XCBuildConfiguration;
+-			buildSettings = {
+-				ARCHS = "$(ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1)";
+-				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
+-				ARCHS_STANDARD_32_BIT_PRE_XCODE_3_1 = "ppc i386";
++				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+ 				COPY_PHASE_STRIP = YES;
+-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+-				DYLIB_COMPATIBILITY_VERSION = 1;
+-				DYLIB_CURRENT_VERSION = 1;
+-				EXECUTABLE_EXTENSION = jnilib;
+-				EXECUTABLE_PREFIX = lib;
+-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+-				GCC_MODEL_TUNING = G5;
+-				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+-				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+-				GCC_VERSION = 4.0;
+-				HEADER_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks/JavaVM.framework/Headers";
+-				INSTALL_PATH = /usr/local/lib;
+-				MACOSX_DEPLOYMENT_TARGET = 10.4;
+-				OTHER_LDFLAGS = (
+-					"-framework",
+-					Foundation,
+-					"-framework",
+-					AppKit,
+-				);
+-				PREBINDING = NO;
+-				PRODUCT_NAME = "jpen-2-3-tiger";
+-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+-				ZERO_LINK = NO;
++				MACOSX_DEPLOYMENT_TARGET = "";
++				OTHER_CODE_SIGN_FLAGS = "i386 x86_64";
++				SDKROOT = macosx10.6;
++				VALID_ARCHS = "i386 x86_64";
+ 			};
+-			name = Release;
+-		};
+-		FDC252A50EC51E7600984EE2 /* Debug */ = {
+-			isa = XCBuildConfiguration;
+-			buildSettings = {
+-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
+-				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
+-				COPY_PHASE_STRIP = NO;
+-				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
+-				VALID_ARCHS = "i386 ppc x86_64";
+-			};
+ 			name = Debug;
+ 		};
+ 		FDC252A60EC51E7600984EE2 /* Release */ = {
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
+-				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
++				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+ 				COPY_PHASE_STRIP = YES;
+-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+-				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
+-				VALID_ARCHS = "i386 ppc x86_64";
++				MACOSX_DEPLOYMENT_TARGET = "";
++				OTHER_CODE_SIGN_FLAGS = "i386 x86_64";
++				SDKROOT = macosx10.6;
++				VALID_ARCHS = "i386 x86_64";
+ 			};
+ 			name = Release;
+ 		};
+ 		FDC2544C0EC5286700984EE2 /* Debug */ = {
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
++				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+ 				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "ppc i386 ppc64 x86_64";
+-				COPY_PHASE_STRIP = NO;
++				CODE_SIGN_IDENTITY = "";
++				COPY_PHASE_STRIP = YES;
++				DEBUG_INFORMATION_FORMAT = dwarf;
+ 				DYLIB_COMPATIBILITY_VERSION = 1;
+ 				DYLIB_CURRENT_VERSION = 1;
+ 				EXECUTABLE_EXTENSION = jnilib;
+ 				EXECUTABLE_PREFIX = lib;
+ 				GCC_DYNAMIC_NO_PIC = NO;
+-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+ 				GCC_MODEL_TUNING = G5;
+ 				GCC_OPTIMIZATION_LEVEL = 0;
+ 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+ 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+ 				HEADER_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks/JavaVM.framework/Headers";
+ 				INSTALL_PATH = /usr/local/lib;
++				MACOSX_DEPLOYMENT_TARGET = 10.6;
+ 				OTHER_LDFLAGS = (
+ 					"-framework",
+ 					Foundation,
+ 					"-framework",
+ 					AppKit,
+ 				);
+-				PREBINDING = NO;
+-				PRODUCT_NAME = "jpen-2";
++				PRODUCT_NAME = "jpen-2-3";
++				SDKROOT = macosx10.6;
+ 				ZERO_LINK = YES;
+ 			};
+ 			name = Debug;
+@@ -387,29 +269,28 @@
+ 		FDC2544D0EC5286700984EE2 /* Release */ = {
+ 			isa = XCBuildConfiguration;
+ 			buildSettings = {
+-				ARCHS = "$(ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1)";
+-				ARCHS_STANDARD_32_64_BIT_PRE_XCODE_3_1 = "x86_64 i386 ppc";
++				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
++				CODE_SIGN_IDENTITY = "";
+ 				COPY_PHASE_STRIP = YES;
+-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
++				DEBUG_INFORMATION_FORMAT = dwarf;
+ 				DYLIB_COMPATIBILITY_VERSION = 1;
+ 				DYLIB_CURRENT_VERSION = 1;
+ 				EXECUTABLE_EXTENSION = jnilib;
+ 				EXECUTABLE_PREFIX = lib;
+-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+ 				GCC_MODEL_TUNING = G5;
+ 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+ 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+ 				HEADER_SEARCH_PATHS = "$(SDKROOT)/System/Library/Frameworks/JavaVM.framework/Headers";
+ 				INSTALL_PATH = /usr/local/lib;
++				MACOSX_DEPLOYMENT_TARGET = 10.6;
+ 				OTHER_LDFLAGS = (
+ 					"-framework",
+ 					Foundation,
+ 					"-framework",
+ 					AppKit,
+ 				);
+-				PREBINDING = NO;
+ 				PRODUCT_NAME = "jpen-2-3";
+-				SDKROOT = /Developer/SDKs/MacOSX10.5.sdk;
++				SDKROOT = macosx10.6;
+ 				ZERO_LINK = NO;
+ 			};
+ 			name = Release;
+@@ -417,15 +298,6 @@
+ /* End XCBuildConfiguration section */
+ 
+ /* Begin XCConfigurationList section */
+-		AD466FCC110C3DBC004B89F4 /* Build configuration list for PBXNativeTarget "jnilib-tiger" */ = {
+-			isa = XCConfigurationList;
+-			buildConfigurations = (
+-				AD466FCD110C3DBC004B89F4 /* Debug */,
+-				AD466FCE110C3DBC004B89F4 /* Release */,
+-			);
+-			defaultConfigurationIsVisible = 0;
+-			defaultConfigurationName = Release;
+-		};
+ 		FDC252A70EC51E7600984EE2 /* Build configuration list for PBXProject "JPen-JNI-MacOSX" */ = {
+ 			isa = XCConfigurationList;
+ 			buildConfigurations = (
